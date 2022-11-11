@@ -1,8 +1,7 @@
 #pragma once
 
-#include "export.hh"
-#include "glObjects.hh"
-#include "utility.hh"
+#include "glrPostProcessing.hh"
+#include "glrColor.hh"
 
 #include <commons/math/vec2.hh>
 #include <commons/math/vec3.hh>
@@ -12,58 +11,7 @@
 
 namespace GLRender
 {
-	/// Access type for compute shader imnage binding
-	/// Mirrors OpenGL's enums
-	enum struct IO
-	{
-		READ = 0x88B8, WRITE = 0x88B9, READWRITE = 0x88BA
-	};
-	
-	/// Color format for compute shader image binding
-	/// Mirrors OpenGL's enums
-	enum struct ColorFormat
-	{
-		R32F = 0x822E,
-		RGB8 = 0x8051,
-		RGBA8 = 0x8058,
-		RGB16 = 0x8054,
-		RGBA16 = 0x805B,
-		RGB32I = 0x8D83,
-		RGBA32I = 0x8D82,
-		RGB32UI = 0x8D71,
-		RGBA32UI = 0x8D70,
-		RGB16F = 0x881B,
-		RGBA16F = 0x881A,
-		RGB32F = 0x8815,
-		RGBA32F = 0x8814,
-		DEPTH32F = 0x8CAC,
-	};
-	
-	/// Mode to draw a VAO in
-	/// Mirrors OpenGL's enums
-	enum struct DrawMode
-	{
-		TRIS = 0x0004,
-		TRISTRIPS = 0x0005,
-		TRIFANS = 0x0006,
-		LINES = 0x0001,
-		LINESTRIPS = 0x0003,
-		LINELOOPS = 0x0002,
-		POINTS = 0x0000,
-	};
-	
-	enum struct FilterMode
-	{
-		NEAREST,
-		BILINEAR,
-		TRILINEAR
-	};
-	
-	enum struct RenderableType
-	{
-		NORMAL,
-		TEXT,
-	};
+	typedef void* (*GLLoadFunc)(const char *name);
 	
 	struct Renderable
 	{
@@ -99,18 +47,20 @@ namespace GLRender
 		std::vector<Renderable> m_list;
 	};
 	
-	/// An OpenGL 4.6 rendering engine
+	/// The OpenGL 4.5+ rendering engine
 	struct Renderer
 	{
-		GLRENDER_API Renderer();
+		/// You're expected to be using a windowing library like SDL2, it will provide you
+		/// with @param loadFunc
+		GLRENDER_API Renderer(GLLoadFunc loadFunc);
 		GLRENDER_API ~Renderer();
 		
-		GLRENDER_API void setGlobalPostStack(Postprocessing::PostStack const &stack);
-		GLRENDER_API void setLayerPostStack(uint64_t layer, Postprocessing::PostStack const &stack);
-		GLRENDER_API void addGlobalPostStackToThisFrame(Postprocessing::PostStack const &stack);
-		GLRENDER_API void addLayerPostStackToThisFrame(uint64_t layer, Postprocessing::PostStack const &stack);
+		GLRENDER_API void setGlobalPostStack(PostStack const &stack);
+		GLRENDER_API void setLayerPostStack(uint64_t layer, PostStack const &stack);
+		GLRENDER_API void addGlobalPostStackToThisFrame(PostStack const &stack);
+		GLRENDER_API void addLayerPostStackToThisFrame(uint64_t layer, PostStack const &stack);
 		GLRENDER_API void useBackBuffer();
-		GLRENDER_API void render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection, Postprocessing::PostStack const &stack);
+		GLRENDER_API void render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection, PostStack const &stack);
 		GLRENDER_API void setClearColor(Color color);
 		GLRENDER_API void clearCurrentFramebuffer();
 		GLRENDER_API void setScissorTest(bool val);
@@ -120,7 +70,7 @@ namespace GLRender
 		GLRENDER_API void setCullFace(bool val);
 		GLRENDER_API void setFilterMode(FilterMode mode);
 		
-		GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IO mode, ColorFormat format);
+		GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format);
 		GLRENDER_API void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
 		GLRENDER_API void draw(DrawMode mode, size_t numElements);
 		
@@ -132,7 +82,8 @@ namespace GLRender
 		{
 			inline bool swap()
 			{
-				p_alt = !p_alt; return p_alt;
+				p_alt = !p_alt;
+				return p_alt;
 			}
 			
 			inline bool get() const
@@ -145,18 +96,18 @@ namespace GLRender
 		};
 		
 		void postprocess();
-		void postprocessGlobal(Postprocessing::PostStack const &stack);
-		void postProcessLayer(uint64_t layer, Postprocessing::PostStack const &stack);
+		void postprocessGlobal(PostStack const &stack);
+		void postProcessLayer(uint64_t layer, PostStack const &stack);
 		void drawRenderable(Renderable const &entry);
 		
-		Color p_clearColor;
-		mat4x4<float> p_model;
-		mat4x4<float> p_view;
-		mat4x4<float> p_projection;
-		mat4x4<float> p_mvp;
+		Color p_clearColor = {};
+		mat4x4<float> p_model = {};
+		mat4x4<float> p_view = {};
+		mat4x4<float> p_projection = {};
+		mat4x4<float> p_mvp = {};
 		std::unique_ptr<Framebuffer> p_fboA = nullptr;
 		std::unique_ptr<Framebuffer> p_fboB = nullptr;
 		std::unique_ptr<Framebuffer> p_scratch = nullptr;
-		Alternator p_curFBO;
+		Alternator p_curFBO = {};
 	};
 }

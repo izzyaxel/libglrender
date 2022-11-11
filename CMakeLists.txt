@@ -31,15 +31,24 @@ endif()
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_subdirectory("../libcommons/" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
-include_directories("../libcommons/src/")
+add_subdirectory("libcommons" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
+include_directories("libcommons/src/")
 
 project(libGLRender)
 include_directories(include)
 add_library(${PROJECT_NAME} SHARED
 		src/gl.c
 		src/export.hh
-		src/glObjects.cc        src/glObjects.hh
-		src/renderer.cc         src/renderer.hh src/utility.cc src/utility.hh)
+		src/glrEnums.hh
+		src/glrRenderer.cc          src/glrRenderer.hh
+		src/glrFramebuffer.cc       src/glrFramebuffer.hh
+		src/glrPostProcessing.cc    src/glrPostProcessing.hh
+		src/glrTexture.cc           src/glrTexture.hh
+		src/glrShader.cc            src/glrShader.hh
+		src/glrAtlas.cc             src/glrAtlas.hh
+		src/glrImage.cc             src/glrImage.hh
+		src/glrColor.cc             src/glrColor.hh
+		src/glrMesh.cc              src/glrMesh.hh)
+
 add_dependencies(${PROJECT_NAME} commons)
 target_link_libraries(${PROJECT_NAME} commons)

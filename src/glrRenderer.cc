@@ -1,4 +1,4 @@
-#include "renderer.hh"
+#include "glrRenderer.hh"
 
 #include <glad/gl.h>
 
@@ -40,8 +40,9 @@ namespace GLRender
 	}
 	
 /// ===Renderer========================================================================================================================================///
-	Renderer::Renderer()
+	Renderer::Renderer(GLLoadFunc loadFunc)
 	{
+		gladLoadGL((GLADloadfunc)loadFunc);
 		//TODO set up members
 	}
 	
@@ -50,22 +51,22 @@ namespace GLRender
 		//TODO clean up members
 	}
 	
-	void Renderer::setGlobalPostStack(const Postprocessing::PostStack &stack)
+	void Renderer::setGlobalPostStack(PostStack const &stack)
 	{
 		
 	}
 	
-	void Renderer::setLayerPostStack(uint64_t layer, const Postprocessing::PostStack &stack)
+	void Renderer::setLayerPostStack(uint64_t layer, PostStack const &stack)
 	{
 		
 	}
 	
-	void Renderer::addGlobalPostStackToThisFrame(const Postprocessing::PostStack &stack)
+	void Renderer::addGlobalPostStackToThisFrame(PostStack const &stack)
 	{
 		
 	}
 	
-	void Renderer::addLayerPostStackToThisFrame(uint64_t layer, const Postprocessing::PostStack &stack)
+	void Renderer::addLayerPostStackToThisFrame(uint64_t layer, PostStack const &stack)
 	{
 		
 	}
@@ -75,7 +76,7 @@ namespace GLRender
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
-	void Renderer::render(RenderList renderList, const mat4x4<float> &view, const mat4x4<float> &projection, const Postprocessing::PostStack &stack)
+	void Renderer::render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection, PostStack const &stack)
 	{
 		
 	}
@@ -138,7 +139,7 @@ namespace GLRender
 		}
 	}
 	
-	void Renderer::bindImage(uint32_t target, const uint32_t &handle, IO mode, ColorFormat format)
+	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format)
 	{
 		glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
 	}
