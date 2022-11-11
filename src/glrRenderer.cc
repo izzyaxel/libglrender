@@ -6,7 +6,7 @@ namespace GLRender
 {
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
 	{
-		return (a.m_atlasID > b.m_atlasID) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		return (a.m_textureID > b.m_textureID) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
 	}
 	
 	Renderable& RenderList::operator [](size_t index)
@@ -48,7 +48,9 @@ namespace GLRender
 	
 	Renderer::~Renderer()
 	{
-		//TODO clean up members
+		this->p_fboA.reset();
+		this->p_fboB.reset();
+		this->p_scratch.reset();
 	}
 	
 	void Renderer::setGlobalPostStack(PostStack const &stack)
