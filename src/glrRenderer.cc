@@ -159,4 +159,24 @@ namespace GLRender
 		this->p_curFBO.swap() ? this->p_fboA->use() : this->p_fboB->use();
 		this->clearCurrentFramebuffer();
 	}
+	
+	void Renderer::postProcess()
+	{
+		
+	}
+	
+	void Renderer::postProcessLayer(uint64_t layer, const PostStack &stack)
+	{
+		
+	}
+	
+	void Renderer::postprocessGlobal(const PostStack &stack)
+	{
+		
+	}
+	
+	void Renderer::drawRenderable(const Renderable &entry)
+	{
+		
+	}
 }

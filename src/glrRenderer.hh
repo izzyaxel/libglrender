@@ -52,7 +52,7 @@ namespace GLRender
 	{
 		/// You're expected to be using a windowing library like SDL2, it will provide you
 		/// with @param loadFunc
-		GLRENDER_API Renderer(GLLoadFunc loadFunc);
+		GLRENDER_API explicit Renderer(GLLoadFunc loadFunc);
 		GLRENDER_API ~Renderer();
 		
 		GLRENDER_API void setGlobalPostStack(PostStack const &stack);
@@ -95,7 +95,7 @@ namespace GLRender
 			bool p_alt = true;
 		};
 		
-		void postprocess();
+		void postProcess();
 		void postprocessGlobal(PostStack const &stack);
 		void postProcessLayer(uint64_t layer, PostStack const &stack);
 		void drawRenderable(Renderable const &entry);

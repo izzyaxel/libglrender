@@ -1,10 +1,11 @@
 #include "glrTexture.hh"
 
 #include <glad/gl.h>
+#include <cstdio>
 
 namespace GLRender
 {
-	Texture::Texture(uint32_t width, uint32_t height, TextureColorFormat colorFormat, TextureInterpolationMode mode, bool sRGB)
+	Texture::Texture(uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode, bool sRGB)
 	{
 		this->m_fmt = colorFormat;
 		this->m_width = width;
@@ -27,11 +28,11 @@ namespace GLRender
 		}
 		glTextureStorage2D(this->m_handle, 1, f, (GLsizei)width, (GLsizei)height);
 		this->clear();
-		this->setInterpolation(mode, mode);
+		this->setFilterMode(mode, mode);
 		this->setAnisotropyLevel(1);
 	}
 	
-	Texture::Texture(uint8_t *data, uint32_t width, uint32_t height, TextureColorFormat colorFormat, TextureInterpolationMode mode, bool sRGB)
+	Texture::Texture(uint8_t *data, uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode, bool sRGB)
 	{
 		this->m_fmt = colorFormat;
 		this->m_width = width;
@@ -57,7 +58,7 @@ namespace GLRender
 		glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
 		glTextureStorage2D(this->m_handle, 1, f, (GLsizei)width, (GLsizei)height);
 		glTextureSubImage2D(this->m_handle, 0, 0, 0, (GLsizei)this->m_width, (GLsizei)this->m_height, cf, GL_UNSIGNED_BYTE, data);
-		this->setInterpolation(mode, mode);
+		this->setFilterMode(mode, mode);
 		this->setAnisotropyLevel(1);
 	}
 	
@@ -75,7 +76,7 @@ namespace GLRender
 		glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
 		glTextureStorage2D(this->m_handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (GLsizei)this->m_width, (GLsizei)this->m_height);
 		glTextureSubImage2D(this->m_handle, 0, 0, 0, (GLsizei)this->m_width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
-		this->setInterpolation(TextureInterpolationMode::LINEAR, TextureInterpolationMode::LINEAR);
+		this->setFilterMode(FilterMode::BILINEAR, FilterMode::BILINEAR);
 		this->setAnisotropyLevel(1);
 	}
 	
@@ -117,20 +118,22 @@ namespace GLRender
 		glBindTextureUnit(target, this->m_handle);
 	}
 	
-	void Texture::setInterpolation(TextureInterpolationMode min, TextureInterpolationMode mag) const
+	void Texture::setFilterMode(FilterMode min, FilterMode mag) const
 	{
 		GLenum glMin = GL_NEAREST, glMag = GL_NEAREST;
 		switch(min)
 		{
-			case TextureInterpolationMode::NEAREST: glMin = GL_NEAREST; break;
-			case TextureInterpolationMode::LINEAR: glMin = GL_LINEAR; break;
+			case FilterMode::NEAREST: glMin = GL_NEAREST; break;
+			case FilterMode::BILINEAR: glMin = GL_LINEAR; break;
+			case FilterMode::TRILINEAR: glMin = GL_LINEAR_MIPMAP_LINEAR; break;
 			default: break;
 		}
 		
 		switch(mag)
 		{
-			case TextureInterpolationMode::NEAREST: glMag = GL_NEAREST; break;
-			case TextureInterpolationMode::LINEAR: glMag = GL_LINEAR; break;
+			case FilterMode::NEAREST: glMag = GL_NEAREST; break;
+			case FilterMode::BILINEAR: glMag = GL_LINEAR; break;
+			case FilterMode::TRILINEAR: glMag = GL_LINEAR_MIPMAP_LINEAR; break;
 			default: break;
 		}
 		glTextureParameteri(this->m_handle, GL_TEXTURE_MIN_FILTER, (GLint)glMin);

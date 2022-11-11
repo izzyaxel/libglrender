@@ -2,11 +2,13 @@
 
 #include "export.hh"
 #include "glrEnums.hh"
+#include "glrTexture.hh"
 
 #include <commons/math/vec2.hh>
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 namespace GLRender
 {
@@ -21,12 +23,14 @@ namespace GLRender
 			vec2<float> m_lowerRight = {};
 		};
 		
+		GLRENDER_API ~Atlas();
+		
 		/// Add a new tile into this atlas
 		/// \param name The name of the tile
 		/// \param tileData Flat array of pixel data
 		/// \param width The width of the new tile
 		/// \param height The height of the new tile
-		GLRENDER_API void addTile(std::string const &name, std::vector<uint8_t> const &tileData);
+		GLRENDER_API void addTile(std::string const &name, std::vector<uint8_t> const &tileData, TextureColorFormat format, uint32_t width, uint32_t height);
 		
 		/// Add a new tile into this atlas from raw pixel data
 		GLRENDER_API void addTile(std::string const &name, TextureColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height);
@@ -51,8 +55,8 @@ namespace GLRender
 		struct AtlasImg
 		{
 			GLRENDER_API AtlasImg() = default;
-			GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> &&data, TextureColorFormat fmt, vec2<uint32_t> location, uint32_t width, uint32_t height) :
-					m_name(std::move(name)), m_data(data), m_fmt(fmt), m_location(location), m_width(width), m_height(height) {}
+			GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, TextureColorFormat fmt, vec2<uint32_t> location, uint32_t width, uint32_t height) :
+					m_name(std::move(name)), m_data(std::move(data)), m_fmt(fmt), m_location(location), m_width(width), m_height(height) {}
 			
 			GLRENDER_API static inline bool comparator(AtlasImg const &a, AtlasImg const &b)
 			{
@@ -69,7 +73,7 @@ namespace GLRender
 		
 		vec2<float> p_atlasDims = {};
 		std::vector<AtlasImg> p_atlas = {};
-		uint64_t p_texID = 0;
+		std::unique_ptr<Texture> p_tex;
 		bool p_finalized = false;
 	};
 }

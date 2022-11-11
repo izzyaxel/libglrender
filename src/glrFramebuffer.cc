@@ -13,10 +13,10 @@ namespace GLRender
 		{
 			switch(option)
 			{
-				case Attachment::Color: this->m_hasColor = true; break;
-				case Attachment::Alpha: this->m_hasAlpha = true; break;
-				case Attachment::Depth: this->m_hasDepth = true; break;
-				case Attachment::Stencil: this->m_hasStencil = true; break;
+				case Attachment::COLOR: this->m_hasColor = true; break;
+				case Attachment::ALPHA: this->m_hasAlpha = true; break;
+				case Attachment::DEPTH: this->m_hasDepth = true; break;
+				case Attachment::STENCIL: this->m_hasStencil = true; break;
 				default: break;
 			}
 		}
@@ -100,9 +100,9 @@ namespace GLRender
 	{
 		switch(type)
 		{
-			case Attachment::Color: glBindTextureUnit(target, this->m_colorHandle); break;
-			case Attachment::Depth: glBindTextureUnit(target, this->m_depthHandle); break;
-			case Attachment::Stencil: glBindTextureUnit(target, this->m_stencilHandle); break;
+			case Attachment::COLOR: glBindTextureUnit(target, this->m_colorHandle); break;
+			case Attachment::DEPTH: glBindTextureUnit(target, this->m_depthHandle); break;
+			case Attachment::STENCIL: glBindTextureUnit(target, this->m_stencilHandle); break;
 			default: break;
 		}
 	}
@@ -163,7 +163,7 @@ namespace GLRender
 		this->p_pool.resize(alloc);
 		for(size_t i = 0; i < alloc; i++)
 		{
-			this->p_pool[i] = std::make_shared<Framebuffer>(width, height, std::initializer_list<Framebuffer::Attachment>{Framebuffer::Attachment::Color, Framebuffer::Attachment::Alpha, Framebuffer::Attachment::Depth}, "Pool " + std::to_string(i));
+			this->p_pool[i] = std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(i));
 		}
 	}
 	
@@ -176,14 +176,14 @@ namespace GLRender
 			{
 				if(fbo->m_width != width || fbo->m_height != height)
 				{
-					fbo = std::make_shared<Framebuffer>(width, height, std::initializer_list<Framebuffer::Attachment>{Framebuffer::Attachment::Color, Framebuffer::Attachment::Alpha, Framebuffer::Attachment::Depth}, "Pool " + std::to_string(this->p_pool.size() + 1));
+					fbo = std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->p_pool.size() + 1));
 				}
 				fbo->use();
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				return fbo;
 			}
 		}
-		this->p_pool.push_back(std::make_shared<Framebuffer>(width, height, std::initializer_list<Framebuffer::Attachment>{Framebuffer::Attachment::Color, Framebuffer::Attachment::Alpha, Framebuffer::Attachment::Depth}, "Pool " + std::to_string(this->p_pool.size() + 1)));
+		this->p_pool.push_back(std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->p_pool.size() + 1)));
 		this->p_pool.back()->use();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		return this->p_pool.back();

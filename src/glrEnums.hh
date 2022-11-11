@@ -10,7 +10,7 @@ enum struct TextureColorFormat
 /// Framebuffer attachments
 enum struct Attachment
 {
-	Color, Alpha, Depth, Stencil,
+	COLOR, ALPHA, DEPTH, STENCIL,
 };
 
 enum struct RenderableType

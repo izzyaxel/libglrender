@@ -13,10 +13,10 @@ namespace GLRender
 		Texture() = delete;
 		
 		/// Allocate VRAM for a texture without assigning data to it
-		GLRENDER_API Texture(uint32_t width, uint32_t height, TextureColorFormat colorFormat, TextureInterpolationMode mode = TextureInterpolationMode::NEAREST, bool sRGB = false);
+		GLRENDER_API Texture(uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode = FilterMode::NEAREST, bool sRGB = false);
 		
 		/// Create a texture from a flat array
-		GLRENDER_API Texture(uint8_t *data, uint32_t width, uint32_t height, TextureColorFormat colorFormat, TextureInterpolationMode mode = TextureInterpolationMode::NEAREST, bool sRGB = false);
+		GLRENDER_API Texture(uint8_t *data, uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode = FilterMode::NEAREST, bool sRGB = false);
 		
 		/// Generates a single color 1x1 texture
 		GLRENDER_API explicit Texture(uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255, uint8_t alpha = 255, bool sRGB = false);
@@ -29,7 +29,7 @@ namespace GLRender
 		GLRENDER_API Texture& operator=(Texture &&other) noexcept;
 		
 		GLRENDER_API void use(uint32_t target) const;
-		GLRENDER_API void setInterpolation(TextureInterpolationMode min, TextureInterpolationMode mag) const;
+		GLRENDER_API void setFilterMode(FilterMode min, FilterMode mag) const;
 		GLRENDER_API void setAnisotropyLevel(uint32_t level) const;
 		GLRENDER_API void subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TextureColorFormat format) const;
 		GLRENDER_API void clear() const;
