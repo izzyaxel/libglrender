@@ -31,6 +31,9 @@ endif()
 
 set(CMAKE_CXX_STANDARD 23)
 
+add_subdirectory("../libcommons/" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
+include_directories("../libcommons/src/")
+
 project(libGLRender)
 include_directories(include)
 add_library(${PROJECT_NAME} SHARED
@@ -38,3 +41,5 @@ add_library(${PROJECT_NAME} SHARED
 		src/export.hh
 		src/glObjects.cc        src/glObjects.hh
 		src/renderer.cc         src/renderer.hh src/utility.cc src/utility.hh)
+add_dependencies(${PROJECT_NAME} commons)
+target_link_libraries(${PROJECT_NAME} commons)
