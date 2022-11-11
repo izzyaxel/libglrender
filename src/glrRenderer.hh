@@ -15,10 +15,9 @@ namespace GLRender
 	
 	struct Renderable
 	{
-		GLRENDER_API Renderable(RenderableType type, vec2<double> const &pos, vec2<double> const &scale, double rotation, vec3<double> const &axis, uint64_t atlasID, uint64_t shaderID, size_t layer, size_t sublayer, std::string name) :
-				m_type(type), m_pos(pos), m_scale(scale), m_rotation(rotation), m_axis(axis), m_textureID(atlasID), m_shaderID(shaderID), m_layer(layer), m_sublayer(sublayer), m_name(std::move(name)) {}
-		
-		RenderableType m_type = RenderableType::NORMAL;
+		GLRENDER_API Renderable(vec2<double> const &pos, vec2<double> const &scale, double rotation, vec3<double> const &axis, uint64_t atlasID, uint64_t shaderID, size_t layer, size_t sublayer, std::string name) :
+				m_pos(pos), m_scale(scale), m_rotation(rotation), m_axis(axis), m_textureID(atlasID), m_shaderID(shaderID), m_layer(layer), m_sublayer(sublayer), m_name(std::move(name)) {}
+				
 		vec2<double> m_pos = {};
 		vec2<double> m_scale = {};
 		double m_rotation = 0.0f;
