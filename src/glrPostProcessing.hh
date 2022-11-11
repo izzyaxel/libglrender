@@ -27,7 +27,7 @@ namespace GLRender
 		GLRENDER_API void add(std::shared_ptr<PostPass> pass);
 		GLRENDER_API void remove(std::shared_ptr<PostPass> const &pass);
 		GLRENDER_API std::vector<std::shared_ptr<PostPass>> getPasses();
-		GLRENDER_API bool empty();
+		GLRENDER_API bool empty() const;
 	
 	private:
 		std::vector<std::shared_ptr<PostPass>> p_postOrder;

@@ -2,6 +2,8 @@
 
 #include "glrPostProcessing.hh"
 #include "glrColor.hh"
+#include "glrMesh.hh"
+#include "glrShader.hh"
 
 #include <commons/math/vec2.hh>
 #include <commons/math/vec3.hh>
@@ -97,6 +99,9 @@ namespace GLRender
 		void postProcess();
 		void postprocessGlobal(PostStack const &stack);
 		void postProcessLayer(uint64_t layer, PostStack const &stack);
+		void drawToScratch();
+		void drawToBackBuffer();
+		void scratchToPingPong();
 		void drawRenderable(Renderable const &entry);
 		
 		Color p_clearColor = {};
@@ -107,6 +112,8 @@ namespace GLRender
 		std::unique_ptr<Framebuffer> p_fboA = nullptr;
 		std::unique_ptr<Framebuffer> p_fboB = nullptr;
 		std::unique_ptr<Framebuffer> p_scratch = nullptr;
+		std::unique_ptr<Mesh> p_fullscreenQuad = nullptr;
+		std::unique_ptr<Shader> p_shaderTransfer = nullptr;
 		Alternator p_curFBO = {};
 	};
 }

@@ -19,7 +19,7 @@ namespace GLRender
 		return this->p_postOrder;
 	}
 	
-	bool PostStack::empty()
+	bool PostStack::empty() const
 	{
 		return this->p_postOrder.empty();
 	}
