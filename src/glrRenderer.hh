@@ -53,15 +53,14 @@ namespace GLRender
 	{
 		/// You're expected to be using a windowing library like SDL2, it will provide you
 		/// with @param loadFunc
-		GLRENDER_API explicit Renderer(GLLoadFunc loadFunc);
+		GLRENDER_API Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight);
 		GLRENDER_API ~Renderer();
 		
-		GLRENDER_API void setGlobalPostStack(PostStack const &stack);
-		GLRENDER_API void setLayerPostStack(uint64_t layer, PostStack const &stack);
-		GLRENDER_API void addGlobalPostStackToThisFrame(PostStack const &stack);
-		GLRENDER_API void addLayerPostStackToThisFrame(uint64_t layer, PostStack const &stack);
+		GLRENDER_API void onContextResize(uint32_t width, uint32_t height);
+		GLRENDER_API void setGlobalPostStack(std::shared_ptr<PostStack> stack);
+		GLRENDER_API void setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack);
 		GLRENDER_API void useBackBuffer();
-		GLRENDER_API void render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection, PostStack const &stack);
+		GLRENDER_API void render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection);
 		GLRENDER_API void setClearColor(Color color);
 		GLRENDER_API void clearCurrentFramebuffer();
 		GLRENDER_API void setScissorTest(bool val);
@@ -74,6 +73,8 @@ namespace GLRender
 		GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format);
 		GLRENDER_API void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
 		GLRENDER_API void draw(DrawMode mode, size_t numElements);
+		
+		std::unique_ptr<FramebufferPool> m_fboPool = nullptr;
 		
 	protected:
 		void pingPong();
@@ -96,14 +97,15 @@ namespace GLRender
 			bool p_alt = true;
 		};
 		
-		void postProcess();
-		void postprocessGlobal(PostStack const &stack);
-		void postProcessLayer(uint64_t layer, PostStack const &stack);
+		void postProcessGlobal();
+		void postProcessLayer(uint64_t layer);
 		void drawToScratch();
 		void drawToBackBuffer();
 		void scratchToPingPong();
 		void drawRenderable(Renderable const &entry);
 		
+		std::shared_ptr<PostStack> p_globalPostStack;
+		std::unordered_map<uint64_t, std::shared_ptr<PostStack>> p_layerPostStack;
 		Color p_clearColor = {};
 		mat4x4<float> p_model = {};
 		mat4x4<float> p_view = {};

@@ -40,11 +40,15 @@ namespace GLRender
 	}
 	
 /// ===Renderer========================================================================================================================================///
-	Renderer::Renderer(GLLoadFunc loadFunc)
+	Renderer::Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight)
 	{
 		gladLoadGL((GLADloadfunc)loadFunc);
-		//TODO set up members
-		
+		this->m_fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
+		this->p_fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
+		this->p_fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
+		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
+		this->p_fullscreenQuad = std::make_unique<Mesh>();
+		this->p_shaderTransfer = std::make_unique<Shader>();
 	}
 	
 	Renderer::~Renderer()
@@ -54,26 +58,25 @@ namespace GLRender
 		this->p_scratch.reset();
 		this->p_fullscreenQuad.reset();
 		this->p_shaderTransfer.reset();
+		this->p_globalPostStack.reset();
+		this->p_layerPostStack.clear();
 	}
 	
-	void Renderer::setGlobalPostStack(PostStack const &stack)
+	void Renderer::onContextResize(uint32_t width, uint32_t height)
 	{
-		
+		this->useBackBuffer();
+		glViewport(0, 0, (int)width, (int)height);
+		this->m_fboPool->onResize(width, height);
 	}
 	
-	void Renderer::setLayerPostStack(uint64_t layer, PostStack const &stack)
+	void Renderer::setGlobalPostStack(std::shared_ptr<PostStack> stack)
 	{
-		
+		this->p_globalPostStack = std::move(stack);
 	}
 	
-	void Renderer::addGlobalPostStackToThisFrame(PostStack const &stack)
+	void Renderer::setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack)
 	{
-		
-	}
-	
-	void Renderer::addLayerPostStackToThisFrame(uint64_t layer, PostStack const &stack)
-	{
-		
+		this->p_layerPostStack[layer] = std::move(stack);
 	}
 	
 	void Renderer::useBackBuffer()
@@ -81,14 +84,14 @@ namespace GLRender
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
-	void Renderer::render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection, PostStack const &stack)
+	void Renderer::render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection)
 	{
 		if(renderList.empty()) return;
 		this->p_view = view;
 		this->p_projection = projection;
 		uint64_t curTexture = renderList[0].m_textureID;
 		glBindTextureUnit(0, curTexture);
-		if(stack.empty())
+		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
 			this->pingPong();
 			for(size_t i = 0; i < renderList.size(); i++)
@@ -129,7 +132,7 @@ namespace GLRender
 				{
 					if(entry.m_layer != prevLayer)
 					{
-						this->postProcessLayer(prevLayer, stack);
+						this->postProcessLayer(prevLayer);
 						this->drawToScratch();
 						this->pingPong();
 						glBindTextureUnit(0, curTexture);
@@ -139,14 +142,14 @@ namespace GLRender
 						glBindTextureUnit(0, curTexture);
 					}
 					this->drawRenderable(entry);
-					this->postProcessLayer(entry.m_layer, stack);
+					this->postProcessLayer(entry.m_layer);
 					this->drawToScratch();
 				}
 				else
 				{
 					if(entry.m_layer != prevLayer)
 					{
-						this->postProcessLayer(prevLayer, stack);
+						this->postProcessLayer(prevLayer);
 						this->drawToScratch();
 						this->pingPong();
 						glBindTextureUnit(0, curTexture);
@@ -162,9 +165,9 @@ namespace GLRender
 			}
 			this->scratchToPingPong();
 		}
-		if(globalPostStack && !globalPostStack->empty())
+		if(this->p_globalPostStack && !this->p_globalPostStack->empty())
 		{
-			this->postProcessGlobal(globalPostStack);
+			this->postProcessGlobal();
 		}
 		this->drawToBackBuffer();
 	}
@@ -248,48 +251,42 @@ namespace GLRender
 		this->clearCurrentFramebuffer();
 	}
 	
-	void Renderer::postProcess()
+	void Renderer::postProcessLayer(uint64_t layer)
 	{
 		
 	}
 	
-	void Renderer::postProcessLayer(uint64_t layer, const PostStack &stack)
-	{
-		
-	}
-	
-	void Renderer::postprocessGlobal(const PostStack &stack)
+	void Renderer::postProcessGlobal()
 	{
 		
 	}
 	
 	void Renderer::drawToBackBuffer()
 	{
-		AR::getMesh(AR::s_meshFullscreenQuad)->use();
+		this->p_fullscreenQuad->use();
 		this->useBackBuffer();
-		this->clear();
-		AR::getShader(AR::s_shaderTransfer)->use();
-		this->p_curFBO.get() ? this->p_fboA->bind(Attachment::Color, 0) : this->p_fboB->bind(Attachment::Color, 0);
-		draw(OpenGL::DrawMode::TRISTRIPS, AR::getMesh(AR::s_meshFullscreenQuad)->m_numVerts);
+		this->clearCurrentFramebuffer();
+		this->p_shaderTransfer->use();
+		this->p_curFBO.get() ? this->p_fboA->bind(Attachment::COLOR, 0) : this->p_fboB->bind(Attachment::COLOR, 0);
+		draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
 	}
 	
 	void Renderer::drawToScratch()
 	{
-		AR::getMesh(AR::s_meshFullscreenQuad)->use();
+		this->p_fullscreenQuad->use();
 		this->p_scratch->use();
-		AR::getShader(AR::s_shaderTransfer)->use();
-		this->p_curFBO.get() ? this->p_fboA->bind(Attachment::Color, 0) : this->p_fboB->bind(Attachment::Color, 0);
-		draw(OpenGL::DrawMode::TRISTRIPS, AR::getMesh(AR::s_meshFullscreenQuad)->m_numVerts);
+		this->p_shaderTransfer->use();
+		this->p_curFBO.get() ? this->p_fboA->bind(Attachment::COLOR, 0) : this->p_fboB->bind(Attachment::COLOR, 0);
+		draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
 	}
 	
 	void Renderer::scratchToPingPong()
 	{
-		AR::getMesh(AR::s_meshFullscreenQuad)->use();
+		this->p_fullscreenQuad->use();
 		this->pingPong();
-		AR::getShader(AR::s_shaderTransfer)->use();
-		assert(this->p_scratch);
-		this->p_scratch->bind(Attachment::Color, 0);
-		draw(OpenGL::DrawMode::TRISTRIPS, AR::getMesh(AR::s_meshFullscreenQuad)->m_numVerts);
+		this->p_shaderTransfer->use();
+		this->p_scratch->bind(Attachment::COLOR, 0);
+		draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
 	}
 	
 	void Renderer::drawRenderable(const Renderable &entry)
