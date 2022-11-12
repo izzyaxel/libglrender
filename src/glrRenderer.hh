@@ -119,10 +119,10 @@ namespace GLRender
 		GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst);
 		GLRENDER_API void setCullFace(bool val);
 		GLRENDER_API void setFilterMode(FilterMode mode);
-		
-		GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format);
-		GLRENDER_API void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
 		GLRENDER_API void draw(DrawMode mode, size_t numElements);
+		
+		GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format);
+		GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
 		
 		std::unique_ptr<FramebufferPool> m_fboPool = nullptr;
 		
@@ -160,9 +160,9 @@ namespace GLRender
 		mat4x4<float> p_view = {};
 		mat4x4<float> p_projection = {};
 		mat4x4<float> p_mvp = {};
-		std::unique_ptr<Framebuffer> p_fboA = nullptr;
-		std::unique_ptr<Framebuffer> p_fboB = nullptr;
-		std::unique_ptr<Framebuffer> p_scratch = nullptr;
+		std::shared_ptr<Framebuffer> p_fboA = nullptr;
+		std::shared_ptr<Framebuffer> p_fboB = nullptr;
+		std::shared_ptr<Framebuffer> p_scratch = nullptr;
 		std::unique_ptr<Mesh> p_fullscreenQuad = nullptr;
 		std::unique_ptr<Shader> p_shaderTransfer = nullptr;
 		Alternator p_curFBO = {};

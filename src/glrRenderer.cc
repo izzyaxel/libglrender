@@ -262,16 +262,6 @@ void main()
 		}
 	}
 	
-	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format)
-	{
-		glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
-	}
-	
-	void Renderer::startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize)
-	{
-		glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
-	}
-	
 	void Renderer::draw(DrawMode mode, size_t numElements)
 	{
 		glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
@@ -360,5 +350,15 @@ void main()
 		Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
 		mesh.use();
 		draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
+	}
+	
+	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format)
+	{
+		glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
+	}
+	
+	void Renderer::startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize)
+	{
+		glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
 	}
 }
