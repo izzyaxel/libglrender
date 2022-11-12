@@ -125,6 +125,8 @@ namespace GLRender
 		GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
 		
 		std::unique_ptr<FramebufferPool> m_fboPool = nullptr;
+		uint32_t m_workSizeX = 40;
+		uint32_t m_workSizeY = 20;
 		
 	protected:
 		void pingPong();
