@@ -73,7 +73,7 @@ namespace GLRender
 		
 		vec2<float> p_atlasDims = {};
 		std::vector<AtlasImg> p_atlas = {};
-		std::unique_ptr<Texture> p_tex;
+		std::shared_ptr<Texture> p_tex;
 		bool p_finalized = false;
 	};
 }

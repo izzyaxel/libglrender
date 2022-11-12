@@ -13,7 +13,7 @@ namespace GLRender
 		GLRENDER_API virtual ~PostPass() = default;
 		
 		/// Process the pixels held by 'in', and write the result to 'out'
-		GLRENDER_API virtual void process(Framebuffer &out, Framebuffer &in) = 0;
+		GLRENDER_API virtual void process(std::unique_ptr<Framebuffer> &out, std::unique_ptr<Framebuffer> &in) = 0;
 		
 		bool m_enabled = true;
 		std::string m_name;

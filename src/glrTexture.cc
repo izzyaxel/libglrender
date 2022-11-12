@@ -1,7 +1,6 @@
 #include "glrTexture.hh"
 
 #include <glad/gl.h>
-#include <cstdio>
 
 namespace GLRender
 {

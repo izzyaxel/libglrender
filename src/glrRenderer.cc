@@ -1,12 +1,45 @@
 #include "glrRenderer.hh"
 
 #include <glad/gl.h>
+#include <commons/math/quaternion.hh>
 
 namespace GLRender
 {
+/// ===Data===========================================================================///
+	
+	std::string transferFrag =
+R"(#version 450
+
+in vec2 uv;
+layout(binding = 0) uniform sampler2D tex;
+out vec4 fragColor;
+
+void main()
+{
+	fragColor = texture(tex, uv);
+})";
+	
+	std::string transferVert =
+R"(#version 450
+
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec2 uv_in;
+out vec2 uv;
+
+void main()
+{
+	uv = uv_in;
+	gl_Position = vec4(pos, 1.0);
+})";
+	
+	std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
+	std::vector<float> fullscreenQuadUVs{1, 0, 1, 1, 0, 0, 0, 1};
+/// ===Data===========================================================================///
+	
+	
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
 	{
-		return (a.m_textureID > b.m_textureID) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
 	}
 	
 	Renderable& RenderList::operator [](size_t index)
@@ -47,8 +80,8 @@ namespace GLRender
 		this->p_fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
 		this->p_fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
 		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
-		this->p_fullscreenQuad = std::make_unique<Mesh>();
-		this->p_shaderTransfer = std::make_unique<Shader>();
+		this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
+		this->p_shaderTransfer = std::make_unique<Shader>(transferVert, transferFrag);
 	}
 	
 	Renderer::~Renderer()
@@ -89,7 +122,7 @@ namespace GLRender
 		if(renderList.empty()) return;
 		this->p_view = view;
 		this->p_projection = projection;
-		uint64_t curTexture = renderList[0].m_textureID;
+		uint64_t curTexture = renderList[0].m_texture->m_handle;
 		glBindTextureUnit(0, curTexture);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
@@ -97,9 +130,9 @@ namespace GLRender
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_textureID != curTexture)
+				if(entry.m_texture->m_handle != curTexture)
 				{
-					curTexture = entry.m_textureID;
+					curTexture = entry.m_texture->m_handle;
 					glBindTextureUnit(0, curTexture);
 				}
 				this->drawRenderable(entry);
@@ -115,10 +148,10 @@ namespace GLRender
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_textureID != curTexture)
+				if(entry.m_texture->m_handle != curTexture)
 				{
 					bind = true;
-					curTexture = entry.m_textureID;
+					curTexture = entry.m_texture->m_handle;
 				}
 				if(i == 0)
 				{
@@ -176,7 +209,6 @@ namespace GLRender
 	{
 		auto colorF = color.asRGBAf();
 		glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
-		this->p_clearColor = color;
 	}
 	
 	void Renderer::clearCurrentFramebuffer()
@@ -253,12 +285,26 @@ namespace GLRender
 	
 	void Renderer::postProcessLayer(uint64_t layer)
 	{
-		
+		for(auto const &stage : this->p_layerPostStack[layer]->getPasses())
+		{
+			if(stage->m_enabled)
+			{
+				this->pingPong();
+				stage->process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA);
+			}
+		}
 	}
 	
 	void Renderer::postProcessGlobal()
 	{
-		
+		for(auto const &stage : this->p_globalPostStack->getPasses())
+		{
+			if(stage->m_enabled)
+			{
+				this->pingPong();
+				stage->process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA);
+			}
+		}
 	}
 	
 	void Renderer::drawToBackBuffer()
@@ -291,6 +337,28 @@ namespace GLRender
 	
 	void Renderer::drawRenderable(const Renderable &entry)
 	{
+		quat<float> rotation;
+		rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float)entry.m_rotation));
+		vec3<float> roundedPos = vec3<float>{vec2<float>{entry.m_pos}, 0};
+		roundedPos.round();
+		this->p_model = modelMatrix(roundedPos, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
+		this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
+		entry.m_shader->use();
+		entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
+		std::array<float, 12> quadVerts{0.5f, 0.5f, 0, -0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0};
+		std::array<float, 8> quadUVs = {};
+		if(entry.m_texture)
+		{
+			quadUVs = {1, 0, 0, 0, 1, 1, 0, 1};
+		}
+		else if(entry.m_atlas)
+		{
+			Atlas::QuadUVs uvs = entry.m_atlas->getUVsForTile(entry.m_name);
+			quadUVs = {uvs.m_lowerRight.x(), uvs.m_lowerRight.y(), uvs.m_lowerLeft.x(), uvs.m_lowerLeft.y(), uvs.m_upperRight.x(), uvs.m_upperRight.y(), uvs.m_upperLeft.x(), uvs.m_upperLeft.y()};
+		}
 		
+		Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
+		mesh.use();
+		draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
 	}
 }
