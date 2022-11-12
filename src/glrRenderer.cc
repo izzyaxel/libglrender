@@ -42,6 +42,7 @@ void main()
 	
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
 	{
+		//FIXME segfaulting
 		return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
 	}
 	
