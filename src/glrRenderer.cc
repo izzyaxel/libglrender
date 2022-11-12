@@ -355,7 +355,7 @@ void main()
 		draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
 	}
 	
-	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format)
+	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format)
 	{
 		glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
 	}
