@@ -5,6 +5,9 @@
 
 namespace GLRender
 {
+	uint32_t m_workSizeX = 40;
+	uint32_t m_workSizeY = 20;
+	
 /// ===Data===========================================================================///
 	
 	std::string transferFrag =

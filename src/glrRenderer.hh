@@ -122,11 +122,11 @@ namespace GLRender
 		GLRENDER_API void draw(DrawMode mode, size_t numElements);
 		
 		GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IO mode, TextureColorFormat format);
-		GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize);
+		GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {m_workSizeX, m_workSizeY});
 		
 		std::unique_ptr<FramebufferPool> m_fboPool = nullptr;
-		uint32_t m_workSizeX = 40;
-		uint32_t m_workSizeY = 20;
+		static uint32_t m_workSizeX;
+		static uint32_t m_workSizeY;
 		
 	protected:
 		void pingPong();
