@@ -13,10 +13,10 @@ namespace GLRender
 	{
 		Shader() = delete;
 		
-		GLRENDER_API Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader);
-		GLRENDER_API explicit Shader(std::string const &name, std::vector<uint8_t> const &compShader);
+		/*GLRENDER_API Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader);
+		GLRENDER_API Shader(std::string const &name, std::vector<uint8_t> const &compShader);*/
 		GLRENDER_API Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader);
-		GLRENDER_API explicit Shader(std::string const &name, std::string const &compShader);
+		GLRENDER_API Shader(std::string const &name, std::string const &compShader);
 		GLRENDER_API ~Shader();
 		
 		GLRENDER_API Shader(Shader &other);

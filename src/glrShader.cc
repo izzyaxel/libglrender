@@ -4,7 +4,7 @@
 
 namespace GLRender
 {
-	Shader::Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader) : Shader(name, std::string{vertShader.begin(), vertShader.end()}, std::string{fragShader.begin(), fragShader.end()})
+	/*Shader::Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader) : Shader(name, std::string{vertShader.begin(), vertShader.end()}, std::string{fragShader.begin(), fragShader.end()})
 	{
 		
 	}
@@ -12,7 +12,7 @@ namespace GLRender
 	Shader::Shader(std::string const &name, std::vector<uint8_t> const &compShader) : Shader(name, std::string{compShader.begin(), compShader.end()})
 	{
 		
-	}
+	}*/
 	
 	Shader::Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader)
 	{
