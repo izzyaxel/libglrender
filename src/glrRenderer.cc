@@ -136,7 +136,7 @@ void main()
 		if(renderList.empty()) return;
 		this->p_view = view;
 		this->p_projection = projection;
-		uint64_t curTexture = renderList[0].m_texture->m_handle;
+		uint64_t curTexture = renderList[0].m_texture ? renderList[0].m_texture->m_handle : renderList[0].m_atlas->m_atlasTexture->m_handle;
 		glBindTextureUnit(0, curTexture);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
@@ -144,15 +144,30 @@ void main()
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_texture->m_handle != curTexture)
+				if(entry.m_texture)
 				{
-					curTexture = entry.m_texture->m_handle;
-					glBindTextureUnit(0, curTexture);
+					if(entry.m_texture->m_handle != curTexture)
+					{
+						curTexture = entry.m_texture->m_handle;
+						glBindTextureUnit(0, curTexture);
+					}
+				}
+				else if(entry.m_atlas)
+				{
+					if(entry.m_atlas->m_atlasTexture->m_handle != curTexture)
+					{
+						curTexture = entry.m_texture->m_handle;
+						glBindTextureUnit(0, curTexture);
+					}
+				}
+				else
+				{
+					continue;
 				}
 				this->drawRenderable(entry);
 			}
 		}
-		else
+		else //Postprocess
 		{
 			this->p_scratch->use();
 			this->clearCurrentFramebuffer();
@@ -162,11 +177,27 @@ void main()
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_texture->m_handle != curTexture)
+				if(entry.m_texture)
 				{
-					bind = true;
-					curTexture = entry.m_texture->m_handle;
+					if(entry.m_texture->m_handle != curTexture)
+					{
+						bind = true;
+						curTexture = entry.m_texture->m_handle;
+					}
 				}
+				else if(entry.m_atlas)
+				{
+					if(entry.m_atlas->m_atlasTexture->m_handle != curTexture)
+					{
+						bind = true;
+						curTexture = entry.m_atlas->m_atlasTexture->m_handle;
+					}
+				}
+				else
+				{
+					continue;
+				}
+				
 				if(i == 0)
 				{
 					if(bind)
