@@ -42,8 +42,18 @@ void main()
 	
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
 	{
-		//FIXME segfaulting
-		return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		if(a.m_texture && b.m_texture)
+		{
+			return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		}
+		else if(a.m_atlas && b.m_atlas)
+		{
+			return (a.m_atlas->m_atlasTexture->m_handle > b.m_atlas->m_atlasTexture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		}
+		else
+		{
+			return (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
+		}
 	}
 	
 	Renderable& RenderList::operator [](size_t index)

@@ -50,7 +50,9 @@ namespace GLRender
 		
 		/// Create the atlas and send it to the GPU
 		GLRENDER_API void finalize(TextureColorFormat fmt);
-	
+		
+		std::shared_ptr<Texture> m_atlasTexture;
+		
 	private:
 		struct AtlasImg
 		{
@@ -73,7 +75,6 @@ namespace GLRender
 		
 		vec2<float> p_atlasDims = {};
 		std::vector<AtlasImg> p_atlas = {};
-		std::shared_ptr<Texture> p_tex;
 		bool p_finalized = false;
 	};
 }

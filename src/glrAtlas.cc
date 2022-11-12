@@ -144,7 +144,7 @@ namespace GLRender
 	
 	Atlas::~Atlas()
 	{
-		this->p_tex.reset();
+		this->m_atlasTexture.reset();
 	}
 	
 	void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TextureColorFormat format, uint32_t width, uint32_t height)
@@ -237,7 +237,7 @@ namespace GLRender
 		}
 		else
 		{
-			this->p_tex->use(target);
+			this->m_atlasTexture->use(target);
 		}
 	}
 	
@@ -281,11 +281,11 @@ namespace GLRender
 			printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
 			return;
 		}
-		this->p_tex = std::make_unique<Texture>(Texture(layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-		this->p_tex->clear();
+		this->m_atlasTexture = std::make_unique<Texture>(Texture(layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+		this->m_atlasTexture->clear();
 		for(auto &tile : this->p_atlas)
 		{
-			this->p_tex->subImage(tile.m_data.data(), tile.m_width, tile.m_height, tile.m_location.x(), tile.m_location.y(), tile.m_fmt);
+			this->m_atlasTexture->subImage(tile.m_data.data(), tile.m_width, tile.m_height, tile.m_location.x(), tile.m_location.y(), tile.m_fmt);
 		}
 		this->p_atlasDims = {(float)layout.width(), (float)layout.height()};
 		this->p_finalized = true;
