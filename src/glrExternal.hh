@@ -1,7 +1,9 @@
 #pragma once
 
+#include "export.hh"
+
 namespace GLRender
 {
-	void pixelStoreiPack(int i);
-	void pixelStoreiUnpack(int i);
+	GLRENDER_API void pixelStoreiPack(int i);
+	GLRENDER_API void pixelStoreiUnpack(int i);
 }
