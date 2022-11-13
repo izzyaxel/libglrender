@@ -40,6 +40,44 @@ void main()
 /// ===Data===========================================================================///
 	
 	
+	void glDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *userParam)
+	{
+		std::string sev, ty;
+		switch(severity)
+		{
+			case GL_DEBUG_SEVERITY_LOW:
+				sev = "Severity: LOW";
+				break;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				sev = "Severity: MEDIUM";
+				break;
+			case GL_DEBUG_SEVERITY_HIGH:
+				sev = "Severity: HIGH";
+				break;
+			default: break;
+		}
+		switch(type)
+		{
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+				ty = "Type: Deprecated Behavior";
+				break;
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+				ty = "Type: Undefined Behavior";
+				break;
+			case GL_DEBUG_TYPE_PORTABILITY:
+				ty = "Type: Portability";
+				break;
+			case GL_DEBUG_TYPE_PERFORMANCE:
+				ty = "Type: Performance";
+				break;
+			case GL_DEBUG_TYPE_OTHER:
+				ty = "Type: Other";
+				break;
+			default: break;
+		}
+		printf("An OpenGL error occured: %s, ID: %u, %s, Message: %s\n", sev.c_str(), id, ty.c_str(), message);
+	}
+	
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
 	{
 		if(a.m_texture && b.m_texture)
@@ -96,6 +134,15 @@ void main()
 		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
 		this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
 		this->p_shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
+		
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(glDebug, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glViewport(0, 0, (GLsizei)contextWidth, (GLsizei)contextHeight);
 	}
 	
 	Renderer::~Renderer()

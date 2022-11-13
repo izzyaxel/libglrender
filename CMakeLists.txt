@@ -47,7 +47,8 @@ add_library(${PROJECT_NAME} SHARED
 		src/glrAtlas.cc             src/glrAtlas.hh
 		src/glrImage.cc             src/glrImage.hh
 		src/glrColor.cc             src/glrColor.hh
-		src/glrMesh.cc              src/glrMesh.hh)
+		src/glrMesh.cc              src/glrMesh.hh
+		src/glrExternal.cc          src/glrExternal.hh)
 
 add_dependencies(${PROJECT_NAME} commons)
 target_link_libraries(${PROJECT_NAME} commons)
