@@ -30,7 +30,6 @@ namespace GLRender
 								size_t layer,
 								size_t sublayer,
 								std::string const &name,
-								QuadUVs uvs,
 								char character = '0',
 								Color const &color = {})
 		{
