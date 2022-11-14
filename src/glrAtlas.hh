@@ -3,6 +3,7 @@
 #include "export.hh"
 #include "glrEnums.hh"
 #include "glrTexture.hh"
+#include "glrMesh.hh"
 
 #include <commons/math/vec2.hh>
 #include <vector>
@@ -15,14 +16,6 @@ namespace GLRender
 	/// An on-VRAM atlas of stitched together images as one OpenGL texture
 	struct Atlas
 	{
-		struct QuadUVs
-		{
-			vec2<float> m_upperLeft = {};
-			vec2<float> m_lowerLeft = {};
-			vec2<float> m_upperRight = {};
-			vec2<float> m_lowerRight = {};
-		};
-		
 		GLRENDER_API ~Atlas();
 		
 		/// Add a new tile into this atlas

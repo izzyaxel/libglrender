@@ -2,6 +2,7 @@
 
 #include "export.hh"
 
+#include <commons/math/vec2.hh>
 #include <initializer_list>
 #include <vector>
 #include <cstdint>
@@ -10,6 +11,14 @@
 
 namespace GLRender
 {
+	struct QuadUVs
+	{
+		vec2<float> m_upperLeft = {};
+		vec2<float> m_lowerLeft = {};
+		vec2<float> m_upperRight = {};
+		vec2<float> m_lowerRight = {};
+	};
+	
 	//TODO support index buffer
 	struct Mesh
 	{

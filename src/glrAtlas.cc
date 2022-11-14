@@ -187,7 +187,7 @@ namespace GLRender
 		this->p_atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
 	}
 	
-	Atlas::QuadUVs Atlas::getUVsForTile(std::string const &name)
+	QuadUVs Atlas::getUVsForTile(std::string const &name)
 	{
 		if(!this->p_finalized || !this->contains(name))
 		{

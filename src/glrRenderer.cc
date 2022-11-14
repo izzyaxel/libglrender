@@ -84,10 +84,6 @@ void main()
 		{
 			return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
 		}
-		else if(a.m_atlas && b.m_atlas)
-		{
-			return (a.m_atlas->m_atlasTexture->m_handle > b.m_atlas->m_atlasTexture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
-		}
 		else
 		{
 			return (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
@@ -183,7 +179,7 @@ void main()
 		if(renderList.empty()) return;
 		this->p_view = view;
 		this->p_projection = projection;
-		uint64_t curTexture = renderList[0].m_texture ? renderList[0].m_texture->m_handle : renderList[0].m_atlas->m_atlasTexture->m_handle;
+		uint64_t curTexture = renderList[0].m_texture->m_handle;
 		glBindTextureUnit(0, curTexture);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
@@ -191,25 +187,14 @@ void main()
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_texture)
-				{
-					if(entry.m_texture->m_handle != curTexture)
-					{
-						curTexture = entry.m_texture->m_handle;
-						glBindTextureUnit(0, curTexture);
-					}
-				}
-				else if(entry.m_atlas)
-				{
-					if(entry.m_atlas->m_atlasTexture->m_handle != curTexture)
-					{
-						curTexture = entry.m_texture->m_handle;
-						glBindTextureUnit(0, curTexture);
-					}
-				}
-				else
+				if(!entry.m_texture)
 				{
 					continue;
+				}
+				if(entry.m_texture->m_handle != curTexture)
+				{
+					curTexture = entry.m_texture->m_handle;
+					glBindTextureUnit(0, curTexture);
 				}
 				this->drawRenderable(entry);
 			}
@@ -224,25 +209,14 @@ void main()
 			for(size_t i = 0; i < renderList.size(); i++)
 			{
 				auto const &entry = renderList[i];
-				if(entry.m_texture)
-				{
-					if(entry.m_texture->m_handle != curTexture)
-					{
-						bind = true;
-						curTexture = entry.m_texture->m_handle;
-					}
-				}
-				else if(entry.m_atlas)
-				{
-					if(entry.m_atlas->m_atlasTexture->m_handle != curTexture)
-					{
-						bind = true;
-						curTexture = entry.m_atlas->m_atlasTexture->m_handle;
-					}
-				}
-				else
+				if(!entry.m_texture)
 				{
 					continue;
+				}
+				if(entry.m_texture->m_handle != curTexture)
+				{
+					bind = true;
+					curTexture = entry.m_texture->m_handle;
 				}
 				
 				if(i == 0)
@@ -427,21 +401,9 @@ void main()
 		this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
 		entry.m_shader->use();
 		entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
-		std::array<float, 12> quadVerts{0.5f, 0.5f, 0, -0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0};
-		std::array<float, 8> quadUVs = {};
-		if(entry.m_texture)
-		{
-			quadUVs = {1, 0, 0, 0, 1, 1, 0, 1};
-		}
-		else if(entry.m_atlas)
-		{
-			Atlas::QuadUVs uvs = entry.m_atlas->getUVsForTile(entry.m_name);
-			quadUVs = {uvs.m_lowerRight.x(), uvs.m_lowerRight.y(), uvs.m_lowerLeft.x(), uvs.m_lowerLeft.y(), uvs.m_upperRight.x(), uvs.m_upperRight.y(), uvs.m_upperLeft.x(), uvs.m_upperLeft.y()};
-		}
-		
-		Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
-		mesh.use();
-		draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
+		entry.m_mesh->use();
+		draw(DrawMode::TRISTRIPS, entry.m_mesh->m_numVerts);
+		//std::array<float, 12> quadVerts{0.5f, 0.5f, 0, -0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0};
 	}
 	
 	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format)

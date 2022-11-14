@@ -17,65 +17,44 @@ namespace GLRender
 {
 	typedef void* (*GLLoadFunc)(const char *name);
 	
+	/// A bundle of information the renderer can use to draw something to a framebuffer
 	struct Renderable
 	{
-		/// Texture constructor
 		GLRENDER_API Renderable(vec2<double> const &pos,
 								vec2<double> const &scale,
 								double rotation,
 								vec3<double> const &axis,
 								std::shared_ptr<Texture> const &texture,
 								std::shared_ptr<Shader> const &shader,
-								size_t layer,
-								size_t sublayer,
-								std::string const &name)
-				{
-					this->m_pos = pos;
-					this->m_scale = scale;
-					this->m_rotation = rotation;
-					this->m_axis = axis;
-					this->m_texture = texture;
-					this->m_shader = shader;
-					this->m_layer = layer;
-					this->m_sublayer = sublayer;
-					this->m_name = name;
-					this->m_character = '0';
-					this->m_color = {};
-				}
-		
-		/// Atlas and/or Text constructor
-		GLRENDER_API Renderable(vec2<double> const &pos,
-								vec2<double> const &scale,
-								double rotation,
-								vec3<double> const &axis,
-								std::shared_ptr<Atlas> const &atlas,
-								std::shared_ptr<Shader> const &shader,
+								std::shared_ptr<Mesh> const &mesh,
 								size_t layer,
 								size_t sublayer,
 								std::string const &name,
+								QuadUVs uvs,
 								char character = '0',
-								Color color = {})
+								Color const &color = {})
 		{
 			this->m_pos = pos;
 			this->m_scale = scale;
 			this->m_rotation = rotation;
 			this->m_axis = axis;
-			this->m_atlas = atlas;
+			this->m_texture = texture;
 			this->m_shader = shader;
+			this->m_mesh = mesh;
 			this->m_layer = layer;
 			this->m_sublayer = sublayer;
 			this->m_name = name;
 			this->m_character = character;
 			this->m_color = color;
 		}
-				
+		
 		vec2<double> m_pos = {};
 		vec2<double> m_scale = {};
 		double m_rotation = 0.0f;
 		vec3<double> m_axis = {0.0f, 0.0f, 1.0f};
 		std::shared_ptr<Texture> m_texture = nullptr;
-		std::shared_ptr<Atlas> m_atlas = nullptr;
 		std::shared_ptr<Shader> m_shader = nullptr;
+		std::shared_ptr<Mesh> m_mesh = nullptr;
 		size_t m_layer = 0;
 		size_t m_sublayer = 0;
 		std::string m_name;
@@ -83,17 +62,18 @@ namespace GLRender
 		Color m_color = {};
 	};
 	
+	/// A sortable list structure for Renderables
 	struct RenderList
 	{
 		using Comparator = std::function<bool(Renderable const &a, Renderable const &b)>;
-		
 		GLRENDER_API static bool renderableComparator(Renderable const &a, Renderable const &b);
+		
 		GLRENDER_API Renderable& operator [](size_t index);
 		GLRENDER_API void add(std::initializer_list<Renderable> const &renderables);
 		GLRENDER_API void clear();
 		GLRENDER_API bool empty() const;
 		GLRENDER_API size_t size() const;
-		GLRENDER_API void sort(Comparator const &cmp = RenderList::renderableComparator);
+		GLRENDER_API void sort(Comparator const &cmp = renderableComparator);
 		
 		std::vector<Renderable> m_list;
 	};
