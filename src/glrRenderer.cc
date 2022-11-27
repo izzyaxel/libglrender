@@ -40,11 +40,39 @@ void main()
 /// ===Data===========================================================================///
 	
 	
-	void glDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *userParam)
+	void glDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei messageLength, GLchar const *message, void const *userParam)
 	{
-		std::string sev, ty;
+		std::string sev;
+		std::string ty;
+		std::string src;
+		
+		switch(source)
+		{
+			case GL_DEBUG_SOURCE_API:
+				src = "Source: OpenGL API";
+				break;
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+				src = "Source: Window-system API";
+				break;
+			case GL_DEBUG_SOURCE_SHADER_COMPILER:
+				src = "Source: Shader Compiler";
+				break;
+			case GL_DEBUG_SOURCE_THIRD_PARTY:
+				src = "Source: Third-party Application";
+				break;
+			case GL_DEBUG_SOURCE_APPLICATION:
+				src = "Source: User's Application";
+				break;
+			case GL_DEBUG_SOURCE_OTHER:
+				src = "Source: Other";
+				break;
+			default: break;
+		}
 		switch(severity)
 		{
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
+				sev = "Severity: NOTIFICATION";
+				break;
 			case GL_DEBUG_SEVERITY_LOW:
 				sev = "Severity: LOW";
 				break;
@@ -58,6 +86,9 @@ void main()
 		}
 		switch(type)
 		{
+			case GL_DEBUG_TYPE_ERROR:
+				ty = "Type: Error";
+				break;
 			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
 				ty = "Type: Deprecated Behavior";
 				break;
@@ -70,12 +101,21 @@ void main()
 			case GL_DEBUG_TYPE_PERFORMANCE:
 				ty = "Type: Performance";
 				break;
+			case GL_DEBUG_TYPE_MARKER:
+				ty = "Type: Command Stream Annotation";
+				break;
+			case GL_DEBUG_TYPE_PUSH_GROUP:
+				ty = "Type: Group Pushing";
+				break;
+			case GL_DEBUG_TYPE_POP_GROUP:
+				ty = "Type: Group Popping";
+				break;
 			case GL_DEBUG_TYPE_OTHER:
 				ty = "Type: Other";
 				break;
 			default: break;
 		}
-		printf("An OpenGL error occured: %s, ID: %u, %s, Message: %s\n", sev.c_str(), id, ty.c_str(), message);
+		printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", src.c_str(), sev.c_str(), id, ty.c_str(), message);
 	}
 	
 	bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
@@ -93,6 +133,16 @@ void main()
 	Renderable& RenderList::operator [](size_t index)
 	{
 		return this->m_list[index];
+	}
+	
+	auto RenderList::begin()
+	{
+		return this->m_list.begin();
+	}
+	
+	auto RenderList::end()
+	{
+		return this->m_list.end();
 	}
 	
 	void RenderList::add(std::initializer_list<Renderable> const &renderables)
@@ -133,7 +183,7 @@ void main()
 		
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(glDebug, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
@@ -179,22 +229,21 @@ void main()
 		if(renderList.empty()) return;
 		this->p_view = view;
 		this->p_projection = projection;
-		uint64_t curTexture = renderList[0].m_texture->m_handle;
-		glBindTextureUnit(0, curTexture);
+		std::shared_ptr<Texture> curTexture = renderList[0].m_texture;
+		renderList[0].m_texture->use(0);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
 			this->pingPong();
-			for(size_t i = 0; i < renderList.size(); i++)
+			for(auto const &entry : renderList)
 			{
-				auto const &entry = renderList[i];
 				if(!entry.m_texture)
 				{
 					continue;
 				}
-				if(entry.m_texture->m_handle != curTexture)
+				if(entry.m_texture != curTexture)
 				{
-					curTexture = entry.m_texture->m_handle;
-					glBindTextureUnit(0, curTexture);
+					curTexture = entry.m_texture;
+					entry.m_texture->use(0);
 				}
 				this->drawRenderable(entry);
 			}
@@ -213,17 +262,17 @@ void main()
 				{
 					continue;
 				}
-				if(entry.m_texture->m_handle != curTexture)
+				if(entry.m_texture != curTexture)
 				{
 					bind = true;
-					curTexture = entry.m_texture->m_handle;
+					curTexture = entry.m_texture;
 				}
 				
 				if(i == 0)
 				{
 					if(bind)
 					{
-						glBindTextureUnit(0, curTexture);
+						curTexture->use(0);
 					}
 					this->drawRenderable(entry);
 				}
@@ -234,11 +283,11 @@ void main()
 						this->postProcessLayer(prevLayer);
 						this->drawToScratch();
 						this->pingPong();
-						glBindTextureUnit(0, curTexture);
+						curTexture->use(0);
 					}
 					if(bind)
 					{
-						glBindTextureUnit(0, curTexture);
+						curTexture->use(0);
 					}
 					this->drawRenderable(entry);
 					this->postProcessLayer(entry.m_layer);
@@ -251,11 +300,11 @@ void main()
 						this->postProcessLayer(prevLayer);
 						this->drawToScratch();
 						this->pingPong();
-						glBindTextureUnit(0, curTexture);
+						curTexture->use(0);
 					}
 					if(bind)
 					{
-						glBindTextureUnit(0, curTexture);
+						curTexture->use(0);
 					}
 					this->drawRenderable(entry);
 				}

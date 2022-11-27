@@ -114,7 +114,10 @@ namespace GLRender
 	{
 		int32_t curTex;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
-		glBindTextureUnit(target, this->m_handle);
+		if(curTex != (int32_t)target)
+		{
+			glBindTextureUnit(target, this->m_handle);
+		}
 	}
 	
 	void Texture::setFilterMode(FilterMode min, FilterMode mag) const

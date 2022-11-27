@@ -68,6 +68,8 @@ namespace GLRender
 		GLRENDER_API static bool renderableComparator(Renderable const &a, Renderable const &b);
 		
 		GLRENDER_API Renderable& operator [](size_t index);
+		GLRENDER_API auto begin();
+		GLRENDER_API auto end();
 		GLRENDER_API void add(std::initializer_list<Renderable> const &renderables);
 		GLRENDER_API void clear();
 		GLRENDER_API bool empty() const;
