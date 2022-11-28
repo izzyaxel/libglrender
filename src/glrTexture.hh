@@ -42,7 +42,7 @@ namespace GLRender
 		GLRENDER_API void subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TextureColorFormat format) const;
 		GLRENDER_API void clear() const;
 		
-		GLRENDER_API DownloadedImageData downloadTexture() const;
+		GLRENDER_API DownloadedImageData downloadTexture(TextureColorFormat colorFormat) const;
 		
 		uint32_t    m_handle = 0;
 		uint32_t    m_width = 0;
