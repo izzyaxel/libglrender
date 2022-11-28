@@ -160,6 +160,7 @@ namespace GLRender
 		std::shared_ptr<Framebuffer> p_scratch = nullptr;
 		std::unique_ptr<Mesh> p_fullscreenQuad = nullptr;
 		std::unique_ptr<Shader> p_shaderTransfer = nullptr;
+		std::unique_ptr<Shader> p_shaderText = nullptr;
 		Alternator p_curFBO = {};
 	};
 }

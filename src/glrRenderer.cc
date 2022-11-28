@@ -35,6 +35,19 @@ void main()
 	gl_Position = vec4(pos, 1.0);
 })";
 	
+	std::string textFrag =
+R"(#version 450
+
+in vec2 uv;
+uniform vec4 inputColor = vec4(1, 1, 1, 1);
+layout(binding = 0) uniform sampler2D tex;
+out vec4 fragColor;
+
+void main()
+{
+	fragColor = vec4(inputColor.rgb, texture(tex, uv).r * inputColor.w);
+})";
+	
 	std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
 	std::vector<float> fullscreenQuadUVs{1, 0, 1, 1, 0, 0, 0, 1};
 /// ===Data===========================================================================///
@@ -192,6 +205,7 @@ void main()
 		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
 		this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
 		this->p_shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
+		this->p_shaderText = std::make_unique<Shader>("Text Shader", transferVert, textFrag);
 		
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(glDebug, nullptr);
@@ -462,9 +476,9 @@ void main()
 			vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
 			this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
 			this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
-			entry.m_shader->use();
-			entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
-			entry.m_shader->sendVec4f("inputColor", entry.m_characterInfo.m_color.asRGBAf().data);
+			this->p_shaderText->use();
+			this->p_shaderText->sendMat4f("mvp", &this->p_mvp.data[0][0]);
+			this->p_shaderText->sendVec4f("inputColor", entry.m_characterInfo.m_color.asRGBAf().data);
 			std::array<float, 12> quadVerts{1, 1, 0,  0, 1, 0,  1, 0, 0,  0, 0, 0}; //Lower left origin
 			std::array<float, 8> quadUVs{entry.m_characterInfo.m_atlasUVs.m_lowerRight.x(), entry.m_characterInfo.m_atlasUVs.m_lowerRight.y(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.x(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.y(), entry.m_characterInfo.m_atlasUVs.m_upperRight.x(), entry.m_characterInfo.m_atlasUVs.m_upperRight.y(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.x(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.y()};
 			Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
