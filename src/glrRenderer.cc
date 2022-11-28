@@ -130,9 +130,16 @@ void main()
 		}
 	}
 	
-	void RenderList::operator+(RenderList const &other)
+	RenderList RenderList::operator+(RenderList const &other)
 	{
 		this->m_list.insert(this->m_list.end(), other.m_list.begin(), other.m_list.end());
+		return *this;
+	}
+	
+	RenderList& RenderList::operator+=(RenderList const &other)
+	{
+		this->m_list.insert(this->m_list.end(), other.m_list.begin(), other.m_list.end());
+		return *this;
 	}
 	
 	Renderable& RenderList::operator [](size_t index)
