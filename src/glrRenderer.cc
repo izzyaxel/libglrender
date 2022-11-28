@@ -245,7 +245,7 @@ void main()
 		renderList[0].m_texture->use(0);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
-			//this->pingPong();
+			this->pingPong();
 			for(auto const &entry : renderList)
 			{
 				if(!entry.m_texture)
@@ -454,15 +454,36 @@ void main()
 	
 	void Renderer::drawRenderable(Renderable const &entry)
 	{
-		quat<float> rotation;
-		rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float)entry.m_rotation));
-		vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
-		this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
-		this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
-		entry.m_shader->use();
-		entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
-		entry.m_mesh->use();
-		draw(DrawMode::TRISTRIPS, entry.m_mesh->m_numVerts);
+		if(entry.m_characterInfo.m_character != '\0') //Text rendering
+		{
+			this->setFilterMode(FilterMode::TRILINEAR);
+			quat<float> rotation;
+			rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float)entry.m_rotation));
+			vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
+			this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
+			this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
+			entry.m_shader->use();
+			entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
+			entry.m_shader->sendVec4f("inputColor", entry.m_characterInfo.m_color.asRGBAf().data);
+			std::array<float, 12> quadVerts{1, 1, 0,  0, 1, 0,  1, 0, 0,  0, 0, 0}; //Lower left origin
+			std::array<float, 8> quadUVs{entry.m_characterInfo.m_atlasUVs.m_lowerRight.x(), entry.m_characterInfo.m_atlasUVs.m_lowerRight.y(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.x(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.y(), entry.m_characterInfo.m_atlasUVs.m_upperRight.x(), entry.m_characterInfo.m_atlasUVs.m_upperRight.y(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.x(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.y()};
+			Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
+			mesh.use();
+			draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
+			this->setFilterMode(FilterMode::NEAREST);
+		}
+		else
+		{
+			quat<float> rotation;
+			rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float)entry.m_rotation));
+			vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
+			this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
+			this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
+			entry.m_shader->use();
+			entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
+			entry.m_mesh->use();
+			draw(DrawMode::TRISTRIPS, entry.m_mesh->m_numVerts);
+		}
 	}
 	
 	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format)

@@ -20,6 +20,13 @@ namespace GLRender
 	/// A bundle of information the renderer can use to draw something to a framebuffer
 	struct Renderable
 	{
+		struct CharacterInfo
+		{
+			char m_character = '\0';
+			Color m_color = {};
+			QuadUVs m_atlasUVs = {};
+		};
+		
 		GLRENDER_API Renderable(vec2<double> const &pos,
 								vec2<double> const &scale,
 								double rotation,
@@ -30,8 +37,7 @@ namespace GLRender
 								size_t layer,
 								size_t sublayer,
 								std::string const &name,
-								char character = '0',
-								Color const &color = {})
+								CharacterInfo characterInfo = {})
 		{
 			this->m_pos = pos;
 			this->m_scale = scale;
@@ -43,8 +49,7 @@ namespace GLRender
 			this->m_layer = layer;
 			this->m_sublayer = sublayer;
 			this->m_name = name;
-			this->m_character = character;
-			this->m_color = color;
+			this->m_characterInfo = characterInfo;
 		}
 		
 		vec2<double> m_pos = {};
@@ -57,8 +62,7 @@ namespace GLRender
 		size_t m_layer = 0;
 		size_t m_sublayer = 0;
 		std::string m_name;
-		char m_character = 0;
-		Color m_color = {};
+		CharacterInfo m_characterInfo;
 	};
 	
 	/// A sortable list structure for Renderables
