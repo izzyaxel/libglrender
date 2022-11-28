@@ -233,7 +233,7 @@ void main()
 		renderList[0].m_texture->use(0);
 		if(this->p_layerPostStack.empty()) //No postprocessing
 		{
-			this->pingPong();
+			//this->pingPong();
 			for(auto const &entry : renderList)
 			{
 				if(!entry.m_texture)
