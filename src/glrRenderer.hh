@@ -67,6 +67,8 @@ namespace GLRender
 		using Comparator = std::function<bool(Renderable const &a, Renderable const &b)>;
 		GLRENDER_API static bool renderableComparator(Renderable const &a, Renderable const &b);
 		
+		GLRENDER_API void operator +(RenderList const &other);
+		
 		GLRENDER_API Renderable& operator [](size_t index);
 		GLRENDER_API auto begin();
 		GLRENDER_API auto end();
