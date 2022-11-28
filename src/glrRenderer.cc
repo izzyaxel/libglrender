@@ -440,19 +440,17 @@ void main()
 		draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
 	}
 	
-	void Renderer::drawRenderable(const Renderable &entry)
+	void Renderer::drawRenderable(Renderable const &entry)
 	{
 		quat<float> rotation;
 		rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float)entry.m_rotation));
-		vec3<float> roundedPos = vec3<float>{vec2<float>{entry.m_pos}, 0};
-		roundedPos.round();
-		this->p_model = modelMatrix(roundedPos, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
+		vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
+		this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
 		this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
 		entry.m_shader->use();
 		entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
 		entry.m_mesh->use();
 		draw(DrawMode::TRISTRIPS, entry.m_mesh->m_numVerts);
-		//std::array<float, 12> quadVerts{0.5f, 0.5f, 0, -0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0};
 	}
 	
 	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format)

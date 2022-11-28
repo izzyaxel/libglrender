@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 set(ARCH "x86_64")
 set(CMAKE_CXX_STANDARD 23)
-cmake_policy(SET CMP0100 NEW)
 if(WIN32 OR WIN64)
 	add_definitions(-DWINDOWS)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
