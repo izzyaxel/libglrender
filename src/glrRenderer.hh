@@ -22,6 +22,12 @@ namespace GLRender
 	{
 		struct CharacterInfo
 		{
+			GLRENDER_API CharacterInfo()
+			{
+				this->m_character = '\0';
+				this->m_color = {};
+				this->m_atlasUVs = {};
+			};
 			char m_character = '\0';
 			Color m_color = {};
 			QuadUVs m_atlasUVs = {};
@@ -37,7 +43,7 @@ namespace GLRender
 								size_t layer,
 								size_t sublayer,
 								std::string const &name,
-								CharacterInfo characterInfo = {})
+								CharacterInfo characterInfo = CharacterInfo())
 		{
 			this->m_pos = pos;
 			this->m_scale = scale;
