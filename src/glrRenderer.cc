@@ -48,6 +48,20 @@ void main()
 	fragColor = vec4(inputColor.rgb, texture(tex, uv).r * inputColor.w);
 })";
 	
+	std::string textVert =
+R"(#version 450
+
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec2 uv_in;
+out vec2 uv;
+uniform mat4 mvp;
+
+void main()
+{
+	uv = uv_in;
+	gl_Position = mvp * vec4(pos, 1.0);
+})";
+	
 	std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
 	std::vector<float> fullscreenQuadUVs{1, 0, 1, 1, 0, 0, 0, 1};
 /// ===Data===========================================================================///
@@ -205,7 +219,7 @@ void main()
 		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
 		this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
 		this->p_shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
-		this->p_shaderText = std::make_unique<Shader>("Text Shader", transferVert, textFrag);
+		this->p_shaderText = std::make_unique<Shader>("Text Shader", textVert, textFrag);
 		
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(glDebug, nullptr);
