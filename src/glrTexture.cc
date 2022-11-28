@@ -183,18 +183,16 @@ namespace GLRender
 		glClearTexImage(this->m_handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
 	}
 	
-	std::vector<uint8_t> Texture::downloadTexture()
+	DownloadedImageData Texture::downloadTexture() const
 	{
-		std::vector<uint8_t> out;
-		int32_t width = 0;
-		int32_t height = 0;
+		DownloadedImageData out;
 		int32_t curTex = 0;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
 		glBindTextureUnit(0, this->m_handle);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-		out.resize(width * height * 4);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, out.data());
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &out.width);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &out.height);
+		out.imageData.resize(out.width * out.height * 4);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, out.imageData.data());
 		glBindTextureUnit(0, curTex);
 		return out;
 	}

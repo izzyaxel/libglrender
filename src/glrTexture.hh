@@ -8,6 +8,13 @@
 
 namespace GLRender
 {
+	struct DownloadedImageData
+	{
+		std::vector<uint8_t> imageData;
+		int32_t width;
+		int32_t height;
+	};
+	
 	/// An on-VRAM OpenGL texture
 	struct Texture
 	{
@@ -35,7 +42,7 @@ namespace GLRender
 		GLRENDER_API void subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TextureColorFormat format) const;
 		GLRENDER_API void clear() const;
 		
-		GLRENDER_API std::vector<uint8_t> downloadTexture();
+		GLRENDER_API DownloadedImageData downloadTexture() const;
 		
 		uint32_t    m_handle = 0;
 		uint32_t    m_width = 0;
