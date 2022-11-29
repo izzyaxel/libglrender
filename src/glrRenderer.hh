@@ -28,6 +28,14 @@ namespace GLRender
 				this->m_color = {};
 				this->m_atlasUVs = {};
 			};
+			
+			GLRENDER_API CharacterInfo(char const &character, Color const &color, QuadUVs const &atlasUVs)
+			{
+				this->m_character = character;
+				this->m_color = color;
+				this->m_atlasUVs = atlasUVs;
+			}
+			
 			char m_character = '\0';
 			Color m_color = {};
 			QuadUVs m_atlasUVs = {};
