@@ -40,7 +40,7 @@ namespace GLRender
 	
 	struct ImageOperation
 	{
-		GLRENDER_API virtual ~ImageOperation() = default;
+		GLRENDER_API virtual ~ImageOperation();
 		GLRENDER_API virtual void run(Image &image) = 0;
 	};
 	

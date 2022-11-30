@@ -59,6 +59,8 @@ namespace GLRender
 		return this->m_imageData[this->index(x, y)];
 	}
 	
+	ImageOperation::~ImageOperation() noexcept {}
+	
 	void FillOperation::run(Image &image)
 	{
 		for(auto &pix : image.m_imageData) pix = this->m_fillColor;
