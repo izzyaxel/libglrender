@@ -51,3 +51,4 @@ add_library(${PROJECT_NAME} SHARED
 
 add_dependencies(${PROJECT_NAME} commons)
 target_link_libraries(${PROJECT_NAME} commons)
+target_precompile_headers(${PROJECT_NAME} PUBLIC src/precompile.hh)

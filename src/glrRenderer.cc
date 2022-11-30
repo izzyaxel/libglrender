@@ -1,7 +1,6 @@
 #include "glrRenderer.hh"
 
 #include <glad/gl.h>
-#include <commons/math/quaternion.hh>
 
 namespace GLRender
 {

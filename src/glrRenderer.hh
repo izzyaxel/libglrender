@@ -7,9 +7,6 @@
 #include "glrTexture.hh"
 #include "glrAtlas.hh"
 
-#include <commons/math/vec2.hh>
-#include <commons/math/vec3.hh>
-#include <commons/math/mat4.hh>
 #include <cstdint>
 #include <functional>
 
