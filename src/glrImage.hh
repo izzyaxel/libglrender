@@ -42,6 +42,9 @@ namespace GLRender
 	{
 		GLRENDER_API virtual ~ImageOperation();
 		GLRENDER_API virtual void run(Image &image) = 0;
+		
+	protected:
+		GLRENDER_API ImageOperation() = default;
 	};
 	
 	struct FillOperation : public ImageOperation
