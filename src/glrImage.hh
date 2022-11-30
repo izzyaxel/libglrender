@@ -40,17 +40,17 @@ namespace GLRender
 	
 	struct ImageOperation
 	{
-		GLRENDER_API virtual ~ImageOperation();
+		GLRENDER_API virtual ~ImageOperation() = 0;
 		GLRENDER_API virtual void run(Image &image) = 0;
 		
 	protected:
-		GLRENDER_API ImageOperation() = default;
+		GLRENDER_API ImageOperation();
 	};
 	
 	struct FillOperation : public ImageOperation
 	{
 		GLRENDER_API ~FillOperation() override;
-		GLRENDER_API explicit FillOperation(Color const &fillColor) : m_fillColor(fillColor) {}
+		GLRENDER_API explicit FillOperation(Color const &fillColor);
 		GLRENDER_API void run(Image &image) override;
 		
 		Color m_fillColor = {};
@@ -59,7 +59,7 @@ namespace GLRender
 	struct ReplaceColorOperation : public ImageOperation
 	{
 		GLRENDER_API ~ReplaceColorOperation() override;
-		GLRENDER_API ReplaceColorOperation(Color const &src, Color const &dst) : m_src(src), m_dst(dst) {}
+		GLRENDER_API ReplaceColorOperation(Color const &src, Color const &dst);
 		GLRENDER_API void run(Image &image) override;
 		
 		Color m_src = {};

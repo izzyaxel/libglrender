@@ -59,6 +59,10 @@ namespace GLRender
 		return this->m_imageData[this->index(x, y)];
 	}
 	
+	ImageOperation::ImageOperation() {}
+	ReplaceColorOperation::ReplaceColorOperation(Color const &src, Color const &dst) : m_src(src), m_dst(dst){}
+	FillOperation::FillOperation(Color const &fillColor) : m_fillColor(fillColor) {}
+	
 	ImageOperation::~ImageOperation() noexcept {}
 	FillOperation::~FillOperation() noexcept {}
 	ReplaceColorOperation::~ReplaceColorOperation() noexcept {}
