@@ -60,6 +60,8 @@ namespace GLRender
 	}
 	
 	ImageOperation::~ImageOperation() noexcept {}
+	FillOperation::~FillOperation() noexcept {}
+	ReplaceColorOperation::~ReplaceColorOperation() noexcept {}
 	
 	void FillOperation::run(Image &image)
 	{
