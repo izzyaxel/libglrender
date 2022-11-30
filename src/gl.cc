@@ -1,10 +1,10 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <glad/gl.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <glad/gl.hh>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_

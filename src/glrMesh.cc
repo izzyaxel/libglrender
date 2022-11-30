@@ -1,6 +1,6 @@
 #include "glrMesh.hh"
 
-#include <glad/gl.h>
+#include <glad/gl.hh>
 
 namespace GLRender
 {
