@@ -230,27 +230,6 @@ void main()
 		glViewport(0, 0, (GLsizei)contextWidth, (GLsizei)contextHeight);
 	}
 	
-	Renderer::Renderer(GLLoadFuncSDL3 loadFunc, uint32_t contextWidth, uint32_t contextHeight)
-	{
-		gladLoadGL((GLADloadfunc)loadFunc);
-		this->m_fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
-		this->p_fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
-		this->p_fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
-		this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
-		this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
-		this->p_shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
-		this->p_shaderText = std::make_unique<Shader>("Text Shader", textVert, textFrag);
-		
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(glDebug, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glViewport(0, 0, (GLsizei)contextWidth, (GLsizei)contextHeight);
-	}
-	
 	Renderer::~Renderer()
 	{
 		this->p_fboA.reset();
