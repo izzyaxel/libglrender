@@ -12,7 +12,9 @@
 
 namespace GLRender
 {
+	
 	typedef void* (*GLLoadFunc)(const char *name);
+	typedef void* (*GLLoadFuncSDL3)(void);
 	
 	/// A bundle of information the renderer can use to draw something to a framebuffer
 	struct Renderable
@@ -103,6 +105,7 @@ namespace GLRender
 		/// You're expected to be using a windowing library like SDL2, it will provide you
 		/// with @param loadFunc
 		GLRENDER_API Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight);
+		GLRENDER_API Renderer(GLLoadFuncSDL3 loadFunc, uint32_t contextWidth, uint32_t contextHeight);
 		GLRENDER_API ~Renderer();
 		
 		GLRENDER_API void onContextResize(uint32_t width, uint32_t height);
