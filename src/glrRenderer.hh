@@ -12,8 +12,9 @@
 
 namespace GLRender
 {
-	
-	typedef void* (*GLLoadFunc)(const char *name);
+	typedef void (*GLapiproc)(void);
+	typedef GLapiproc (*GLLoadFunc)(const char *name);
+	//typedef void (*GLLoadFunc)(const char *name);
 	
 	/// A bundle of information the renderer can use to draw something to a framebuffer
 	struct Renderable

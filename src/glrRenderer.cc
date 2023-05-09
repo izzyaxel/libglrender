@@ -211,7 +211,7 @@ void main()
 /// ===Renderer========================================================================================================================================///
 	Renderer::Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight)
 	{
-		gladLoadGL((GLADloadfunc)loadFunc);
+		gladLoadGL(loadFunc);
 		this->m_fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
 		this->p_fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
 		this->p_fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
