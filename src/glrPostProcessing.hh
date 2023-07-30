@@ -8,11 +8,11 @@
 
 namespace glr
 {
-  typedef std::function<void(std::shared_ptr<Framebuffer>, std::shared_ptr<Framebuffer>, void*)> ProcessFunc;
+  typedef std::function<void(std::shared_ptr<Framebuffer>, std::shared_ptr<Framebuffer>, void * const)> ProcessFunc;
   
   struct PostPass
   {
-    explicit PostPass(void *userData) : m_userData(userData){};
+    PostPass() = default;
     ProcessFunc m_process = nullptr;
     bool m_enabled = true;
     std::string m_name;
