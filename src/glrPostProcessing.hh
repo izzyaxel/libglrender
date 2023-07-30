@@ -4,32 +4,29 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace glr
 {
-  /// An OpenGL program that alters the image in an OpenGL framebuffer
+  typedef std::function<void(std::shared_ptr<Framebuffer>, std::shared_ptr<Framebuffer>, void*)> ProcessFunc;
+  
   struct PostPass
   {
-    GLRENDER_API virtual ~PostPass() = default;
-    
-    /// Process the pixels held by 'in', and write the result to 'out'
-    GLRENDER_API virtual void process(std::shared_ptr<Framebuffer> &out, std::shared_ptr<Framebuffer> &in) = 0;
-    
+    explicit PostPass(void *userData) : m_userData(userData){};
+    ProcessFunc m_process = nullptr;
     bool m_enabled = true;
     std::string m_name;
-    
-    protected:
-    GLRENDER_API PostPass() = default;
+    void *m_userData = nullptr;
   };
   
   struct PostStack
   {
-    GLRENDER_API void add(std::shared_ptr<PostPass> pass);
-    GLRENDER_API void remove(std::shared_ptr<PostPass> const &pass);
-    [[nodiscard]] GLRENDER_API std::vector<std::shared_ptr<PostPass>> getPasses();
-    [[nodiscard]] GLRENDER_API bool empty() const;
+    GLRENDER_API void add(PostPass pass);
+    [[nodiscard]] GLRENDER_API std::vector<PostPass> getPasses();
+    [[nodiscard]] GLRENDER_API bool isEmpty() const;
+    GLRENDER_API void clear();
     
     private:
-    std::vector<std::shared_ptr<PostPass>> p_postOrder;
+    std::vector<PostPass> p_postOrder;
   };
 }

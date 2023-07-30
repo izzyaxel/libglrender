@@ -355,7 +355,7 @@ void main()
       }
       this->scratchToPingPong();
     }
-    if(this->p_globalPostStack && !this->p_globalPostStack->empty())
+    if(this->p_globalPostStack && !this->p_globalPostStack->isEmpty())
     {
       this->postProcessGlobal();
     }
@@ -434,10 +434,10 @@ void main()
   {
     for(auto const &stage: this->p_layerPostStack[layer]->getPasses())
     {
-      if(stage->m_enabled)
+      if(stage.m_enabled)
       {
         this->pingPong();
-        stage->process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA);
+        stage.m_process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA, stage.m_userData);
       }
     }
   }
@@ -446,10 +446,10 @@ void main()
   {
     for(auto const &stage: this->p_globalPostStack->getPasses())
     {
-      if(stage->m_enabled)
+      if(stage.m_enabled)
       {
         this->pingPong();
-        stage->process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA);
+        stage.m_process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA, stage.m_userData);
       }
     }
   }
