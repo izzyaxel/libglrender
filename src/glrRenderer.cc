@@ -2,7 +2,7 @@
 
 #include <glad/gl.hh>
 
-namespace GLRender
+namespace glr
 {
 	uint32_t Renderer::s_workSizeX = 40;
 	uint32_t Renderer::s_workSizeY = 20;
@@ -513,7 +513,7 @@ void main()
 		}
 	}
 	
-	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format)
+	void Renderer::bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format)
 	{
 		glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
 	}

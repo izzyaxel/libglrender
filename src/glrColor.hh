@@ -6,7 +6,7 @@
 #include <commons/math/vec4.hh>
 #include <cstdint>
 
-namespace GLRender
+namespace glr
 {
 	struct Color
 	{

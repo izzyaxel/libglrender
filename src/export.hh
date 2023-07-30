@@ -1,7 +1,11 @@
 #pragma once
 
-#if defined(WINDOWS)
+namespace glr
+{
+  #if defined(WINDOWS)
 #define GLRENDER_API __declspec(dllexport)
-#else
+  #else
 #define GLRender_API
-#endif
+  #endif
+}
+

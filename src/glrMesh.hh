@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <array>
 
-namespace GLRender
+namespace glr
 {
 	struct QuadUVs
 	{

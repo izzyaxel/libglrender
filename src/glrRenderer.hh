@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace GLRender
+namespace glr
 {
 	typedef void (*GLapiproc)(void);
 	typedef GLapiproc (*GLLoadFunc)(const char *name);
@@ -125,7 +125,7 @@ namespace GLRender
 		GLRENDER_API void draw(DrawMode mode, size_t numElements);
 		GLRENDER_API void pingPong();
 		
-		GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IO mode, GLColorFormat format);
+		GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format);
 		GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {s_workSizeX, s_workSizeY});
 		
 		std::unique_ptr<FramebufferPool> m_fboPool = nullptr;

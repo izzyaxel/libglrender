@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-namespace GLRender
+namespace glr
 {
 	/// An OpenGL framebuffer
 	struct Framebuffer

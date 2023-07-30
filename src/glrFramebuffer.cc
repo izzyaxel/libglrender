@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <glad/gl.hh>
 
-namespace GLRender
+namespace glr
 {
 	Framebuffer::Framebuffer(uint32_t width, uint32_t height, const std::initializer_list<Attachment> &options, const std::string &name)
 	{

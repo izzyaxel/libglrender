@@ -2,26 +2,26 @@
 
 #include <glad/gl.hh>
 
-namespace GLRender
+namespace glr
 {
-	Texture::Texture(uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode, bool sRGB)
+	Texture::Texture(uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
 	{
 		this->m_fmt = colorFormat;
 		this->m_width = width;
 		this->m_height = height;
 		glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
 		int32_t f = 0;
-		if(colorFormat == TextureColorFormat::RGB) //It's more efficient to use an extra 8 bits of VRAM per pixel
+		if(colorFormat == TexColorFormat::RGB) //It's more efficient to use an extra 8 bits of VRAM per pixel
 		{
 			if(sRGB) f = GL_SRGB8;
 			else f = GL_RGB8;
 		}
-		else if(colorFormat == TextureColorFormat::RGBA)
+		else if(colorFormat == TexColorFormat::RGBA)
 		{
 			if(sRGB) f = GL_SRGB8_ALPHA8;
 			else f = GL_RGBA8;
 		}
-		else if(colorFormat == TextureColorFormat::GREY)
+		else if(colorFormat == TexColorFormat::GREY)
 		{
 			f = GL_R8;
 		}
@@ -31,25 +31,25 @@ namespace GLRender
 		this->setAnisotropyLevel(1);
 	}
 	
-	Texture::Texture(uint8_t *data, uint32_t width, uint32_t height, TextureColorFormat colorFormat, FilterMode mode, bool sRGB)
+	Texture::Texture(uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
 	{
 		this->m_fmt = colorFormat;
 		this->m_width = width;
 		this->m_height = height;
 		int32_t f = 0, cf = 0;
-		if(colorFormat == TextureColorFormat::RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
+		if(colorFormat == TexColorFormat::RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
 		{
 			if(sRGB) f = GL_SRGB8;
 			else f = GL_RGB8;
 			cf = GL_RGB;
 		}
-		else if(colorFormat == TextureColorFormat::RGBA)
+		else if(colorFormat == TexColorFormat::RGBA)
 		{
 			if(sRGB) f = GL_SRGB8_ALPHA8;
 			else f = GL_RGBA8;
 			cf = GL_RGBA;
 		}
-		else if(colorFormat == TextureColorFormat::GREY)
+		else if(colorFormat == TexColorFormat::GREY)
 		{
 			f = GL_R8;
 			cf = GL_RED;
@@ -63,7 +63,7 @@ namespace GLRender
 	
 	Texture::Texture(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
 	{
-		this->m_fmt = TextureColorFormat::RGBA;
+		this->m_fmt = TexColorFormat::RGBA;
 		this->m_width = 1;
 		this->m_height = 1;
 		uint8_t **data = new uint8_t *;
@@ -147,18 +147,18 @@ namespace GLRender
 		glTextureParameterf(this->m_handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat)level);
 	}
 	
-	void Texture::subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TextureColorFormat format) const
+	void Texture::subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TexColorFormat format) const
 	{
 		int32_t f = 0;
 		switch(format)
 		{
-			case TextureColorFormat::RGB:
+			case TexColorFormat::RGB:
 				f = GL_RGB;
 				break;
-			case TextureColorFormat::RGBA:
+			case TexColorFormat::RGBA:
 				f = GL_RGBA;
 				break;
-			case TextureColorFormat::GREY:
+			case TexColorFormat::GREY:
 				f = GL_RED;
 				break;
 		}
@@ -170,20 +170,20 @@ namespace GLRender
 		int32_t f = 0;
 		switch(this->m_fmt)
 		{
-			case TextureColorFormat::RGB:
+			case TexColorFormat::RGB:
 				f = GL_RGB;
 				break;
-			case TextureColorFormat::RGBA:
+			case TexColorFormat::RGBA:
 				f = GL_RGBA;
 				break;
-			case TextureColorFormat::GREY:
+			case TexColorFormat::GREY:
 				f = GL_RED;
 				break;
 		}
 		glClearTexImage(this->m_handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
 	}
 	
-	DownloadedImageData Texture::downloadTexture(TextureColorFormat colorFormat) const
+	DownloadedImageData Texture::downloadTexture(TexColorFormat colorFormat) const
 	{
 		DownloadedImageData out;
 		int32_t curTex = 0;
@@ -191,15 +191,15 @@ namespace GLRender
 		int32_t cpp = 0;
 		switch(colorFormat)
 		{
-			case TextureColorFormat::RGB:
+			case TexColorFormat::RGB:
 				cf = GL_RGB;
 				cpp = 3;
 				break;
-			case TextureColorFormat::RGBA:
+			case TexColorFormat::RGBA:
 				cf = GL_RGBA;
 				cpp = 4;
 				break;
-			case TextureColorFormat::GREY:
+			case TexColorFormat::GREY:
 				cf = GL_RED;
 				cpp = 1;
 				break;

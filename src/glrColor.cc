@@ -3,7 +3,7 @@
 #include <commons/misc.hh>
 #include <numeric>
 
-namespace GLRender
+namespace glr
 {
 	constexpr uint8_t s_ui8Max = std::numeric_limits<uint8_t>::max();
 	constexpr uint16_t s_ui16Max = std::numeric_limits<uint16_t>::max();

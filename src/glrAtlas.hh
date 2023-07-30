@@ -11,7 +11,7 @@
 #include <string>
 #include <memory>
 
-namespace GLRender
+namespace glr
 {
 	/// An on-VRAM atlas of stitched together images as one OpenGL texture
 	struct Atlas
@@ -23,10 +23,10 @@ namespace GLRender
 		/// \param tileData Flat array of pixel data
 		/// \param width The width of the new tile
 		/// \param height The height of the new tile
-		GLRENDER_API void addTile(std::string const &name, std::vector<uint8_t> const &tileData, TextureColorFormat format, uint32_t width, uint32_t height);
+		GLRENDER_API void addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height);
 		
 		/// Add a new tile into this atlas from raw pixel data
-		GLRENDER_API void addTile(std::string const &name, TextureColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height);
+		GLRENDER_API void addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height);
 		
 		/// Get the UV coordinates in the atlas for the given tile
 		/// \param id The ID of the tile
@@ -42,7 +42,7 @@ namespace GLRender
 		GLRENDER_API bool contains(std::string const &tileName);
 		
 		/// Create the atlas and send it to the GPU
-		GLRENDER_API void finalize(TextureColorFormat fmt);
+		GLRENDER_API void finalize(TexColorFormat fmt);
 		
 		std::shared_ptr<Texture> m_atlasTexture;
 		
@@ -50,7 +50,7 @@ namespace GLRender
 		struct AtlasImg
 		{
 			GLRENDER_API AtlasImg() = default;
-			GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, TextureColorFormat fmt, vec2<uint32_t> location, uint32_t width, uint32_t height) :
+			GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, TexColorFormat fmt, vec2<uint32_t> location, uint32_t width, uint32_t height) :
 					m_name(std::move(name)), m_data(std::move(data)), m_fmt(fmt), m_location(location), m_width(width), m_height(height) {}
 			
 			GLRENDER_API static inline bool comparator(AtlasImg const &a, AtlasImg const &b)
@@ -60,7 +60,7 @@ namespace GLRender
 			
 			std::string m_name;
 			std::vector<uint8_t> m_data = {};
-			TextureColorFormat m_fmt = TextureColorFormat::RGBA;
+			TexColorFormat m_fmt = TexColorFormat::RGBA;
 			vec2<uint32_t> m_location = {};
 			uint32_t m_width = 0;
 			uint32_t m_height = 0;

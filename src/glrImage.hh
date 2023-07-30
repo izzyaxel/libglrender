@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace GLRender
+namespace glr
 {
 	struct Image
 	{

@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace GLRender
+namespace glr
 {
 	/// An OpenGL frag/vert, geometry, or compute shader
 	struct Shader

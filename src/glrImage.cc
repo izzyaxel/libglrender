@@ -1,6 +1,6 @@
 #include "glrImage.hh"
 
-namespace GLRender
+namespace glr
 {
 	Image::Image(size_t width, size_t height)
 	{

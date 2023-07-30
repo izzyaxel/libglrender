@@ -2,7 +2,7 @@
 
 #include <glad/gl.hh>
 
-namespace GLRender
+namespace glr
 {
 	Mesh::~Mesh()
 	{

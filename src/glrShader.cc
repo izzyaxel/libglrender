@@ -2,7 +2,7 @@
 
 #include <glad/gl.hh>
 
-namespace GLRender
+namespace glr
 {
 	/*Shader::Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader) : Shader(name, std::string{vertShader.begin(), vertShader.end()}, std::string{fragShader.begin(), fragShader.end()})
 	{

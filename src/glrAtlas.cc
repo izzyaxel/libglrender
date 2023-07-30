@@ -3,7 +3,7 @@
 #include <glad/gl.hh>
 #include <algorithm>
 
-namespace GLRender
+namespace glr
 {
 	struct BSPLayout
 	{
@@ -147,7 +147,7 @@ namespace GLRender
 		this->m_atlasTexture.reset();
 	}
 	
-	void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TextureColorFormat format, uint32_t width, uint32_t height)
+	void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
 	{
 		if(this->contains(name))
 		{
@@ -167,7 +167,7 @@ namespace GLRender
 		this->p_atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
 	}
 	
-	void Atlas::addTile(std::string const &name, TextureColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
+	void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
 	{
 		if(this->contains(name))
 		{
@@ -253,7 +253,7 @@ namespace GLRender
 		return false;
 	}
 	
-	void Atlas::finalize(TextureColorFormat fmt)
+	void Atlas::finalize(TexColorFormat fmt)
 	{
 		if(this->p_finalized)
 		{

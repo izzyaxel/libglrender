@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace GLRender
+namespace glr
 {
 	/// An OpenGL program that alters the image in an OpenGL framebuffer
 	struct PostPass

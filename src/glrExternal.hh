@@ -2,7 +2,7 @@
 
 #include "export.hh"
 
-namespace GLRender
+namespace glr
 {
 	GLRENDER_API void pixelStoreiPack(int i);
 	GLRENDER_API void pixelStoreiUnpack(int i);

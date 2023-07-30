@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace GLRender
+namespace glr
 {
 	void PostStack::add(std::shared_ptr<PostPass> pass)
 	{
