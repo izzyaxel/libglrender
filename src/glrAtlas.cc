@@ -5,289 +5,292 @@
 
 namespace glr
 {
-	struct BSPLayout
-	{
-		BSPLayout(uint32_t initWidth, uint32_t initHeight)
-		{
-			this->p_root = new BSPNode(false, initWidth, initHeight);
-		}
-		
-		BSPLayout() : BSPLayout(0, 0) {}
-		
-		~BSPLayout()
-		{
-			delete this->p_root;
-		}
-		
-		vec2<uint32_t> pack(uint32_t width, uint32_t height)
-		{
-			if(width == 0 || height == 0)
-			{
-				printf("BSPLayout error: Attempted to pack a tile with 0 width or height\n");
-				return {};
-			}
-			vec2<uint32_t> out = {};
-			bool ok;
-			this->p_root->packIter(ok, width, height, out);
-			if(!ok)
-			{
-				if(this->p_root->p_width + width > this->p_root->p_height + height)
-				{
-					BSPNode *newRoot = new BSPNode(false, std::max(this->p_root->p_width, width), this->p_root->p_height + height);
-					newRoot->p_childA = this->p_root;
-					newRoot->p_childB = new BSPNode(false, std::max(this->p_root->p_width, width), height, 0, this->p_root->p_height);
-					newRoot->packIter(ok, width, height, out);
-					this->p_root = newRoot;
-				}
-				else
-				{
-					BSPNode *newRoot = new BSPNode(false, this->p_root->p_width + width, std::max(this->p_root->p_height, height));
-					newRoot->p_childA = this->p_root;
-					newRoot->p_childB = new BSPNode(false, width, std::max(this->p_root->p_height, height), this->p_root->p_width, 0);
-					newRoot->packIter(ok, width, height, out);
-					this->p_root = newRoot;
-				}
-			}
-			return out;
-		}
-		
-		uint32_t width() const
-		{
-			return this->p_root->p_width;
-		}
-		
-		uint32_t height() const
-		{
-			return this->p_root->p_height;
-		}
-	
-	private:
-		struct BSPNode
-		{
-			BSPNode(bool isEndpoint, uint32_t width, uint32_t height, uint32_t x, uint32_t y) :
-					p_width(width), p_height(height), p_coords(x, y), p_isEndpoint(isEndpoint) {}
-			
-			BSPNode(bool isEndpoint, uint32_t width, uint32_t height) :
-					BSPNode(isEndpoint, width, height, 0, 0) {}
-			
-			~BSPNode()
-			{
-				if(this->p_childA && this->p_childB)
-				{
-					delete this->p_childA;
-					delete this->p_childB;
-				}
-			}
-			
-			uint32_t const p_width = 0;
-			uint32_t const p_height = 0;
-			vec2<uint32_t> p_coords = {};
-			bool p_isEndpoint = false;
-			
-			BSPNode *p_childA = nullptr;
-			BSPNode *p_childB = nullptr;
-			
-			GLRENDER_API inline void packIter(bool &ok, uint32_t const &width, uint32_t const &height, vec2<uint32_t> &pos)
-			{
-				if(this->p_isEndpoint || (width > this->p_width) || (height > this->p_height))
-				{
-					ok = false;
-					return;
-				}
-				
-				if(this->p_childA && this->p_childB)
-				{
-					this->p_childA->packIter(ok, width, height, pos);
-					if(ok) return;
-					this->p_childB->packIter(ok, width, height, pos);
-					return;
-				}
-				
-				if(width == this->p_width && height == this->p_height)
-				{
-					this->p_isEndpoint = true;
-					ok = true;
-					pos = this->p_coords;
-					return;
-				}
-				
-				if(width != this->p_width && height != this->p_height)
-				{
-					this->p_childA = new BSPNode(false, width, this->p_height, this->p_coords.x(), this->p_coords.y());
-					this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
-					this->p_childA->packIter(ok, width, height, pos);
-					return;
-				}
-				
-				if(width == this->p_width)
-				{
-					this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
-					this->p_childB = new BSPNode(false, width, this->p_height - height, this->p_coords.x(), this->p_coords.y() + height);
-					ok = true;
-					pos = this->p_childA->p_coords;
-					return;
-				}
-				
-				if(height == this->p_height)
-				{
-					this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
-					this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
-					ok = true;
-					pos = this->p_childA->p_coords;
-					return;
-				}
-			}
-		};
-		
-		BSPNode *p_root = nullptr;
-	};
-	
-	Atlas::~Atlas()
-	{
-		this->m_atlasTexture.reset();
-	}
-	
-	void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
-	{
-		if(this->contains(name))
-		{
-			printf("Atlas error: Atlas already contains a file with the name %s\n", name.c_str());
-			return;
-		}
-		if(this->p_finalized)
-		{
-			printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
-			return;
-		}
-		if(tileData.empty())
-		{
-			printf("Atlas error: Tile data is empty\n");
-			return;
-		}
-		this->p_atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
-	}
-	
-	void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
-	{
-		if(this->contains(name))
-		{
-			printf("Atlas error: Atlas already contains a tile with the name %s\n", name.c_str());
-			return;
-		}
-		if(this->p_finalized)
-		{
-			printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
-			return;
-		}
-		if(tileData.empty())
-		{
-			printf("Atlas error: Tile data is empty\n");
-			return;
-		}
-		this->p_atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
-	}
-	
-	QuadUVs Atlas::getUVsForTile(std::string const &name)
-	{
-		if(!this->p_finalized || !this->contains(name))
-		{
-			return QuadUVs{};
-		}
-		vec2<uint32_t> location{};
-		uint32_t width = 0, height = 0;
-		for(auto &tile : this->p_atlas)
-		{
-			if(tile.m_name == name)
-			{
-				location = tile.m_location;
-				width = tile.m_width;
-				height = tile.m_height;
-				break;
-			}
-		}
-		vec2<float> ll = vec2<float>{(float)location.x(), (float)location.y()};
-		vec2<float> ul = vec2<float>{(float)location.x(), (float)(location.y() + height)};
-		vec2<float> lr = vec2<float>{(float)(location.x() + width), (float)location.y()};
-		vec2<float> ur = vec2<float>{(float)(location.x() + width), (float)(location.y() + height)};
-		ll = ll / this->p_atlasDims;
-		ul = ul / this->p_atlasDims;
-		lr = lr / this->p_atlasDims;
-		ur = ur / this->p_atlasDims;
-		return QuadUVs{ul, ll, ur, lr};
-	}
-	
-	vec2<double> Atlas::getTileDimensions(std::string const &name)
-	{
-		if(!this->contains(name)) return {0.0f, 0.0f};
-		for(auto const &tile : this->p_atlas)
-		{
-			if(tile.m_name == name)
-			{
-				return vec2<double>{(float)tile.m_width, (float)tile.m_height};
-			}
-		}
-		return vec2<double>{0.0f, 0.0f};
-	}
-	
-	void Atlas::use(uint32_t target) const
-	{
-		if(!this->p_finalized)
-		{
-			printf("Atlas error: Trying to bind atlas before it's been finalized\n");
-		}
-		else
-		{
-			this->m_atlasTexture->use(target);
-		}
-	}
-	
-	bool Atlas::contains(std::string const &tileName)
-	{
-		for(auto const &img : this->p_atlas)
-		{
-			if(img.m_name == tileName)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	void Atlas::finalize(TexColorFormat fmt)
-	{
-		if(this->p_finalized)
-		{
-			printf("Atlas error: Atlas has already been uploaded to the GPU, finalization failed\n");
-			return;
-		}
-		if(this->p_atlas.empty())
-		{
-			printf("Atlas error: Atlas doesn't contain anything, finalization failed\n");
-			return;
-		}
-		BSPLayout layout;
-		std::sort(this->p_atlas.begin(), this->p_atlas.end(), AtlasImg::comparator);
-		for(auto &tile : this->p_atlas)
-		{
-			if(tile.m_width == 0 || tile.m_height == 0)
-			{
-				printf("Atlas error: Atlas encountered a tile with 0 width or height: %s finalization failed\n", tile.m_name.c_str());
-				continue;
-			}
-			tile.m_location = layout.pack(tile.m_width, tile.m_height);
-		}
-		if(layout.height() == 0 || layout.width() == 0)
-		{
-			printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
-			return;
-		}
-		this->m_atlasTexture = std::make_unique<Texture>(Texture(layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-		this->m_atlasTexture->clear();
-		for(auto &tile : this->p_atlas)
-		{
-			this->m_atlasTexture->subImage(tile.m_data.data(), tile.m_width, tile.m_height, tile.m_location.x(), tile.m_location.y(), tile.m_fmt);
-		}
-		this->p_atlasDims = {(float)layout.width(), (float)layout.height()};
-		this->p_finalized = true;
-	}
+  struct BSPLayout
+  {
+    BSPLayout(uint32_t initWidth, uint32_t initHeight)
+    {
+      this->p_root = new BSPNode(false, initWidth, initHeight);
+    }
+    
+    BSPLayout() : BSPLayout(0, 0)
+    {}
+    
+    ~BSPLayout()
+    {
+      delete this->p_root;
+    }
+    
+    vec2<uint32_t> pack(uint32_t width, uint32_t height)
+    {
+      if(width == 0 || height == 0)
+      {
+        printf("BSPLayout error: Attempted to pack a tile with 0 width or height\n");
+        return {};
+      }
+      vec2<uint32_t> out = {};
+      bool ok;
+      this->p_root->packIter(ok, width, height, out);
+      if(!ok)
+      {
+        if(this->p_root->p_width + width > this->p_root->p_height + height)
+        {
+          BSPNode *newRoot = new BSPNode(false, std::max(this->p_root->p_width, width), this->p_root->p_height + height);
+          newRoot->p_childA = this->p_root;
+          newRoot->p_childB = new BSPNode(false, std::max(this->p_root->p_width, width), height, 0, this->p_root->p_height);
+          newRoot->packIter(ok, width, height, out);
+          this->p_root = newRoot;
+        }
+        else
+        {
+          BSPNode *newRoot = new BSPNode(false, this->p_root->p_width + width, std::max(this->p_root->p_height, height));
+          newRoot->p_childA = this->p_root;
+          newRoot->p_childB = new BSPNode(false, width, std::max(this->p_root->p_height, height), this->p_root->p_width, 0);
+          newRoot->packIter(ok, width, height, out);
+          this->p_root = newRoot;
+        }
+      }
+      return out;
+    }
+    
+    uint32_t width() const
+    {
+      return this->p_root->p_width;
+    }
+    
+    uint32_t height() const
+    {
+      return this->p_root->p_height;
+    }
+    
+    private:
+    struct BSPNode
+    {
+      BSPNode(bool isEndpoint, uint32_t width, uint32_t height, uint32_t x, uint32_t y) :
+        p_width(width), p_height(height), p_coords(x, y), p_isEndpoint(isEndpoint)
+      {}
+      
+      BSPNode(bool isEndpoint, uint32_t width, uint32_t height) :
+        BSPNode(isEndpoint, width, height, 0, 0)
+      {}
+      
+      ~BSPNode()
+      {
+        if(this->p_childA && this->p_childB)
+        {
+          delete this->p_childA;
+          delete this->p_childB;
+        }
+      }
+      
+      uint32_t const p_width = 0;
+      uint32_t const p_height = 0;
+      vec2<uint32_t> p_coords = {};
+      bool p_isEndpoint = false;
+      
+      BSPNode *p_childA = nullptr;
+      BSPNode *p_childB = nullptr;
+      
+      GLRENDER_API inline void packIter(bool &ok, uint32_t const &width, uint32_t const &height, vec2<uint32_t> &pos)
+      {
+        if(this->p_isEndpoint || (width > this->p_width) || (height > this->p_height))
+        {
+          ok = false;
+          return;
+        }
+        
+        if(this->p_childA && this->p_childB)
+        {
+          this->p_childA->packIter(ok, width, height, pos);
+          if(ok) return;
+          this->p_childB->packIter(ok, width, height, pos);
+          return;
+        }
+        
+        if(width == this->p_width && height == this->p_height)
+        {
+          this->p_isEndpoint = true;
+          ok = true;
+          pos = this->p_coords;
+          return;
+        }
+        
+        if(width != this->p_width && height != this->p_height)
+        {
+          this->p_childA = new BSPNode(false, width, this->p_height, this->p_coords.x(), this->p_coords.y());
+          this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
+          this->p_childA->packIter(ok, width, height, pos);
+          return;
+        }
+        
+        if(width == this->p_width)
+        {
+          this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
+          this->p_childB = new BSPNode(false, width, this->p_height - height, this->p_coords.x(), this->p_coords.y() + height);
+          ok = true;
+          pos = this->p_childA->p_coords;
+          return;
+        }
+        
+        if(height == this->p_height)
+        {
+          this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
+          this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
+          ok = true;
+          pos = this->p_childA->p_coords;
+          return;
+        }
+      }
+    };
+    
+    BSPNode *p_root = nullptr;
+  };
+  
+  Atlas::~Atlas()
+  {
+    this->m_atlasTexture.reset();
+  }
+  
+  void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
+  {
+    if(this->contains(name))
+    {
+      printf("Atlas error: Atlas already contains a file with the name %s\n", name.c_str());
+      return;
+    }
+    if(this->p_finalized)
+    {
+      printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
+      return;
+    }
+    if(tileData.empty())
+    {
+      printf("Atlas error: Tile data is empty\n");
+      return;
+    }
+    this->p_atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
+  }
+  
+  void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
+  {
+    if(this->contains(name))
+    {
+      printf("Atlas error: Atlas already contains a tile with the name %s\n", name.c_str());
+      return;
+    }
+    if(this->p_finalized)
+    {
+      printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
+      return;
+    }
+    if(tileData.empty())
+    {
+      printf("Atlas error: Tile data is empty\n");
+      return;
+    }
+    this->p_atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
+  }
+  
+  QuadUVs Atlas::getUVsForTile(std::string const &name)
+  {
+    if(!this->p_finalized || !this->contains(name))
+    {
+      return QuadUVs{};
+    }
+    vec2<uint32_t> location{};
+    uint32_t width = 0, height = 0;
+    for(auto &tile: this->p_atlas)
+    {
+      if(tile.m_name == name)
+      {
+        location = tile.m_location;
+        width = tile.m_width;
+        height = tile.m_height;
+        break;
+      }
+    }
+    vec2<float> ll = vec2<float>{(float) location.x(), (float) location.y()};
+    vec2<float> ul = vec2<float>{(float) location.x(), (float) (location.y() + height)};
+    vec2<float> lr = vec2<float>{(float) (location.x() + width), (float) location.y()};
+    vec2<float> ur = vec2<float>{(float) (location.x() + width), (float) (location.y() + height)};
+    ll = ll / this->p_atlasDims;
+    ul = ul / this->p_atlasDims;
+    lr = lr / this->p_atlasDims;
+    ur = ur / this->p_atlasDims;
+    return QuadUVs{ul, ll, ur, lr};
+  }
+  
+  vec2<double> Atlas::getTileDimensions(std::string const &name)
+  {
+    if(!this->contains(name)) return {0.0f, 0.0f};
+    for(auto const &tile: this->p_atlas)
+    {
+      if(tile.m_name == name)
+      {
+        return vec2<double>{(float) tile.m_width, (float) tile.m_height};
+      }
+    }
+    return vec2<double>{0.0f, 0.0f};
+  }
+  
+  void Atlas::use(uint32_t target) const
+  {
+    if(!this->p_finalized)
+    {
+      printf("Atlas error: Trying to bind atlas before it's been finalized\n");
+    }
+    else
+    {
+      this->m_atlasTexture->use(target);
+    }
+  }
+  
+  bool Atlas::contains(std::string const &tileName)
+  {
+    for(auto const &img: this->p_atlas)
+    {
+      if(img.m_name == tileName)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  void Atlas::finalize(TexColorFormat fmt)
+  {
+    if(this->p_finalized)
+    {
+      printf("Atlas error: Atlas has already been uploaded to the GPU, finalization failed\n");
+      return;
+    }
+    if(this->p_atlas.empty())
+    {
+      printf("Atlas error: Atlas doesn't contain anything, finalization failed\n");
+      return;
+    }
+    BSPLayout layout;
+    std::sort(this->p_atlas.begin(), this->p_atlas.end(), AtlasImg::comparator);
+    for(auto &tile: this->p_atlas)
+    {
+      if(tile.m_width == 0 || tile.m_height == 0)
+      {
+        printf("Atlas error: Atlas encountered a tile with 0 width or height: %s finalization failed\n", tile.m_name.c_str());
+        continue;
+      }
+      tile.m_location = layout.pack(tile.m_width, tile.m_height);
+    }
+    if(layout.height() == 0 || layout.width() == 0)
+    {
+      printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
+      return;
+    }
+    this->m_atlasTexture = std::make_unique<Texture>(Texture(layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+    this->m_atlasTexture->clear();
+    for(auto &tile: this->p_atlas)
+    {
+      this->m_atlasTexture->subImage(tile.m_data.data(), tile.m_width, tile.m_height, tile.m_location.x(), tile.m_location.y(), tile.m_fmt);
+    }
+    this->p_atlasDims = {(float) layout.width(), (float) layout.height()};
+    this->p_finalized = true;
+  }
 }

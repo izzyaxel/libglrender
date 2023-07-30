@@ -2,50 +2,51 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 set(ARCH "x86_64")
 set(CMAKE_CXX_STANDARD 23)
 if(WIN32 OR WIN64)
-	add_definitions(-DWINDOWS)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
-	if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES MinSizeRel OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--high-entropy-va -Wl,--dynamicbase -Wl,--nxcompat")
-	elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-		message(STATUS "Hardening disabled for debug build")
-	endif()
+  add_definitions(-DWINDOWS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
+  if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES MinSizeRel OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--high-entropy-va -Wl,--dynamicbase -Wl,--nxcompat")
+  elseif(CMAKE_BUILD_TYPE MATCHES Debug)
+    message(STATUS "Hardening disabled for debug build")
+  endif()
 elseif(UNIX)
-	add_definitions(-DLINUX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
-	if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES MinSizeRel OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
-	elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-		message(STATUS "Hardening disabled for debug build")
-	endif()
+  add_definitions(-DLINUX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
+  if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES MinSizeRel OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
+  elseif(CMAKE_BUILD_TYPE MATCHES Debug)
+    message(STATUS "Hardening disabled for debug build")
+  endif()
 elseif(APPLE)
-	add_definitions(-DOSX)
+  add_definitions(-DOSX)
 endif()
 if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES MinSizeRel OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-	set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
-	add_definitions(-DRELEASE)
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
+  add_definitions(-DRELEASE)
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-	set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0")
-	add_definitions(-DDEBUG)
+  set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0")
+  add_definitions(-DDEBUG)
 endif()
 
 add_subdirectory("libcommons" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
 include_directories("libcommons/src/")
 
 set(SRC
-		src/gl.cc
-		src/export.hh
-		src/glrEnums.hh
-		src/glrRenderer.cc          src/glrRenderer.hh
-		src/glrFramebuffer.cc       src/glrFramebuffer.hh
-		src/glrPostProcessing.cc    src/glrPostProcessing.hh
-		src/glrTexture.cc           src/glrTexture.hh
-		src/glrShader.cc            src/glrShader.hh
-		src/glrAtlas.cc             src/glrAtlas.hh
-		src/glrImage.cc             src/glrImage.hh
-		src/glrColor.cc             src/glrColor.hh
-		src/glrMesh.cc              src/glrMesh.hh
-		src/glrExternal.cc          src/glrExternal.hh)
+    src/gl.cc
+    src/export.hh
+    src/glrEnums.hh
+    src/glrRenderer.cc src/glrRenderer.hh
+    src/glrFramebuffer.cc src/glrFramebuffer.hh
+    src/glrPostProcessing.cc src/glrPostProcessing.hh
+    src/glrTexture.cc src/glrTexture.hh
+    src/glrShader.cc src/glrShader.hh
+    src/glrAtlas.cc src/glrAtlas.hh
+    src/glrImage.cc src/glrImage.hh
+    src/glrColor.cc src/glrColor.hh
+    src/glrMesh.cc src/glrMesh.hh
+    src/glrExternal.cc src/glrExternal.hh
+    src/glrRenderable.hh)
 
 project(GLRender)
 include_directories(include)
