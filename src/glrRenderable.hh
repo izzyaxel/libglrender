@@ -35,10 +35,10 @@ namespace glr
       QuadUVs m_atlasUVs = {};
     };
     
-    GLRENDER_API Renderable(vec2<double> const &pos,
-      vec2<double> const &scale,
-      double rotation,
-      vec3<double> const &axis,
+    GLRENDER_API Renderable(vec2<float> const &pos,
+      vec2<float> const &scale,
+      float rotation,
+      vec3<float> const &axis,
       std::shared_ptr<Texture> const &texture,
       std::shared_ptr<Shader> const &shader,
       std::shared_ptr<Mesh> const &mesh,
@@ -60,10 +60,10 @@ namespace glr
       this->m_characterInfo = characterInfo;
     }
     
-    vec2<double> m_pos = {};
-    vec2<double> m_scale = {};
-    double m_rotation = 0.0f;
-    vec3<double> m_axis = {0.0f, 0.0f, 1.0f};
+    vec2<float> m_pos = {};
+    vec2<float> m_scale = {};
+    float m_rotation = 0.0f;
+    vec3<float> m_axis = {0.0f, 0.0f, 1.0f};
     std::shared_ptr<Texture> m_texture = nullptr;
     std::shared_ptr<Shader> m_shader = nullptr;
     std::shared_ptr<Mesh> m_mesh = nullptr;

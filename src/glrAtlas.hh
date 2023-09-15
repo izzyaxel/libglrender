@@ -33,7 +33,7 @@ namespace glr
     /// \return UV coordinates
     [[nodiscard]] GLRENDER_API QuadUVs getUVsForTile(std::string const &name);
     
-    [[nodiscard]] GLRENDER_API vec2<double> getTileDimensions(std::string const &name);
+    [[nodiscard]] GLRENDER_API vec2<float> getTileDimensions(std::string const &name);
     
     /// Bind this atlas for rendering use
     GLRENDER_API void use(uint32_t target = 0) const;

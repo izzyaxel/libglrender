@@ -219,17 +219,17 @@ namespace glr
     return QuadUVs{ul, ll, ur, lr};
   }
   
-  vec2<double> Atlas::getTileDimensions(std::string const &name)
+  vec2<float> Atlas::getTileDimensions(std::string const &name)
   {
     if(!this->contains(name)) return {0.0f, 0.0f};
     for(auto const &tile: this->p_atlas)
     {
       if(tile.m_name == name)
       {
-        return vec2<double>{(float) tile.m_width, (float) tile.m_height};
+        return vec2<float>{(float)tile.m_width, (float)tile.m_height};
       }
     }
-    return vec2<double>{0.0f, 0.0f};
+    return vec2<float>{0.0f, 0.0f};
   }
   
   void Atlas::use(uint32_t target) const
