@@ -256,7 +256,7 @@ namespace glr
     return false;
   }
   
-  void Atlas::finalize(TexColorFormat fmt)
+  void Atlas::finalize(std::string const &name, TexColorFormat fmt)
   {
     if(this->p_finalized)
     {
@@ -284,7 +284,7 @@ namespace glr
       printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
       return;
     }
-    this->m_atlasTexture = std::make_unique<Texture>(Texture(layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+    this->m_atlasTexture = std::make_unique<Texture>(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
     this->m_atlasTexture->clear();
     for(auto &tile: this->p_atlas)
     {

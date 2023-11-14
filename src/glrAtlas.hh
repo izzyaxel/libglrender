@@ -42,7 +42,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool contains(std::string const &tileName);
     
     /// Create the atlas and send it to the GPU
-    GLRENDER_API void finalize(TexColorFormat fmt);
+    GLRENDER_API void finalize(std::string const &name, TexColorFormat fmt);
     
     std::shared_ptr<Texture> m_atlasTexture;
     
