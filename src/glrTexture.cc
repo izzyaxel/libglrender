@@ -4,8 +4,9 @@
 
 namespace glr
 {
-  Texture::Texture(uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
+  Texture::Texture(std::string const &name, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
   {
+    this->name = name;
     this->m_fmt = colorFormat;
     this->m_width = width;
     this->m_height = height;
@@ -31,8 +32,9 @@ namespace glr
     this->setAnisotropyLevel(1);
   }
   
-  Texture::Texture(uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
+  Texture::Texture(std::string const &name, uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
   {
+    this->name = name;
     this->m_fmt = colorFormat;
     this->m_width = width;
     this->m_height = height;
@@ -61,8 +63,9 @@ namespace glr
     this->setAnisotropyLevel(1);
   }
   
-  Texture::Texture(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
+  Texture::Texture(std::string const &name, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
   {
+    this->name = name;
     this->m_fmt = TexColorFormat::RGBA;
     this->m_width = 1;
     this->m_height = 1;
@@ -200,6 +203,7 @@ namespace glr
   DownloadedImageData Texture::downloadTexture(TexColorFormat colorFormat) const
   {
     DownloadedImageData out;
+    out.textureName = this->name;
     int32_t curTex = 0;
     int32_t cf = 0;
     int32_t cpp = 0;
