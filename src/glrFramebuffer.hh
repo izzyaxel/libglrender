@@ -12,29 +12,30 @@ namespace glr
   /// An OpenGL framebuffer
   struct Framebuffer
   {
-    Framebuffer() = delete;
+    Framebuffer() = default;
     GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<Attachment> const &options, std::string const &name);
     GLRENDER_API ~Framebuffer();
+    
     GLRENDER_API Framebuffer(Framebuffer &other);
-    GLRENDER_API Framebuffer &operator =(Framebuffer other);
     GLRENDER_API Framebuffer(Framebuffer &&other) noexcept;
     GLRENDER_API Framebuffer &operator =(Framebuffer &&other) noexcept;
+    GLRENDER_API Framebuffer& operator =(Framebuffer const &other) noexcept;
     
     GLRENDER_API void use() const;
     GLRENDER_API void bind(Attachment type, uint32_t target) const;
     GLRENDER_API void regenerate(uint32_t width, uint32_t height);
     
-    uint32_t m_handle = 0;
-    uint32_t m_colorHandle = 0;
-    uint32_t m_depthHandle = 0;
-    uint32_t m_stencilHandle = 0;
-    uint32_t m_width = 0;
-    uint32_t m_height = 0;
-    bool m_hasColor = false;
-    bool m_hasDepth = false;
-    bool m_hasAlpha = false;
-    bool m_hasStencil = false;
-    std::string m_name;
+    uint32_t handle = 0;
+    uint32_t colorHandle = 0;
+    uint32_t depthHandle = 0;
+    uint32_t stencilHandle = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    bool hasColor = false;
+    bool hasDepth = false;
+    bool hasAlpha = false;
+    bool hasStencil = false;
+    std::string name;
     
     private:
     void createFBO();
@@ -52,6 +53,6 @@ namespace glr
     GLRENDER_API void onResize(uint32_t width, uint32_t height);
     
     private:
-    std::vector<std::shared_ptr<Framebuffer>> p_pool;
+    std::vector<std::shared_ptr<Framebuffer>> pool;
   };
 }

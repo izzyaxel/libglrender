@@ -7,38 +7,15 @@
 #include "glrTexture.hh"
 #include "glrAtlas.hh"
 #include "glrRenderable.hh"
+#include "glrRenderList.hh"
 
 #include "commons/math/mat4.hh"
-
-#include <cstdint>
-#include <functional>
 
 namespace glr
 {
   typedef void (*GLapiproc)(void);
   typedef GLapiproc (*GLLoadFunc)(const char *name);
   //typedef void (*GLLoadFunc)(const char *name);
-  
-  /// A sortable list structure for Renderables
-  struct RenderList
-  {
-    using Comparator = std::function<bool(Renderable const &a, Renderable const &b)>;
-    GLRENDER_API static bool renderableComparator(Renderable const &a, Renderable const &b);
-    
-    GLRENDER_API RenderList operator +(RenderList const &other);
-    GLRENDER_API RenderList &operator +=(RenderList const &other);
-    
-    GLRENDER_API Renderable &operator [](size_t index);
-    GLRENDER_API auto begin();
-    GLRENDER_API auto end();
-    GLRENDER_API void add(std::initializer_list<Renderable> const &renderables);
-    GLRENDER_API void clear();
-    [[nodiscard]] GLRENDER_API bool empty() const;
-    [[nodiscard]] GLRENDER_API size_t size() const;
-    GLRENDER_API void sort(Comparator const &cmp = renderableComparator);
-    
-    std::vector<Renderable> m_list;
-  };
   
   /// The OpenGL 4.5+ rendering engine
   struct Renderer
@@ -65,29 +42,29 @@ namespace glr
     GLRENDER_API void pingPong();
     
     GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format);
-    GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {s_workSizeX, s_workSizeY});
+    GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {WORKSIZEX, WORKSIZEY});
     
-    std::unique_ptr<FramebufferPool> m_fboPool = nullptr;
+    std::unique_ptr<FramebufferPool> fboPool = nullptr;
     
-    GLRENDER_API static uint32_t s_workSizeX;
-    GLRENDER_API static uint32_t s_workSizeY;
+    GLRENDER_API static uint32_t WORKSIZEX;
+    GLRENDER_API static uint32_t WORKSIZEY;
     
     private:
     struct Alternator
     {
       inline bool swap()
       {
-        p_alt = !p_alt;
-        return p_alt;
+        alt = !alt;
+        return alt;
       }
       
       [[nodiscard]] inline bool get() const
       {
-        return p_alt;
+        return alt;
       } //true: a false: b
       
       private:
-      bool p_alt = true;
+      bool alt = true;
     };
     
     void postProcessGlobal();
@@ -95,20 +72,20 @@ namespace glr
     void drawToScratch();
     void drawToBackBuffer();
     void scratchToPingPong();
-    void drawRenderable(Renderable const &entry);
+    void drawRenderable(Renderable &entry);
     
-    std::shared_ptr<PostStack> p_globalPostStack;
-    std::unordered_map<uint64_t, std::shared_ptr<PostStack>> p_layerPostStack;
-    mat4x4<float> p_model = {};
-    mat4x4<float> p_view = {};
-    mat4x4<float> p_projection = {};
-    mat4x4<float> p_mvp = {};
-    std::shared_ptr<Framebuffer> p_fboA = nullptr;
-    std::shared_ptr<Framebuffer> p_fboB = nullptr;
-    std::shared_ptr<Framebuffer> p_scratch = nullptr;
-    std::unique_ptr<Mesh> p_fullscreenQuad = nullptr;
-    std::unique_ptr<Shader> p_shaderTransfer = nullptr;
-    std::unique_ptr<Shader> p_shaderText = nullptr;
-    Alternator p_curFBO = {};
+    std::shared_ptr<PostStack> globalPostStack;
+    std::unordered_map<uint64_t, std::shared_ptr<PostStack>> layerPostStack;
+    mat4x4<float> model = {};
+    mat4x4<float> view = {};
+    mat4x4<float> projection = {};
+    mat4x4<float> mvp = {};
+    std::shared_ptr<Framebuffer> fboA = nullptr;
+    std::shared_ptr<Framebuffer> fboB = nullptr;
+    std::shared_ptr<Framebuffer> scratch = nullptr;
+    std::unique_ptr<Mesh> fullscreenQuad = nullptr;
+    std::unique_ptr<Shader> shaderTransfer = nullptr;
+    std::unique_ptr<Shader> shaderText = nullptr;
+    Alternator curFBO = {};
   };
 }

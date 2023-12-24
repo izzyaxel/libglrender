@@ -147,7 +147,7 @@ namespace glr
   
   Atlas::~Atlas()
   {
-    this->m_atlasTexture.reset();
+    this->atlasTexture.reset();
   }
   
   void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
@@ -157,7 +157,7 @@ namespace glr
       printf("Atlas error: Atlas already contains a file with the name %s\n", name.c_str());
       return;
     }
-    if(this->p_finalized)
+    if(this->finalized)
     {
       printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
       return;
@@ -167,7 +167,7 @@ namespace glr
       printf("Atlas error: Tile data is empty\n");
       return;
     }
-    this->p_atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
+    this->atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
   }
   
   void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
@@ -177,7 +177,7 @@ namespace glr
       printf("Atlas error: Atlas already contains a tile with the name %s\n", name.c_str());
       return;
     }
-    if(this->p_finalized)
+    if(this->finalized)
     {
       printf("Atlas error: Atlas has already been uploaded to the GPU, add new tiles to it before calling finalize\n");
       return;
@@ -187,24 +187,24 @@ namespace glr
       printf("Atlas error: Tile data is empty\n");
       return;
     }
-    this->p_atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
+    this->atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
   }
   
   QuadUVs Atlas::getUVsForTile(std::string const &name)
   {
-    if(!this->p_finalized || !this->contains(name))
+    if(!this->finalized || !this->contains(name))
     {
       return QuadUVs{};
     }
     vec2<uint32_t> location{};
     uint32_t width = 0, height = 0;
-    for(auto &tile: this->p_atlas)
+    for(auto &tile: this->atlas)
     {
-      if(tile.m_name == name)
+      if(tile.name == name)
       {
-        location = tile.m_location;
-        width = tile.m_width;
-        height = tile.m_height;
+        location = tile.location;
+        width = tile.width;
+        height = tile.height;
         break;
       }
     }
@@ -212,21 +212,21 @@ namespace glr
     vec2<float> ul = vec2<float>{(float) location.x(), (float) (location.y() + height)};
     vec2<float> lr = vec2<float>{(float) (location.x() + width), (float) location.y()};
     vec2<float> ur = vec2<float>{(float) (location.x() + width), (float) (location.y() + height)};
-    ll = ll / this->p_atlasDims;
-    ul = ul / this->p_atlasDims;
-    lr = lr / this->p_atlasDims;
-    ur = ur / this->p_atlasDims;
+    ll = ll / this->atlasDims;
+    ul = ul / this->atlasDims;
+    lr = lr / this->atlasDims;
+    ur = ur / this->atlasDims;
     return QuadUVs{ul, ll, ur, lr};
   }
   
   vec2<float> Atlas::getTileDimensions(std::string const &name)
   {
     if(!this->contains(name)) return {0.0f, 0.0f};
-    for(auto const &tile: this->p_atlas)
+    for(auto const &tile: this->atlas)
     {
-      if(tile.m_name == name)
+      if(tile.name == name)
       {
-        return vec2<float>{(float)tile.m_width, (float)tile.m_height};
+        return vec2<float>{(float)tile.width, (float)tile.height};
       }
     }
     return vec2<float>{0.0f, 0.0f};
@@ -234,21 +234,21 @@ namespace glr
   
   void Atlas::use(uint32_t target) const
   {
-    if(!this->p_finalized)
+    if(!this->finalized)
     {
       printf("Atlas error: Trying to bind atlas before it's been finalized\n");
     }
     else
     {
-      this->m_atlasTexture->use(target);
+      this->atlasTexture->use(target);
     }
   }
   
   bool Atlas::contains(std::string const &tileName)
   {
-    for(auto const &img: this->p_atlas)
+    for(auto const &img: this->atlas)
     {
-      if(img.m_name == tileName)
+      if(img.name == tileName)
       {
         return true;
       }
@@ -258,39 +258,39 @@ namespace glr
   
   void Atlas::finalize(std::string const &name, TexColorFormat fmt)
   {
-    if(this->p_finalized)
+    if(this->finalized)
     {
       printf("Atlas error: Atlas has already been uploaded to the GPU, finalization failed\n");
       return;
     }
-    if(this->p_atlas.empty())
+    if(this->atlas.empty())
     {
       printf("Atlas error: Atlas doesn't contain anything, finalization failed\n");
       return;
     }
     BSPLayout layout;
-    std::sort(this->p_atlas.begin(), this->p_atlas.end(), AtlasImg::comparator);
-    for(auto &tile: this->p_atlas)
+    std::sort(this->atlas.begin(), this->atlas.end(), AtlasImg::comparator);
+    for(auto &tile: this->atlas)
     {
-      if(tile.m_width == 0 || tile.m_height == 0)
+      if(tile.width == 0 || tile.height == 0)
       {
-        printf("Atlas error: Atlas encountered a tile with 0 width or height: %s finalization failed\n", tile.m_name.c_str());
+        printf("Atlas error: Atlas encountered a tile with 0 width or height: %s finalization failed\n", tile.name.c_str());
         continue;
       }
-      tile.m_location = layout.pack(tile.m_width, tile.m_height);
+      tile.location = layout.pack(tile.width, tile.height);
     }
     if(layout.height() == 0 || layout.width() == 0)
     {
       printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
       return;
     }
-    this->m_atlasTexture = std::make_unique<Texture>(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-    this->m_atlasTexture->clear();
-    for(auto &tile: this->p_atlas)
+    this->atlasTexture = std::make_unique<Texture>(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+    this->atlasTexture->clear();
+    for(auto &tile: this->atlas)
     {
-      this->m_atlasTexture->subImage(tile.m_data.data(), tile.m_width, tile.m_height, tile.m_location.x(), tile.m_location.y(), tile.m_fmt);
+      this->atlasTexture->subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
     }
-    this->p_atlasDims = {(float) layout.width(), (float) layout.height()};
-    this->p_finalized = true;
+    this->atlasDims = {(float) layout.width(), (float) layout.height()};
+    this->finalized = true;
   }
 }

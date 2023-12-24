@@ -13,10 +13,10 @@ namespace glr
   struct PostPass
   {
     PostPass() = default;
-    ProcessFunc m_process = nullptr;
-    bool m_enabled = true;
-    std::string m_name;
-    void *m_userData = nullptr;
+    ProcessFunc process = nullptr;
+    bool enabled = true;
+    std::string name;
+    void *userData = nullptr;
   };
   
   struct PostStack
@@ -27,6 +27,6 @@ namespace glr
     GLRENDER_API void clear();
     
     private:
-    std::vector<PostPass> p_postOrder;
+    std::vector<PostPass> postOrder;
   };
 }

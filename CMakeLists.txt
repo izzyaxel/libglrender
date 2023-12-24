@@ -46,7 +46,9 @@ set(SRC
     src/glrColor.cc src/glrColor.hh
     src/glrMesh.cc src/glrMesh.hh
     src/glrExternal.cc src/glrExternal.hh
-    src/glrRenderable.hh)
+    src/glrRenderable.hh
+    src/glrRenderList.cc
+    src/glrRenderList.hh)
 
 project(GLRender)
 include_directories(include)

@@ -18,58 +18,57 @@ namespace glr
     {
       GLRENDER_API CharacterInfo()
       {
-        this->m_character = '\0';
-        this->m_color = {};
-        this->m_atlasUVs = {};
+        this->character = '\0';
+        this->color = {};
+        this->atlasUVs = {};
       };
       
       GLRENDER_API CharacterInfo(char const &character, Color const &color, QuadUVs const &atlasUVs)
       {
-        this->m_character = character;
-        this->m_color = color;
-        this->m_atlasUVs = atlasUVs;
+        this->character = character;
+        this->color = color;
+        this->atlasUVs = atlasUVs;
       }
       
-      char m_character = '\0';
-      Color m_color = {};
-      QuadUVs m_atlasUVs = {};
+      char character = '\0';
+      Color color = {};
+      QuadUVs atlasUVs = {};
     };
     
     GLRENDER_API Renderable(vec2<float> const &pos,
       vec2<float> const &scale,
       float rotation,
       vec3<float> const &axis,
-      std::shared_ptr<Texture> const &texture,
-      std::shared_ptr<Shader> const &shader,
-      std::shared_ptr<Mesh> const &mesh,
+      Texture &texture,
+      Shader &shader,
+      Mesh &mesh,
       size_t layer,
       size_t sublayer,
-      std::string const &name,
-      CharacterInfo characterInfo = CharacterInfo())
-    {
-      this->m_pos = pos;
-      this->m_scale = scale;
-      this->m_rotation = rotation;
-      this->m_axis = axis;
-      this->m_texture = texture;
-      this->m_shader = shader;
-      this->m_mesh = mesh;
-      this->m_layer = layer;
-      this->m_sublayer = sublayer;
-      this->m_name = name;
-      this->m_characterInfo = characterInfo;
-    }
+      std::string name,
+      CharacterInfo characterInfo = CharacterInfo()) :
+      pos(pos),
+      scale(scale),
+      rotation(rotation),
+      axis(axis),
+      texture(texture),
+      shader(shader),
+      mesh(mesh),
+      layer(layer),
+      sublayer(sublayer),
+      name(std::move(name)),
+      characterInfo(characterInfo)
+    {}
     
-    vec2<float> m_pos = {};
-    vec2<float> m_scale = {};
-    float m_rotation = 0.0f;
-    vec3<float> m_axis = {0.0f, 0.0f, 1.0f};
-    std::shared_ptr<Texture> m_texture = nullptr;
-    std::shared_ptr<Shader> m_shader = nullptr;
-    std::shared_ptr<Mesh> m_mesh = nullptr;
-    size_t m_layer = 0;
-    size_t m_sublayer = 0;
-    std::string m_name;
-    CharacterInfo m_characterInfo;
+    vec2<float> pos = {};
+    vec2<float> scale = {};
+    float rotation = 0.0f;
+    vec3<float> axis = {0.0f, 0.0f, 1.0f};
+    Texture texture{};
+    Shader shader{};
+    Mesh mesh{};
+    size_t layer = 0;
+    size_t sublayer = 0;
+    std::string name;
+    CharacterInfo characterInfo{};
   };
 }

@@ -19,7 +19,7 @@ namespace glr
   /// An on-VRAM OpenGL texture
   struct Texture
   {
-    Texture() = delete;
+    Texture() = default;
     
     /// Allocate VRAM for a texture without assigning data to it
     GLRENDER_API Texture(std::string const &name, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode = FilterMode::NEAREST, bool sRGB = false);
@@ -32,11 +32,6 @@ namespace glr
     
     GLRENDER_API ~Texture();
     
-    GLRENDER_API Texture(Texture &other);
-    GLRENDER_API Texture &operator =(Texture other);
-    GLRENDER_API Texture(Texture &&other) noexcept;
-    GLRENDER_API Texture &operator =(Texture &&other) noexcept;
-    
     GLRENDER_API void use(uint32_t target) const;
     GLRENDER_API void setFilterMode(FilterMode min, FilterMode mag) const;
     GLRENDER_API void setAnisotropyLevel(uint32_t level) const;
@@ -45,10 +40,10 @@ namespace glr
     
     [[nodiscard]] GLRENDER_API DownloadedImageData downloadTexture(TexColorFormat colorFormat) const;
     
-    uint32_t m_handle = 0;
-    uint32_t m_width = 0;
-    uint32_t m_height = 0;
-    TexColorFormat m_fmt = {};
+    uint32_t handle = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    TexColorFormat fmt = {};
     std::string name;
     std::string path;
   };

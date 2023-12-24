@@ -11,18 +11,12 @@ namespace glr
   /// An OpenGL frag/vert, geometry, or compute shader
   struct Shader
   {
-    Shader() = delete;
+    Shader() = default;
     
-    /*GLRENDER_API Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader);
-    GLRENDER_API Shader(std::string const &name, std::vector<uint8_t> const &compShader);*/
     GLRENDER_API Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader);
     GLRENDER_API Shader(std::string const &name, std::string const &compShader);
     GLRENDER_API ~Shader();
     
-    GLRENDER_API Shader(Shader &other);
-    GLRENDER_API Shader &operator =(Shader other);
-    GLRENDER_API Shader(Shader &&other) noexcept;
-    GLRENDER_API Shader &operator =(Shader &&other) noexcept;
     
     GLRENDER_API void use() const;
     [[nodiscard]] GLRENDER_API int32_t getUniformHandle(std::string const &location);
@@ -35,7 +29,7 @@ namespace glr
     GLRENDER_API void sendMat3f(std::string const &location, float *val);
     GLRENDER_API void sendMat4f(std::string const &location, float *val);
     
-    uint32_t m_handle = 0;
-    std::unordered_map<std::string, int32_t> m_uniforms = {};
+    uint32_t handle = 0;
+    std::unordered_map<std::string, int32_t> uniforms = {};
   };
 }

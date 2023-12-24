@@ -10,7 +10,7 @@ namespace glr
 {
   struct Color
   {
-    using colorFmt = uint16_t;
+    using ColorFmt = uint16_t;
     
     GLRENDER_API Color() = default;
     GLRENDER_API Color operator +(Color const &other) const;
@@ -50,9 +50,9 @@ namespace glr
     [[nodiscard]] GLRENDER_API std::string asWeb() const;
     
     private:
-    colorFmt p_red = 0;
-    colorFmt p_green = 0;
-    colorFmt p_blue = 0;
-    colorFmt p_alpha = 1;
+    ColorFmt red = 0;
+    ColorFmt green = 0;
+    ColorFmt blue = 0;
+    ColorFmt alpha = 1;
   };
 }

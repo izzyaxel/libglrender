@@ -17,7 +17,7 @@ namespace glr
   Shader::Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader)
   {
     uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER), fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
-    this->m_handle = glCreateProgram();
+    this->handle = glCreateProgram();
     char const *vertSource = vertShader.data(), *fragSource = fragShader.data();
     glShaderSource(vertHandle, 1, &vertSource, nullptr);
     glShaderSource(fragHandle, 1, &fragSource, nullptr);
@@ -49,24 +49,24 @@ namespace glr
       printf("Vert/Frag shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
-    glAttachShader(this->m_handle, vertHandle);
-    glAttachShader(this->m_handle, fragHandle);
-    glLinkProgram(this->m_handle);
+    glAttachShader(this->handle, vertHandle);
+    glAttachShader(this->handle, fragHandle);
+    glLinkProgram(this->handle);
     success = 0;
-    glGetProgramiv(this->m_handle, GL_LINK_STATUS, &success);
+    glGetProgramiv(this->handle, GL_LINK_STATUS, &success);
     if(!success)
     {
       int32_t maxLen = 0;
-      glGetShaderiv(this->m_handle, GL_INFO_LOG_LENGTH, &maxLen);
+      glGetShaderiv(this->handle, GL_INFO_LOG_LENGTH, &maxLen);
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(this->m_handle, maxLen, &maxLen, error.data());
+      glGetShaderInfoLog(this->handle, maxLen, &maxLen, error.data());
       std::string errorStr{error.begin(), error.end()};
       printf("Vert/Frag shader program error: %s failed to link\n", name.c_str());
       return;
     }
-    glDetachShader(this->m_handle, vertHandle);
-    glDetachShader(this->m_handle, fragHandle);
+    glDetachShader(this->handle, vertHandle);
+    glDetachShader(this->handle, fragHandle);
     glDeleteShader(vertHandle);
     glDeleteShader(fragHandle);
   }
@@ -74,7 +74,7 @@ namespace glr
   Shader::Shader(std::string const &name, std::string const &compShader)
   {
     uint32_t compHandle = glCreateShader(GL_COMPUTE_SHADER);
-    this->m_handle = glCreateProgram();
+    this->handle = glCreateProgram();
     char const *compSource = compShader.data();
     glShaderSource(compHandle, 1, &compSource, nullptr);
     glCompileShader(compHandle);
@@ -92,65 +92,39 @@ namespace glr
       return;
     }
     
-    glAttachShader(this->m_handle, compHandle);
-    glLinkProgram(this->m_handle);
+    glAttachShader(this->handle, compHandle);
+    glLinkProgram(this->handle);
     success = 0;
-    glGetProgramiv(this->m_handle, GL_LINK_STATUS, &success);
+    glGetProgramiv(this->handle, GL_LINK_STATUS, &success);
     if(!success)
     {
       int32_t maxLen = 0;
-      glGetShaderiv(this->m_handle, GL_INFO_LOG_LENGTH, &maxLen);
+      glGetShaderiv(this->handle, GL_INFO_LOG_LENGTH, &maxLen);
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(this->m_handle, maxLen, &maxLen, error.data());
+      glGetShaderInfoLog(this->handle, maxLen, &maxLen, error.data());
       std::string errorStr{error.begin(), error.end()};
       printf("Compute shader program error: %s failed to link: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
-    glDetachShader(this->m_handle, compHandle);
+    glDetachShader(this->handle, compHandle);
     glDeleteShader(compHandle);
   }
   
   Shader::~Shader()
   {
-    glDeleteProgram(this->m_handle);
-  }
-  
-  Shader::Shader(Shader &other)
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-  }
-  
-  Shader &Shader::operator =(Shader other)
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-    return *this;
-  }
-  
-  Shader::Shader(Shader &&other) noexcept
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-  }
-  
-  Shader &Shader::operator =(Shader &&other) noexcept
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-    return *this;
+    glDeleteProgram(this->handle);
   }
   
   void Shader::use() const
   {
-    glUseProgram(this->m_handle);
+    glUseProgram(this->handle);
   }
   
   int32_t Shader::getUniformHandle(std::string const &location)
   {
-    auto it = this->m_uniforms.find(location);
-    if(it == this->m_uniforms.end()) it = this->m_uniforms.emplace(location, glGetUniformLocation(this->m_handle, location.data())).first;
+    auto it = this->uniforms.find(location);
+    if(it == this->uniforms.end()) it = this->uniforms.emplace(location, glGetUniformLocation(this->handle, location.data())).first;
     return it->second;
   }
   

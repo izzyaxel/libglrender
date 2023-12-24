@@ -4,8 +4,8 @@
 
 namespace glr
 {
-  uint32_t Renderer::s_workSizeX = 40;
-  uint32_t Renderer::s_workSizeY = 20;
+  uint32_t Renderer::WORKSIZEX = 40;
+  uint32_t Renderer::WORKSIZEY = 20;
 
 /// ===Data===========================================================================///
   
@@ -146,82 +146,18 @@ void main()
     }
     printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", src.c_str(), sev.c_str(), id, ty.c_str(), message);
   }
-  
-  bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
-  {
-    if(a.m_texture && b.m_texture)
-    {
-      return (a.m_texture->m_handle > b.m_texture->m_handle) && (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
-    }
-    else
-    {
-      return (a.m_layer == b.m_layer) ? a.m_sublayer > b.m_sublayer : a.m_layer > b.m_layer;
-    }
-  }
-  
-  RenderList RenderList::operator +(RenderList const &other)
-  {
-    this->m_list.insert(this->m_list.end(), other.m_list.begin(), other.m_list.end());
-    return *this;
-  }
-  
-  RenderList &RenderList::operator +=(RenderList const &other)
-  {
-    this->m_list.insert(this->m_list.end(), other.m_list.begin(), other.m_list.end());
-    return *this;
-  }
-  
-  Renderable &RenderList::operator [](size_t index)
-  {
-    return this->m_list[index];
-  }
-  
-  auto RenderList::begin()
-  {
-    return this->m_list.begin();
-  }
-  
-  auto RenderList::end()
-  {
-    return this->m_list.end();
-  }
-  
-  void RenderList::add(std::initializer_list<Renderable> const &renderables)
-  {
-    this->m_list.insert(this->m_list.end(), renderables.begin(), renderables.end());
-  }
-  
-  void RenderList::clear()
-  {
-    this->m_list.clear();
-  }
-  
-  bool RenderList::empty() const
-  {
-    return this->m_list.empty();
-  }
-  
-  size_t RenderList::size() const
-  {
-    return this->m_list.size();
-  }
-  
-  void RenderList::sort(Comparator const &cmp)
-  {
-    std::sort(this->m_list.begin(), this->m_list.end(), cmp);
-  }
 
 /// ===Renderer========================================================================================================================================///
   Renderer::Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight)
   {
     gladLoadGL(loadFunc);
-    this->m_fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
-    this->p_fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
-    this->p_fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
-    this->p_scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
-    this->p_fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
-    this->p_shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
-    this->p_shaderText = std::make_unique<Shader>("Text Shader", textVert, textFrag);
+    this->fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
+    this->fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
+    this->fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
+    this->scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
+    this->fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
+    this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
+    this->shaderText = std::make_unique<Shader>("Text Shader", textVert, textFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
@@ -235,30 +171,30 @@ void main()
   
   Renderer::~Renderer()
   {
-    this->p_fboA.reset();
-    this->p_fboB.reset();
-    this->p_scratch.reset();
-    this->p_fullscreenQuad.reset();
-    this->p_shaderTransfer.reset();
-    this->p_globalPostStack.reset();
-    this->p_layerPostStack.clear();
+    this->fboA.reset();
+    this->fboB.reset();
+    this->scratch.reset();
+    this->fullscreenQuad.reset();
+    this->shaderTransfer.reset();
+    this->globalPostStack.reset();
+    this->layerPostStack.clear();
   }
   
   void Renderer::onContextResize(uint32_t width, uint32_t height)
   {
     this->useBackBuffer();
     glViewport(0, 0, (int) width, (int) height);
-    this->m_fboPool->onResize(width, height);
+    this->fboPool->onResize(width, height);
   }
   
   void Renderer::setGlobalPostStack(std::shared_ptr<PostStack> stack)
   {
-    this->p_globalPostStack = std::move(stack);
+    this->globalPostStack = std::move(stack);
   }
   
   void Renderer::setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack)
   {
-    this->p_layerPostStack[layer] = std::move(stack);
+    this->layerPostStack[layer] = std::move(stack);
   }
   
   void Renderer::useBackBuffer()
@@ -269,93 +205,85 @@ void main()
   void Renderer::render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection)
   {
     if(renderList.empty()) return;
-    this->p_view = view;
-    this->p_projection = projection;
-    std::shared_ptr<Texture> curTexture = renderList[0].m_texture;
-    renderList[0].m_texture->use(0);
-    if(this->p_layerPostStack.empty()) //No postprocessing
+    this->view = view;
+    this->projection = projection;
+    Texture &curTexture = renderList[0].texture;
+    renderList[0].texture.use(0);
+    if(this->layerPostStack.empty()) //No postprocessing
     {
       this->pingPong();
-      for(auto const &entry: renderList)
+      for(auto &entry : renderList.list)
       {
-        if(!entry.m_texture)
+        if(entry.texture.handle != curTexture.handle)
         {
-          continue;
-        }
-        if(entry.m_texture != curTexture)
-        {
-          curTexture = entry.m_texture;
-          entry.m_texture->use(0);
+          curTexture = entry.texture;
+          entry.texture.use(0);
         }
         this->drawRenderable(entry);
       }
     }
     else //Postprocess
     {
-      this->p_scratch->use();
+      this->scratch->use();
       this->clearCurrentFramebuffer();
       this->pingPong();
       bool bind = false;
-      size_t prevLayer = renderList[0].m_layer;
+      size_t prevLayer = renderList[0].layer;
       for(size_t i = 0; i < renderList.size(); i++)
       {
-        auto const &entry = renderList[i];
-        if(!entry.m_texture)
-        {
-          continue;
-        }
-        if(entry.m_texture != curTexture)
+        auto &entry = renderList[i];
+        if(entry.texture.handle != curTexture.handle)
         {
           bind = true;
-          curTexture = entry.m_texture;
+          curTexture = entry.texture;
         }
         
         if(i == 0)
         {
           if(bind)
           {
-            curTexture->use(0);
+            curTexture.use(0);
           }
           this->drawRenderable(entry);
         }
         else if(i == renderList.size() - 1)
         {
-          if(entry.m_layer != prevLayer)
+          if(entry.layer != prevLayer)
           {
             this->postProcessLayer(prevLayer);
             this->drawToScratch();
             this->pingPong();
-            curTexture->use(0);
+            curTexture.use(0);
           }
           if(bind)
           {
-            curTexture->use(0);
+            curTexture.use(0);
           }
           this->drawRenderable(entry);
-          this->postProcessLayer(entry.m_layer);
+          this->postProcessLayer(entry.layer);
           this->drawToScratch();
         }
         else
         {
-          if(entry.m_layer != prevLayer)
+          if(entry.layer != prevLayer)
           {
             this->postProcessLayer(prevLayer);
             this->drawToScratch();
             this->pingPong();
-            curTexture->use(0);
+            curTexture.use(0);
           }
           if(bind)
           {
-            curTexture->use(0);
+            curTexture.use(0);
           }
           this->drawRenderable(entry);
         }
-        prevLayer = entry.m_layer;
+        prevLayer = entry.layer;
         bind = false;
       }
       this->scratchToPingPong();
     }
-    if(this->p_globalPostStack && !this->p_globalPostStack->isEmpty())
+    if(this->globalPostStack && !this->globalPostStack->isEmpty())
     {
       this->postProcessGlobal();
     }
@@ -426,93 +354,93 @@ void main()
   
   void Renderer::pingPong()
   {
-    this->p_curFBO.swap() ? this->p_fboA->use() : this->p_fboB->use();
+    this->curFBO.swap() ? this->fboA->use() : this->fboB->use();
     this->clearCurrentFramebuffer();
   }
   
   void Renderer::postProcessLayer(uint64_t layer)
   {
-    for(auto const &stage: this->p_layerPostStack[layer]->getPasses())
+    for(auto const &stage: this->layerPostStack[layer]->getPasses())
     {
-      if(stage.m_enabled)
+      if(stage.enabled)
       {
         this->pingPong();
-        stage.m_process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA, stage.m_userData);
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
       }
     }
   }
   
   void Renderer::postProcessGlobal()
   {
-    for(auto const &stage: this->p_globalPostStack->getPasses())
+    for(auto const &stage: this->globalPostStack->getPasses())
     {
-      if(stage.m_enabled)
+      if(stage.enabled)
       {
         this->pingPong();
-        stage.m_process(this->p_curFBO.get() ? this->p_fboA : this->p_fboB, this->p_curFBO.get() ? this->p_fboB : this->p_fboA, stage.m_userData);
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
       }
     }
   }
   
   void Renderer::drawToBackBuffer()
   {
-    this->p_fullscreenQuad->use();
+    this->fullscreenQuad->use();
     this->useBackBuffer();
     this->clearCurrentFramebuffer();
-    this->p_shaderTransfer->use();
-    this->p_curFBO.get() ? this->p_fboA->bind(Attachment::COLOR, 0) : this->p_fboB->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
+    this->shaderTransfer->use();
+    this->curFBO.get() ? this->fboA->bind(Attachment::COLOR, 0) : this->fboB->bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
   void Renderer::drawToScratch()
   {
-    this->p_fullscreenQuad->use();
-    this->p_scratch->use();
-    this->p_shaderTransfer->use();
-    this->p_curFBO.get() ? this->p_fboA->bind(Attachment::COLOR, 0) : this->p_fboB->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
+    this->fullscreenQuad->use();
+    this->scratch->use();
+    this->shaderTransfer->use();
+    this->curFBO.get() ? this->fboA->bind(Attachment::COLOR, 0) : this->fboB->bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
   void Renderer::scratchToPingPong()
   {
-    this->p_fullscreenQuad->use();
+    this->fullscreenQuad->use();
     this->pingPong();
-    this->p_shaderTransfer->use();
-    this->p_scratch->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->p_fullscreenQuad->m_numVerts);
+    this->shaderTransfer->use();
+    this->scratch->bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
-  void Renderer::drawRenderable(Renderable const &entry)
+  void Renderer::drawRenderable(Renderable &entry)
   {
-    if(entry.m_characterInfo.m_character != '\0') //Text rendering
+    if(entry.characterInfo.character != '\0') //Text rendering
     {
       this->setFilterMode(FilterMode::TRILINEAR);
       quat<float> rotation;
-      rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float) entry.m_rotation));
-      vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
-      this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
-      this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
-      this->p_shaderText->use();
-      this->p_shaderText->sendMat4f("mvp", &this->p_mvp.data[0][0]);
-      this->p_shaderText->sendVec4f("inputColor", entry.m_characterInfo.m_color.asRGBAf().data);
+      rotation.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
+      vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
+      this->model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.scale}, 1));
+      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+      this->shaderText->use();
+      this->shaderText->sendMat4f("mvp", &this->mvp.data[0][0]);
+      this->shaderText->sendVec4f("inputColor", entry.characterInfo.color.asRGBAf().data);
       std::array<float, 12> quadVerts{1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0}; //Lower left origin
-      std::array<float, 8> quadUVs{entry.m_characterInfo.m_atlasUVs.m_lowerRight.x(), entry.m_characterInfo.m_atlasUVs.m_lowerRight.y(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.x(), entry.m_characterInfo.m_atlasUVs.m_lowerLeft.y(), entry.m_characterInfo.m_atlasUVs.m_upperRight.x(), entry.m_characterInfo.m_atlasUVs.m_upperRight.y(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.x(), entry.m_characterInfo.m_atlasUVs.m_upperLeft.y()};
+      std::array<float, 8> quadUVs{entry.characterInfo.atlasUVs.lowerRight.x(), entry.characterInfo.atlasUVs.lowerRight.y(), entry.characterInfo.atlasUVs.lowerLeft.x(), entry.characterInfo.atlasUVs.lowerLeft.y(), entry.characterInfo.atlasUVs.upperRight.x(), entry.characterInfo.atlasUVs.upperRight.y(), entry.characterInfo.atlasUVs.upperLeft.x(), entry.characterInfo.atlasUVs.upperLeft.y()};
       Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
       mesh.use();
-      draw(DrawMode::TRISTRIPS, mesh.m_numVerts);
+      draw(DrawMode::TRISTRIPS, mesh.numVerts);
       this->setFilterMode(FilterMode::NEAREST);
     }
     else
     {
       quat<float> rotation;
-      rotation.fromAxial(vec3<float>{entry.m_axis}, degToRad<float>((float) entry.m_rotation));
-      vec3<float> posF = vec3<float>{vec2<float>{entry.m_pos}, 0};
-      this->p_model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.m_scale}, 1));
-      this->p_mvp = modelViewProjectionMatrix(this->p_model, this->p_view, this->p_projection);
-      entry.m_shader->use();
-      entry.m_shader->sendMat4f("mvp", &this->p_mvp.data[0][0]);
-      entry.m_mesh->use();
-      draw(DrawMode::TRISTRIPS, entry.m_mesh->m_numVerts);
+      rotation.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
+      vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
+      this->model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.scale}, 1));
+      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+      entry.shader.use();
+      entry.shader.sendMat4f("mvp", &this->mvp.data[0][0]);
+      entry.mesh.use();
+      draw(DrawMode::TRISTRIPS, entry.mesh.numVerts);
     }
   }
   

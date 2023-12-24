@@ -44,31 +44,31 @@ namespace glr
     /// Create the atlas and send it to the GPU
     GLRENDER_API void finalize(std::string const &name, TexColorFormat fmt);
     
-    std::shared_ptr<Texture> m_atlasTexture;
+    std::shared_ptr<Texture> atlasTexture;
     
     private:
     struct AtlasImg
     {
       GLRENDER_API AtlasImg() = default;
       GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, TexColorFormat fmt, vec2<uint32_t> location, uint32_t width, uint32_t height) :
-        m_name(std::move(name)), m_data(std::move(data)), m_fmt(fmt), m_location(location), m_width(width), m_height(height)
+        name(std::move(name)), data(std::move(data)), fmt(fmt), location(location), width(width), height(height)
       {}
       
       [[nodiscard]] GLRENDER_API static inline bool comparator(AtlasImg const &a, AtlasImg const &b)
       {
-        return a.m_height * a.m_width > b.m_height * b.m_width;
+        return a.height * a.width > b.height * b.width;
       }
       
-      std::string m_name;
-      std::vector<uint8_t> m_data = {};
-      TexColorFormat m_fmt = TexColorFormat::RGBA;
-      vec2<uint32_t> m_location = {};
-      uint32_t m_width = 0;
-      uint32_t m_height = 0;
+      std::string name;
+      std::vector<uint8_t> data = {};
+      TexColorFormat fmt = TexColorFormat::RGBA;
+      vec2<uint32_t> location = {};
+      uint32_t width = 0;
+      uint32_t height = 0;
     };
     
-    vec2<float> p_atlasDims = {};
-    std::vector<AtlasImg> p_atlas = {};
-    bool p_finalized = false;
+    vec2<float> atlasDims = {};
+    std::vector<AtlasImg> atlas = {};
+    bool finalized = false;
   };
 }

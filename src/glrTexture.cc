@@ -7,10 +7,10 @@ namespace glr
   Texture::Texture(std::string const &name, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
   {
     this->name = name;
-    this->m_fmt = colorFormat;
-    this->m_width = width;
-    this->m_height = height;
-    glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
+    this->fmt = colorFormat;
+    this->width = width;
+    this->height = height;
+    glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
     int32_t f = 0;
     if(colorFormat == TexColorFormat::RGB) //It's more efficient to use an extra 8 bits of VRAM per pixel
     {
@@ -26,7 +26,7 @@ namespace glr
     {
       f = GL_R8;
     }
-    glTextureStorage2D(this->m_handle, 1, f, (GLsizei) width, (GLsizei) height);
+    glTextureStorage2D(this->handle, 1, f, (GLsizei) width, (GLsizei) height);
     this->clear();
     this->setFilterMode(mode, mode);
     this->setAnisotropyLevel(1);
@@ -35,9 +35,9 @@ namespace glr
   Texture::Texture(std::string const &name, uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
   {
     this->name = name;
-    this->m_fmt = colorFormat;
-    this->m_width = width;
-    this->m_height = height;
+    this->fmt = colorFormat;
+    this->width = width;
+    this->height = height;
     int32_t f = 0, cf = 0;
     if(colorFormat == TexColorFormat::RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
@@ -56,9 +56,9 @@ namespace glr
       f = GL_R8;
       cf = GL_RED;
     }
-    glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
-    glTextureStorage2D(this->m_handle, 1, f, (GLsizei) width, (GLsizei) height);
-    glTextureSubImage2D(this->m_handle, 0, 0, 0, (GLsizei) this->m_width, (GLsizei) this->m_height, cf, GL_UNSIGNED_BYTE, data);
+    glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
+    glTextureStorage2D(this->handle, 1, f, (GLsizei) width, (GLsizei) height);
+    glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, (GLsizei) this->height, cf, GL_UNSIGNED_BYTE, data);
     this->setFilterMode(mode, mode);
     this->setAnisotropyLevel(1);
   }
@@ -66,51 +66,25 @@ namespace glr
   Texture::Texture(std::string const &name, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
   {
     this->name = name;
-    this->m_fmt = TexColorFormat::RGBA;
-    this->m_width = 1;
-    this->m_height = 1;
+    this->fmt = TexColorFormat::RGBA;
+    this->width = 1;
+    this->height = 1;
     uint8_t **data = new uint8_t *;
     data[0] = new uint8_t[4];
     data[0][0] = red;
     data[0][1] = green;
     data[0][2] = blue;
     data[0][3] = alpha;
-    glCreateTextures(GL_TEXTURE_2D, 1, &this->m_handle);
-    glTextureStorage2D(this->m_handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (GLsizei) this->m_width, (GLsizei) this->m_height);
-    glTextureSubImage2D(this->m_handle, 0, 0, 0, (GLsizei) this->m_width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
+    glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
+    glTextureStorage2D(this->handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (GLsizei) this->width, (GLsizei) this->height);
+    glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
     this->setFilterMode(FilterMode::BILINEAR, FilterMode::BILINEAR);
     this->setAnisotropyLevel(1);
   }
   
   Texture::~Texture()
   {
-    glDeleteTextures(1, &this->m_handle);
-  }
-  
-  Texture::Texture(Texture &other)
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-  }
-  
-  Texture &Texture::operator =(Texture other)
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-    return *this;
-  }
-  
-  Texture::Texture(Texture &&other) noexcept
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-  }
-  
-  Texture &Texture::operator =(Texture &&other) noexcept
-  {
-    this->m_handle = other.m_handle;
-    other.m_handle = 0;
-    return *this;
+    glDeleteTextures(1, &this->handle);
   }
   
   void Texture::use(uint32_t target) const
@@ -119,7 +93,7 @@ namespace glr
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
     if(curTex != (int32_t) target)
     {
-      glBindTextureUnit(target, this->m_handle);
+      glBindTextureUnit(target, this->handle);
     }
   }
   
@@ -155,13 +129,13 @@ namespace glr
       default:
         break;
     }
-    glTextureParameteri(this->m_handle, GL_TEXTURE_MIN_FILTER, (GLint) glMin);
-    glTextureParameteri(this->m_handle, GL_TEXTURE_MAG_FILTER, (GLint) glMag);
+    glTextureParameteri(this->handle, GL_TEXTURE_MIN_FILTER, (GLint) glMin);
+    glTextureParameteri(this->handle, GL_TEXTURE_MAG_FILTER, (GLint) glMag);
   }
   
   void Texture::setAnisotropyLevel(uint32_t level) const
   {
-    glTextureParameterf(this->m_handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat) level);
+    glTextureParameterf(this->handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat) level);
   }
   
   void Texture::subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TexColorFormat format) const
@@ -179,13 +153,13 @@ namespace glr
         f = GL_RED;
         break;
     }
-    glTextureSubImage2D(this->m_handle, 0, (GLint) xPos, (GLint) yPos, (GLint) w, (GLint) h, f, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(this->handle, 0, (GLint) xPos, (GLint) yPos, (GLint) w, (GLint) h, f, GL_UNSIGNED_BYTE, data);
   }
   
   void Texture::clear() const
   {
     int32_t f = 0;
-    switch(this->m_fmt)
+    switch(this->fmt)
     {
       case TexColorFormat::RGB:
         f = GL_RGB;
@@ -197,7 +171,7 @@ namespace glr
         f = GL_RED;
         break;
     }
-    glClearTexImage(this->m_handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
+    glClearTexImage(this->handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
   }
   
   DownloadedImageData Texture::downloadTexture(TexColorFormat colorFormat) const
@@ -225,7 +199,7 @@ namespace glr
         break;
     }
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
-    glBindTextureUnit(0, this->m_handle);
+    glBindTextureUnit(0, this->handle);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &out.width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &out.height);
     out.imageData.resize(out.width * out.height * cpp);
