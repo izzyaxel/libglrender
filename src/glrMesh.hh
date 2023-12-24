@@ -60,6 +60,13 @@ namespace glr
     template <size_t N> GLRENDER_API Mesh(std::array<uint8_t, N> const &verts, std::array<uint8_t, N> const &uvs, std::array<uint8_t, N> const &normals) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4, reinterpret_cast<float const *>(uvs.data()), uvs.size() / 4, reinterpret_cast<float const *>(normals.data()), normals.size() / 4)
     {}
     
+    Mesh(Mesh const &copyFrom) = delete;
+    Mesh& operator=(Mesh const &copyFrom) = delete;
+    GLRENDER_API Mesh(Mesh &&moveFrom) noexcept;
+    GLRENDER_API Mesh& operator=(Mesh &&moveFrom) noexcept;
+    
+    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API void reset();
     GLRENDER_API void use() const;
     
     uint32_t vao = 0;
@@ -76,5 +83,6 @@ namespace glr
     int32_t vertexStride = 3 * sizeof(float);
     int32_t uvStride = 2 * sizeof(float);
     int32_t normalStride = 3 * sizeof(float);
+    bool init = false;
   };
 }

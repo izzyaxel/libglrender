@@ -69,6 +69,7 @@ namespace glr
     glDetachShader(this->handle, fragHandle);
     glDeleteShader(vertHandle);
     glDeleteShader(fragHandle);
+    this->init = true;
   }
   
   Shader::Shader(std::string const &name, std::string const &compShader)
@@ -109,6 +110,7 @@ namespace glr
     }
     glDetachShader(this->handle, compHandle);
     glDeleteShader(compHandle);
+    this->init = true;
   }
   
   Shader::~Shader()
@@ -116,9 +118,48 @@ namespace glr
     glDeleteProgram(this->handle);
   }
   
+  Shader::Shader(Shader &&moveFrom) noexcept
+  {
+    this->handle = moveFrom.handle;
+    moveFrom.handle = 0;
+    
+    this->uniforms = std::move(moveFrom.uniforms);
+    moveFrom.uniforms = {};
+    
+    this->init = true;
+    moveFrom.init = false;
+  }
+  
+  Shader& Shader::operator=(Shader &&moveFrom) noexcept
+  {
+    this->handle = moveFrom.handle;
+    moveFrom.handle = 0;
+    
+    this->uniforms = std::move(moveFrom.uniforms);
+    moveFrom.uniforms = {};
+    
+    this->init = true;
+    moveFrom.init = false;
+    
+    return *this;
+  }
+  
   void Shader::use() const
   {
     glUseProgram(this->handle);
+  }
+  
+  bool Shader::exists() const
+  {
+    return this->init;
+  }
+  
+  void Shader::reset()
+  {
+    glDeleteProgram(this->handle);
+    this->handle = 0;
+    this->uniforms = {};
+    this->init = false;
   }
   
   int32_t Shader::getUniformHandle(std::string const &location)

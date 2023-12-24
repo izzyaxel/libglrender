@@ -150,6 +150,44 @@ namespace glr
     this->atlasTexture.reset();
   }
   
+  Atlas::Atlas(Atlas &&moveFrom) noexcept
+  {
+    this->atlas = moveFrom.atlas;
+    moveFrom.atlas = {};
+    
+    this->atlasTexture = moveFrom.atlasTexture;
+    moveFrom.atlasTexture = nullptr;
+    
+    this->atlasDims = moveFrom.atlasDims;
+    moveFrom.atlasDims = {};
+    
+    this->finalized = moveFrom.finalized;
+    moveFrom.finalized = false;
+    
+    this->init = true;
+    moveFrom.init = false;
+  }
+  
+  Atlas &Atlas::operator =(glr::Atlas &&moveFrom) noexcept
+  {
+    this->atlas = moveFrom.atlas;
+    moveFrom.atlas = {};
+    
+    this->atlasTexture = moveFrom.atlasTexture;
+    moveFrom.atlasTexture = nullptr;
+    
+    this->atlasDims = moveFrom.atlasDims;
+    moveFrom.atlasDims = {};
+    
+    this->finalized = moveFrom.finalized;
+    moveFrom.finalized = false;
+    
+    this->init = true;
+    moveFrom.init = false;
+    
+    return *this;
+  }
+  
   void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
   {
     if(this->contains(name))
@@ -168,6 +206,7 @@ namespace glr
       return;
     }
     this->atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
+    this->init = true;
   }
   
   void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
@@ -187,7 +226,8 @@ namespace glr
       printf("Atlas error: Tile data is empty\n");
       return;
     }
-    this->atlas.push_back(AtlasImg{name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height});
+    this->atlas.emplace_back(name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height);
+    this->init = true;
   }
   
   QuadUVs Atlas::getUVsForTile(std::string const &name)
@@ -292,5 +332,20 @@ namespace glr
     }
     this->atlasDims = {(float) layout.width(), (float) layout.height()};
     this->finalized = true;
+    this->init = true;
+  }
+  
+  bool Atlas::exists() const
+  {
+    return this->init;
+  }
+  
+  void Atlas::reset()
+  {
+    this->atlasTexture->reset();
+    this->atlas.clear();
+    this->finalized = false;
+    this->atlasDims = {};
+    this->init = false;
   }
 }

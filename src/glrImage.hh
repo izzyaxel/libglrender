@@ -18,6 +18,11 @@ namespace glr
     /// Image data constructor
     GLRENDER_API explicit Image(uint32_t const *data);
     
+    Image(Image const &copyFrom) = delete;
+    Image& operator=(Image const &copyFrom) = delete;
+    GLRENDER_API Image(Image &&moveFrom) noexcept;
+    GLRENDER_API Image& operator=(Image &&moveFrom) noexcept;
+    
     [[nodiscard]] GLRENDER_API Color *getImageData();
     
     [[nodiscard]] GLRENDER_API Color *getRow(size_t row);

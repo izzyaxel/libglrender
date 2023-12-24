@@ -207,17 +207,17 @@ void main()
     if(renderList.empty()) return;
     this->view = view;
     this->projection = projection;
-    Texture &curTexture = renderList[0].texture;
-    renderList[0].texture.use(0);
+    Texture const *curTexture = renderList[0].texture;
+    renderList[0].texture->use(0);
     if(this->layerPostStack.empty()) //No postprocessing
     {
       this->pingPong();
       for(auto &entry : renderList.list)
       {
-        if(entry.texture.handle != curTexture.handle)
+        if(entry.texture->handle != curTexture->handle)
         {
           curTexture = entry.texture;
-          entry.texture.use(0);
+          entry.texture->use(0);
         }
         this->drawRenderable(entry);
       }
@@ -232,7 +232,7 @@ void main()
       for(size_t i = 0; i < renderList.size(); i++)
       {
         auto &entry = renderList[i];
-        if(entry.texture.handle != curTexture.handle)
+        if(entry.texture->handle != curTexture->handle)
         {
           bind = true;
           curTexture = entry.texture;
@@ -242,7 +242,7 @@ void main()
         {
           if(bind)
           {
-            curTexture.use(0);
+            curTexture->use(0);
           }
           this->drawRenderable(entry);
         }
@@ -253,11 +253,11 @@ void main()
             this->postProcessLayer(prevLayer);
             this->drawToScratch();
             this->pingPong();
-            curTexture.use(0);
+            curTexture->use(0);
           }
           if(bind)
           {
-            curTexture.use(0);
+            curTexture->use(0);
           }
           this->drawRenderable(entry);
           this->postProcessLayer(entry.layer);
@@ -270,11 +270,11 @@ void main()
             this->postProcessLayer(prevLayer);
             this->drawToScratch();
             this->pingPong();
-            curTexture.use(0);
+            curTexture->use(0);
           }
           if(bind)
           {
-            curTexture.use(0);
+            curTexture->use(0);
           }
           this->drawRenderable(entry);
         }
@@ -437,10 +437,10 @@ void main()
       vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
       this->model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      entry.shader.use();
-      entry.shader.sendMat4f("mvp", &this->mvp.data[0][0]);
-      entry.mesh.use();
-      draw(DrawMode::TRISTRIPS, entry.mesh.numVerts);
+      entry.shader->use();
+      entry.shader->sendMat4f("mvp", &this->mvp.data[0][0]);
+      entry.mesh->use();
+      draw(DrawMode::TRISTRIPS, entry.mesh->numVerts);
     }
   }
   

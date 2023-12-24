@@ -10,9 +10,9 @@ namespace glr
 {
   struct DownloadedImageData
   {
-    std::vector<uint8_t> imageData;
-    int32_t width;
-    int32_t height;
+    std::vector<uint8_t> imageData{};
+    int32_t width = 0;
+    int32_t height = 0;
     std::string textureName;
   };
   
@@ -32,6 +32,13 @@ namespace glr
     
     GLRENDER_API ~Texture();
     
+    Texture(Texture const &copyFrom) = delete;
+    Texture& operator=(Texture const &copyFrom) = delete;
+    GLRENDER_API Texture(Texture &&moveFrom) noexcept;
+    GLRENDER_API Texture& operator=(Texture &&moveFrom) noexcept;
+    
+    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API void reset();
     GLRENDER_API void use(uint32_t target) const;
     GLRENDER_API void setFilterMode(FilterMode min, FilterMode mag) const;
     GLRENDER_API void setAnisotropyLevel(uint32_t level) const;
@@ -46,5 +53,8 @@ namespace glr
     TexColorFormat fmt = {};
     std::string name;
     std::string path;
+    
+    private:
+    bool init = false;
   };
 }

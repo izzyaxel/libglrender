@@ -4,7 +4,7 @@ namespace glr
 {
   bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
   {
-    return (a.texture.handle > b.texture.handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
+    return (a.texture->handle > b.texture->handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
   }
   
   RenderList& RenderList::operator +(RenderList &other)

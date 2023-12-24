@@ -39,9 +39,9 @@ namespace glr
       vec2<float> const &scale,
       float rotation,
       vec3<float> const &axis,
-      Texture &texture,
-      Shader &shader,
-      Mesh &mesh,
+      Texture *texture,
+      Shader *shader,
+      Mesh *mesh,
       size_t layer,
       size_t sublayer,
       std::string name,
@@ -63,9 +63,9 @@ namespace glr
     vec2<float> scale = {};
     float rotation = 0.0f;
     vec3<float> axis = {0.0f, 0.0f, 1.0f};
-    Texture texture{};
-    Shader shader{};
-    Mesh mesh{};
+    Texture *texture = nullptr;
+    Shader *shader = nullptr;
+    Mesh *mesh = nullptr;
     size_t layer = 0;
     size_t sublayer = 0;
     std::string name;

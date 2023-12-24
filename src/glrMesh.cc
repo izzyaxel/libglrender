@@ -28,6 +28,7 @@ namespace glr
     glVertexArrayVertexBuffer(this->vao, 0, this->vboV, 0, this->vertexStride);
     glEnableVertexArrayAttrib(this->vao, 0);
     glVertexArrayAttribFormat(this->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    this->init = true;
   }
   
   Mesh::Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize)
@@ -53,6 +54,7 @@ namespace glr
     glVertexArrayVertexBuffer(this->vao, 1, this->vboU, 0, this->uvStride);
     glEnableVertexArrayAttrib(this->vao, 1);
     glVertexArrayAttribFormat(this->vao, 1, 2, GL_FLOAT, GL_FALSE, 0);
+    this->init = true;
   }
   
   Mesh::Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize, float const *normals, size_t normalsSize)
@@ -86,6 +88,7 @@ namespace glr
     glVertexArrayVertexBuffer(this->vao, 2, this->vboN, 0, this->normalStride);
     glEnableVertexArrayAttrib(this->vao, 2);
     glVertexArrayAttribFormat(this->vao, 2, 3, GL_FLOAT, GL_FALSE, 0);
+    this->init = true;
   }
   
   Mesh::Mesh(std::vector<float> const &verts) : Mesh(verts.data(), verts.size())
@@ -113,6 +116,98 @@ namespace glr
   {}
   Mesh::Mesh(std::initializer_list<uint8_t> const &verts, std::initializer_list<uint8_t> const &uvs, std::initializer_list<uint8_t> const &normals) : Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4, reinterpret_cast<float const *>(uvs.begin()), uvs.size() / 4, reinterpret_cast<float const *>(normals.begin()), normals.size() / 4)
   {}
+  
+  Mesh::Mesh(Mesh &&moveFrom) noexcept
+  {
+    this->vboV = moveFrom.vboV;
+    moveFrom.vboV = 0;
+    
+    this->vboU = moveFrom.vboU;
+    moveFrom.vboU = 0;
+    
+    this->vboN = moveFrom.vboN;
+    moveFrom.vboN = 0;
+    
+    this->vboI = moveFrom.vboI;
+    moveFrom.vboI = 0;
+    
+    this->vao = moveFrom.vao;
+    moveFrom.vao = 0;
+    
+    this->numVerts = moveFrom.numVerts;
+    moveFrom.numVerts = 0;
+    
+    this->hasVerts = moveFrom.hasVerts;
+    moveFrom.hasVerts = false;
+    
+    this->hasUVs = moveFrom.hasUVs;
+    moveFrom.hasUVs = false;
+    
+    this->hasNormals = moveFrom.hasNormals;
+    moveFrom.hasNormals = false;
+    
+    this->init = true;
+    moveFrom.init = false;
+  }
+  
+  Mesh& Mesh::operator=(Mesh &&moveFrom) noexcept
+  {
+    this->vboV = moveFrom.vboV;
+    moveFrom.vboV = 0;
+    
+    this->vboU = moveFrom.vboU;
+    moveFrom.vboU = 0;
+    
+    this->vboN = moveFrom.vboN;
+    moveFrom.vboN = 0;
+    
+    this->vboI = moveFrom.vboI;
+    moveFrom.vboI = 0;
+    
+    this->vao = moveFrom.vao;
+    moveFrom.vao = 0;
+    
+    this->numVerts = moveFrom.numVerts;
+    moveFrom.numVerts = 0;
+    
+    this->hasVerts = moveFrom.hasVerts;
+    moveFrom.hasVerts = false;
+    
+    this->hasUVs = moveFrom.hasUVs;
+    moveFrom.hasUVs = false;
+    
+    this->hasNormals = moveFrom.hasNormals;
+    moveFrom.hasNormals = false;
+    
+    this->init = true;
+    moveFrom.init = false;
+    
+    return *this;
+  }
+  
+  bool Mesh::exists() const
+  {
+    return this->init;
+  }
+  
+  void Mesh::reset()
+  {
+    glDeleteBuffers(1, &this->vboV);
+    glDeleteBuffers(1, &this->vboU);
+    glDeleteBuffers(1, &this->vboN);
+    glDeleteBuffers(1, &this->vboI);
+    glDeleteVertexArrays(1, &this->vao);
+    this->vboV = 0;
+    this->vboU = 0;
+    this->vboN = 0;
+    this->vboI = 0;
+    this->vao = 0;
+    this->numVerts = 0;
+    this->hasVerts = false;
+    this->hasUVs = false;
+    this->hasNormals = false;
+    this->init = false;
+  }
   
   void Mesh::use() const
   {

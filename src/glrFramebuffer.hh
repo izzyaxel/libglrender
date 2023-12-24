@@ -16,10 +16,11 @@ namespace glr
     GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<Attachment> const &options, std::string const &name);
     GLRENDER_API ~Framebuffer();
     
-    GLRENDER_API Framebuffer(Framebuffer &other);
-    GLRENDER_API Framebuffer(Framebuffer &&other) noexcept;
-    GLRENDER_API Framebuffer &operator =(Framebuffer &&other) noexcept;
-    GLRENDER_API Framebuffer& operator =(Framebuffer const &other) noexcept;
+    Framebuffer(Framebuffer &other) = delete;
+    Framebuffer& operator =(Framebuffer const &copyFrom) = delete;
+    GLRENDER_API Framebuffer(Framebuffer &&moveFrom) noexcept;
+    GLRENDER_API Framebuffer &operator =(Framebuffer &&moveFrom) noexcept;
+    
     
     GLRENDER_API void use() const;
     GLRENDER_API void bind(Attachment type, uint32_t target) const;

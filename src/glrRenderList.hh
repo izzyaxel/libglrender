@@ -7,7 +7,7 @@
 
 namespace glr
 {
-  /// A sortable list structure for Renderables
+  //A sortable container for Renderables
   struct RenderList
   {
     RenderList() = default;
@@ -23,9 +23,9 @@ namespace glr
     GLRENDER_API auto end();
     GLRENDER_API void add(std::initializer_list<Renderable> const &renderables);
     GLRENDER_API void clear();
+    GLRENDER_API void sort(Comparator const &cmp = renderableComparator);
     [[nodiscard]] GLRENDER_API bool empty() const;
     [[nodiscard]] GLRENDER_API size_t size() const;
-    GLRENDER_API void sort(Comparator const &cmp = renderableComparator);
     
     std::vector<Renderable> list{};
   };

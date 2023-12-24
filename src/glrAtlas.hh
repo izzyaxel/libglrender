@@ -16,7 +16,14 @@ namespace glr
   /// An on-VRAM atlas of stitched together images as one OpenGL texture
   struct Atlas
   {
+    GLRENDER_API Atlas() = default;
+    
     GLRENDER_API ~Atlas();
+    
+    Atlas(Atlas const &copyFrom) = delete;
+    Atlas& operator=(Atlas const &copyFrom) = delete;
+    GLRENDER_API Atlas(Atlas &&moveFrom) noexcept;
+    GLRENDER_API Atlas& operator=(Atlas &&moveFrom) noexcept;
     
     /// Add a new tile into this atlas
     /// \param name The name of the tile
@@ -44,7 +51,10 @@ namespace glr
     /// Create the atlas and send it to the GPU
     GLRENDER_API void finalize(std::string const &name, TexColorFormat fmt);
     
-    std::shared_ptr<Texture> atlasTexture;
+    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API void reset();
+    
+    std::shared_ptr<Texture> atlasTexture = nullptr;
     
     private:
     struct AtlasImg
@@ -70,5 +80,6 @@ namespace glr
     vec2<float> atlasDims = {};
     std::vector<AtlasImg> atlas = {};
     bool finalized = false;
+    bool init = false;
   };
 }

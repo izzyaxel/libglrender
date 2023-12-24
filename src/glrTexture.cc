@@ -30,6 +30,8 @@ namespace glr
     this->clear();
     this->setFilterMode(mode, mode);
     this->setAnisotropyLevel(1);
+    
+    this->init = true;
   }
   
   Texture::Texture(std::string const &name, uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
@@ -61,6 +63,7 @@ namespace glr
     glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, (GLsizei) this->height, cf, GL_UNSIGNED_BYTE, data);
     this->setFilterMode(mode, mode);
     this->setAnisotropyLevel(1);
+    this->init = true;
   }
   
   Texture::Texture(std::string const &name, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
@@ -80,11 +83,79 @@ namespace glr
     glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
     this->setFilterMode(FilterMode::BILINEAR, FilterMode::BILINEAR);
     this->setAnisotropyLevel(1);
+    this->init = true;
   }
   
   Texture::~Texture()
   {
     glDeleteTextures(1, &this->handle);
+  }
+  
+  Texture::Texture(Texture &&moveFrom) noexcept
+  {
+    this->handle = moveFrom.handle;
+    moveFrom.handle = 0;
+    
+    this->width = moveFrom.width;
+    moveFrom.width = 0;
+    
+    this->height = moveFrom.height;
+    moveFrom.height = 0;
+    
+    this->fmt = moveFrom.fmt;
+    moveFrom.fmt = {};
+    
+    this->name = moveFrom.name;
+    moveFrom.name = "";
+    
+    this->path = moveFrom.path;
+    moveFrom.path = "";
+    
+    this->init = true;
+    moveFrom.init = false;
+  }
+  
+  Texture& Texture::operator=(Texture &&moveFrom) noexcept
+  {
+    this->handle = moveFrom.handle;
+    moveFrom.handle = 0;
+    
+    this->width = moveFrom.width;
+    moveFrom.width = 0;
+    
+    this->height = moveFrom.height;
+    moveFrom.height = 0;
+    
+    this->fmt = moveFrom.fmt;
+    moveFrom.fmt = {};
+    
+    this->name = moveFrom.name;
+    moveFrom.name = "";
+    
+    this->path = moveFrom.path;
+    moveFrom.path = "";
+    
+    this->init = true;
+    moveFrom.init = false;
+    
+    return *this;
+  }
+  
+  bool Texture::exists() const
+  {
+    return this->init;
+  }
+  
+  void Texture::reset()
+  {
+    glDeleteTextures(1, &this->handle);
+    this->handle = 0;
+    this->width = 0;
+    this->height = 0;
+    this->fmt = {};
+    this->name = "";
+    this->path = "";
+    this->init = false;
   }
   
   void Texture::use(uint32_t target) const

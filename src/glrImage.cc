@@ -19,6 +19,38 @@ namespace glr
     //TODO
   }
   
+  Image::Image(Image &&moveFrom) noexcept
+  {
+    this->imageData = moveFrom.imageData;
+    moveFrom.imageData = {};
+    
+    this->width = moveFrom.width;
+    moveFrom.width = 0;
+    
+    this->height = moveFrom.height;
+    moveFrom.height = 0;
+    
+    this->bitDepth = moveFrom.bitDepth;
+    moveFrom.bitDepth = 0;
+  }
+  
+  Image& Image::operator=(Image &&moveFrom) noexcept
+  {
+    this->imageData = moveFrom.imageData;
+    moveFrom.imageData = {};
+    
+    this->width = moveFrom.width;
+    moveFrom.width = 0;
+    
+    this->height = moveFrom.height;
+    moveFrom.height = 0;
+    
+    this->bitDepth = moveFrom.bitDepth;
+    moveFrom.bitDepth = 0;
+    
+    return *this;
+  }
+  
   Color *Image::getImageData()
   {
     return this->imageData.data();

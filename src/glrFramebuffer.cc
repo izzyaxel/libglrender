@@ -38,21 +38,6 @@ namespace glr
     this->clearFBO();
   }
   
-  Framebuffer::Framebuffer(Framebuffer &other)
-  {
-    this->handle = other.handle;
-    other.handle = 0;
-    
-    this->colorHandle = other.colorHandle;
-    other.colorHandle = 0;
-    
-    this->depthHandle = other.depthHandle;
-    other.depthHandle = 0;
-    
-    this->stencilHandle = other.stencilHandle;
-    other.stencilHandle = 0;
-  }
-  
   Framebuffer::Framebuffer(Framebuffer &&other) noexcept
   {
     this->handle = other.handle;
@@ -66,6 +51,27 @@ namespace glr
     
     this->stencilHandle = other.stencilHandle;
     other.stencilHandle = 0;
+    
+    this->width = other.width;
+    other.width = 0;
+    
+    this->height = other.height;
+    other.height = 0;
+    
+    this->hasColor = other.hasColor;
+    other.hasColor = false;
+    
+    this->hasDepth = other.hasDepth;
+    other.hasDepth = false;
+    
+    this->hasAlpha = other.hasAlpha;
+    other.hasAlpha = false;
+    
+    this->hasStencil = other.hasStencil;
+    other.hasStencil = false;
+    
+    this->name = other.name;
+    other.name = "";
   }
   
   Framebuffer &Framebuffer::operator =(Framebuffer &&other) noexcept
@@ -81,15 +87,28 @@ namespace glr
     
     this->stencilHandle = other.stencilHandle;
     other.stencilHandle = 0;
-    return *this;
-  }
-  
-  Framebuffer &Framebuffer::operator =(glr::Framebuffer const &other) noexcept
-  {
-    this->handle = other.handle;
-    this->colorHandle = other.colorHandle;
-    this->depthHandle = other.depthHandle;
-    this->stencilHandle = other.stencilHandle;
+    
+    this->width = other.width;
+    other.width = 0;
+    
+    this->height = other.height;
+    other.height = 0;
+    
+    this->hasColor = other.hasColor;
+    other.hasColor = false;
+    
+    this->hasDepth = other.hasDepth;
+    other.hasDepth = false;
+    
+    this->hasAlpha = other.hasAlpha;
+    other.hasAlpha = false;
+    
+    this->hasStencil = other.hasStencil;
+    other.hasStencil = false;
+    
+    this->name = other.name;
+    other.name = "";
+    
     return *this;
   }
   
