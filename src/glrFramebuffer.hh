@@ -21,15 +21,16 @@ namespace glr
     GLRENDER_API Framebuffer(Framebuffer &&moveFrom) noexcept;
     GLRENDER_API Framebuffer &operator =(Framebuffer &&moveFrom) noexcept;
     
-    
+    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API void reset();
     GLRENDER_API void use() const;
     GLRENDER_API void bind(Attachment type, uint32_t target) const;
     GLRENDER_API void regenerate(uint32_t width, uint32_t height);
     
-    uint32_t handle = 0;
-    uint32_t colorHandle = 0;
-    uint32_t depthHandle = 0;
-    uint32_t stencilHandle = 0;
+    uint32_t handle = std::numeric_limits<uint32_t>::max();
+    uint32_t colorHandle = std::numeric_limits<uint32_t>::max();
+    uint32_t depthHandle = std::numeric_limits<uint32_t>::max();
+    uint32_t stencilHandle = std::numeric_limits<uint32_t>::max();
     uint32_t width = 0;
     uint32_t height = 0;
     bool hasColor = false;
@@ -41,19 +42,26 @@ namespace glr
     private:
     void createFBO();
     void clearFBO();
+    bool init = false;
   };
   
   struct FramebufferPool
   {
-    FramebufferPool() = delete;
-    FramebufferPool(FramebufferPool const &other) = delete;
-    FramebufferPool(FramebufferPool const &&other) = delete;
+    GLRENDER_API FramebufferPool() = default;
     GLRENDER_API FramebufferPool(size_t alloc, uint32_t width, uint32_t height);
     
-    [[nodiscard]] GLRENDER_API std::shared_ptr<Framebuffer> getNextAvailableFBO(uint32_t width, uint32_t height);
+    FramebufferPool(FramebufferPool const &other) = delete;
+    FramebufferPool& operator=(FramebufferPool const &other) = delete;
+    GLRENDER_API FramebufferPool(FramebufferPool &&other) noexcept;
+    GLRENDER_API FramebufferPool& operator=(FramebufferPool &&other) noexcept;
+    
+    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API void reset();
+    [[nodiscard]] GLRENDER_API Framebuffer& getNextAvailableFBO(uint32_t width, uint32_t height);
     GLRENDER_API void onResize(uint32_t width, uint32_t height);
     
     private:
-    std::vector<std::shared_ptr<Framebuffer>> pool;
+    std::vector<Framebuffer> pool;
+    bool init = false;
   };
 }

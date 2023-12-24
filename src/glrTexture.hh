@@ -47,7 +47,7 @@ namespace glr
     
     [[nodiscard]] GLRENDER_API DownloadedImageData downloadTexture(TexColorFormat colorFormat) const;
     
-    uint32_t handle = 0;
+    uint32_t handle = std::numeric_limits<uint32_t>::max();
     uint32_t width = 0;
     uint32_t height = 0;
     TexColorFormat fmt = {};

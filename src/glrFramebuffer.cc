@@ -30,6 +30,7 @@ namespace glr
       }
     }
     this->name = name;
+    this->init = true;
     this->createFBO();
   }
   
@@ -41,16 +42,16 @@ namespace glr
   Framebuffer::Framebuffer(Framebuffer &&other) noexcept
   {
     this->handle = other.handle;
-    other.handle = 0;
+    other.handle = std::numeric_limits<uint32_t>::max();
     
     this->colorHandle = other.colorHandle;
-    other.colorHandle = 0;
+    other.colorHandle = std::numeric_limits<uint32_t>::max();
     
     this->depthHandle = other.depthHandle;
-    other.depthHandle = 0;
+    other.depthHandle = std::numeric_limits<uint32_t>::max();
     
     this->stencilHandle = other.stencilHandle;
-    other.stencilHandle = 0;
+    other.stencilHandle = std::numeric_limits<uint32_t>::max();
     
     this->width = other.width;
     other.width = 0;
@@ -72,21 +73,24 @@ namespace glr
     
     this->name = other.name;
     other.name = "";
+    
+    this->init = true;
+    other.init = false;
   }
   
   Framebuffer &Framebuffer::operator =(Framebuffer &&other) noexcept
   {
     this->handle = other.handle;
-    other.handle = 0;
+    other.handle = std::numeric_limits<uint32_t>::max();
     
     this->colorHandle = other.colorHandle;
-    other.colorHandle = 0;
+    other.colorHandle = std::numeric_limits<uint32_t>::max();
     
     this->depthHandle = other.depthHandle;
-    other.depthHandle = 0;
+    other.depthHandle = std::numeric_limits<uint32_t>::max();
     
     this->stencilHandle = other.stencilHandle;
-    other.stencilHandle = 0;
+    other.stencilHandle = std::numeric_limits<uint32_t>::max();
     
     this->width = other.width;
     other.width = 0;
@@ -109,7 +113,31 @@ namespace glr
     this->name = other.name;
     other.name = "";
     
+    this->init = true;
+    other.init = false;
+    
     return *this;
+  }
+  
+  bool Framebuffer::exists() const
+  {
+    return this->init;
+  }
+  
+  void Framebuffer::reset()
+  {
+    this->handle = std::numeric_limits<uint32_t>::max();
+    this->colorHandle = std::numeric_limits<uint32_t>::max();
+    this->depthHandle = std::numeric_limits<uint32_t>::max();
+    this->stencilHandle = std::numeric_limits<uint32_t>::max();
+    this->width = std::numeric_limits<uint32_t>::max();
+    this->height = std::numeric_limits<uint32_t>::max();
+    this->hasColor = false;
+    this->hasDepth = false;
+    this->hasAlpha = false;
+    this->hasStencil = false;
+    this->name = "";
+    this->init = false;
   }
   
   void Framebuffer::use() const
@@ -200,37 +228,69 @@ namespace glr
     this->pool.resize(alloc);
     for(size_t i = 0; i < alloc; i++)
     {
-      this->pool[i] = std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(i));
+      this->pool[i] = Framebuffer(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(i));
     }
+    this->init = true;
   }
   
-  std::shared_ptr<Framebuffer> FramebufferPool::getNextAvailableFBO(uint32_t width, uint32_t height)
+  FramebufferPool::FramebufferPool(FramebufferPool &&other) noexcept
   {
-    std::shared_ptr<Framebuffer> out;
+    this->pool = std::move(other.pool);
+    other.pool.clear();
+    
+    this->init = true;
+    other.init = false;
+  }
+  
+  FramebufferPool& FramebufferPool::operator=(FramebufferPool &&other) noexcept
+  {
+    this->pool = std::move(other.pool);
+    other.pool.clear();
+    
+    this->init = true;
+    other.init = false;
+    
+    return *this;
+  }
+  
+  bool FramebufferPool::exists() const
+  {
+    return this->init;
+  }
+  
+  void FramebufferPool::reset()
+  {
+    this->pool.clear();
+    this->init = false;
+  }
+  
+  Framebuffer& FramebufferPool::getNextAvailableFBO(uint32_t width, uint32_t height)
+  {
+    Framebuffer out;
     for(auto &fbo: this->pool)
     {
-      if(fbo.use_count() == 1)
+      if(fbo.exists())
       {
-        if(fbo->width != width || fbo->height != height)
+        if(fbo.width != width || fbo.height != height)
         {
-          fbo = std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+          fbo = Framebuffer(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
         }
-        fbo->use();
+        fbo.use();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return fbo;
       }
     }
-    this->pool.push_back(std::make_shared<Framebuffer>(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1)));
-    this->pool.back()->use();
+    this->pool.emplace_back(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+    this->pool.back().use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return this->pool.back();
   }
   
   void FramebufferPool::onResize(uint32_t width, uint32_t height)
   {
-    for(auto const &fbo: this->pool)
+    for(auto &fbo: this->pool)
     {
-      fbo->regenerate(width, height);
+      fbo.regenerate(width, height);
     }
   }
 }

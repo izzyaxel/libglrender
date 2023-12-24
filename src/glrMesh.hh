@@ -69,11 +69,11 @@ namespace glr
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     
-    uint32_t vao = 0;
-    uint32_t vboV = 0;
-    uint32_t vboU = 0;
-    uint32_t vboN = 0;
-    uint32_t vboI = 0;
+    uint32_t vao = std::numeric_limits<uint32_t>::max();
+    uint32_t vboV = std::numeric_limits<uint32_t>::max();
+    uint32_t vboU = std::numeric_limits<uint32_t>::max();
+    uint32_t vboN = std::numeric_limits<uint32_t>::max();
+    uint32_t vboI = std::numeric_limits<uint32_t>::max();
     size_t numVerts = 0;
     bool hasVerts = false;
     bool hasUVs = false;

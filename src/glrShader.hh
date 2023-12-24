@@ -35,7 +35,7 @@ namespace glr
     GLRENDER_API void sendMat3f(std::string const &location, float *val);
     GLRENDER_API void sendMat4f(std::string const &location, float *val);
     
-    uint32_t handle = 0;
+    uint32_t handle = std::numeric_limits<uint32_t>::max();
     std::unordered_map<std::string, int32_t> uniforms = {};
     
     private:

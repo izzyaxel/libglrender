@@ -155,8 +155,8 @@ namespace glr
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
     
-    this->atlasTexture = moveFrom.atlasTexture;
-    moveFrom.atlasTexture = nullptr;
+    this->atlasTexture = std::move(moveFrom.atlasTexture);
+    moveFrom.atlasTexture = {};
     
     this->atlasDims = moveFrom.atlasDims;
     moveFrom.atlasDims = {};
@@ -173,8 +173,8 @@ namespace glr
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
     
-    this->atlasTexture = moveFrom.atlasTexture;
-    moveFrom.atlasTexture = nullptr;
+    this->atlasTexture = std::move(moveFrom.atlasTexture);
+    moveFrom.atlasTexture = {};
     
     this->atlasDims = moveFrom.atlasDims;
     moveFrom.atlasDims = {};
@@ -280,7 +280,7 @@ namespace glr
     }
     else
     {
-      this->atlasTexture->use(target);
+      this->atlasTexture.use(target);
     }
   }
   
@@ -324,11 +324,11 @@ namespace glr
       printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
       return;
     }
-    this->atlasTexture = std::make_unique<Texture>(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-    this->atlasTexture->clear();
+    this->atlasTexture = Texture(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+    this->atlasTexture.clear();
     for(auto &tile: this->atlas)
     {
-      this->atlasTexture->subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
+      this->atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
     }
     this->atlasDims = {(float) layout.width(), (float) layout.height()};
     this->finalized = true;
@@ -342,7 +342,7 @@ namespace glr
   
   void Atlas::reset()
   {
-    this->atlasTexture->reset();
+    this->atlasTexture.reset();
     this->atlas.clear();
     this->finalized = false;
     this->atlasDims = {};

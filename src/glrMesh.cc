@@ -120,19 +120,19 @@ namespace glr
   Mesh::Mesh(Mesh &&moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
-    moveFrom.vboV = 0;
+    moveFrom.vboV = std::numeric_limits<uint32_t>::max();
     
     this->vboU = moveFrom.vboU;
-    moveFrom.vboU = 0;
+    moveFrom.vboU = std::numeric_limits<uint32_t>::max();
     
     this->vboN = moveFrom.vboN;
-    moveFrom.vboN = 0;
+    moveFrom.vboN = std::numeric_limits<uint32_t>::max();
     
     this->vboI = moveFrom.vboI;
-    moveFrom.vboI = 0;
+    moveFrom.vboI = std::numeric_limits<uint32_t>::max();
     
     this->vao = moveFrom.vao;
-    moveFrom.vao = 0;
+    moveFrom.vao = std::numeric_limits<uint32_t>::max();
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
@@ -153,19 +153,19 @@ namespace glr
   Mesh& Mesh::operator=(Mesh &&moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
-    moveFrom.vboV = 0;
+    moveFrom.vboV = std::numeric_limits<uint32_t>::max();
     
     this->vboU = moveFrom.vboU;
-    moveFrom.vboU = 0;
+    moveFrom.vboU = std::numeric_limits<uint32_t>::max();
     
     this->vboN = moveFrom.vboN;
-    moveFrom.vboN = 0;
+    moveFrom.vboN = std::numeric_limits<uint32_t>::max();
     
     this->vboI = moveFrom.vboI;
-    moveFrom.vboI = 0;
+    moveFrom.vboI = std::numeric_limits<uint32_t>::max();
     
     this->vao = moveFrom.vao;
-    moveFrom.vao = 0;
+    moveFrom.vao = std::numeric_limits<uint32_t>::max();
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
@@ -197,11 +197,11 @@ namespace glr
     glDeleteBuffers(1, &this->vboN);
     glDeleteBuffers(1, &this->vboI);
     glDeleteVertexArrays(1, &this->vao);
-    this->vboV = 0;
-    this->vboU = 0;
-    this->vboN = 0;
-    this->vboI = 0;
-    this->vao = 0;
+    this->vboV = std::numeric_limits<uint32_t>::max();
+    this->vboU = std::numeric_limits<uint32_t>::max();
+    this->vboN = std::numeric_limits<uint32_t>::max();
+    this->vboI = std::numeric_limits<uint32_t>::max();
+    this->vao = std::numeric_limits<uint32_t>::max();
     this->numVerts = 0;
     this->hasVerts = false;
     this->hasUVs = false;

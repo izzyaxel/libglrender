@@ -121,7 +121,7 @@ namespace glr
   Shader::Shader(Shader &&moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = 0;
+    moveFrom.handle = std::numeric_limits<uint32_t>::max();
     
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};
@@ -133,7 +133,7 @@ namespace glr
   Shader& Shader::operator=(Shader &&moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = 0;
+    moveFrom.handle = std::numeric_limits<uint32_t>::max();
     
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};
@@ -157,7 +157,7 @@ namespace glr
   void Shader::reset()
   {
     glDeleteProgram(this->handle);
-    this->handle = 0;
+    this->handle = std::numeric_limits<uint32_t>::max();
     this->uniforms = {};
     this->init = false;
   }

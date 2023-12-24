@@ -54,7 +54,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     
-    std::shared_ptr<Texture> atlasTexture = nullptr;
+    Texture atlasTexture = {};
     
     private:
     struct AtlasImg
