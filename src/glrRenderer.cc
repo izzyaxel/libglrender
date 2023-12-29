@@ -63,101 +63,105 @@ void main()
   
   std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
   std::vector<float> fullscreenQuadUVs{1, 0, 1, 1, 0, 0, 0, 1};
+  
 /// ===Data===========================================================================///
   
   
   void glDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei messageLength, GLchar const *message, void const *userParam)
   {
-    std::string sev;
-    std::string ty;
-    std::string src;
+    std::string severityStr;
+    std::string typeStr;
+    std::string sourceStr;
     
     switch(source)
     {
       case GL_DEBUG_SOURCE_API:
-        src = "Source: OpenGL API";
+        sourceStr = "Source: OpenGL API";
         break;
       case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-        src = "Source: Window-system API";
+        sourceStr = "Source: Window-system API";
         break;
       case GL_DEBUG_SOURCE_SHADER_COMPILER:
-        src = "Source: Shader Compiler";
+        sourceStr = "Source: Shader Compiler";
         break;
       case GL_DEBUG_SOURCE_THIRD_PARTY:
-        src = "Source: Third-party Application";
+        sourceStr = "Source: Third-party Application";
         break;
       case GL_DEBUG_SOURCE_APPLICATION:
-        src = "Source: User's Application";
+        sourceStr = "Source: User's Application";
         break;
       case GL_DEBUG_SOURCE_OTHER:
-        src = "Source: Other";
+        sourceStr = "Source: Other";
         break;
       default:
         break;
     }
+    
     switch(severity)
     {
       case GL_DEBUG_SEVERITY_NOTIFICATION:
-        sev = "Severity: NOTIFICATION";
+        severityStr = "Severity: NOTIFICATION";
         break;
       case GL_DEBUG_SEVERITY_LOW:
-        sev = "Severity: LOW";
+        severityStr = "Severity: LOW";
         break;
       case GL_DEBUG_SEVERITY_MEDIUM:
-        sev = "Severity: MEDIUM";
+        severityStr = "Severity: MEDIUM";
         break;
       case GL_DEBUG_SEVERITY_HIGH:
-        sev = "Severity: HIGH";
+        severityStr = "Severity: HIGH";
         break;
       default:
         break;
     }
+    
     switch(type)
     {
       case GL_DEBUG_TYPE_ERROR:
-        ty = "Type: Error";
+        typeStr = "Type: Error";
         break;
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-        ty = "Type: Deprecated Behavior";
+        typeStr = "Type: Deprecated Behavior";
         break;
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        ty = "Type: Undefined Behavior";
+        typeStr = "Type: Undefined Behavior";
         break;
       case GL_DEBUG_TYPE_PORTABILITY:
-        ty = "Type: Portability";
+        typeStr = "Type: Portability";
         break;
       case GL_DEBUG_TYPE_PERFORMANCE:
-        ty = "Type: Performance";
+        typeStr = "Type: Performance";
         break;
       case GL_DEBUG_TYPE_MARKER:
-        ty = "Type: Command Stream Annotation";
+        typeStr = "Type: Command Stream Annotation";
         break;
       case GL_DEBUG_TYPE_PUSH_GROUP:
-        ty = "Type: Group Pushing";
+        typeStr = "Type: Group Pushing";
         break;
       case GL_DEBUG_TYPE_POP_GROUP:
-        ty = "Type: Group Popping";
+        typeStr = "Type: Group Popping";
         break;
       case GL_DEBUG_TYPE_OTHER:
-        ty = "Type: Other";
+        typeStr = "Type: Other";
         break;
       default:
         break;
     }
-    printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", src.c_str(), sev.c_str(), id, ty.c_str(), message);
+    
+    printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", sourceStr.c_str(), severityStr.c_str(), id, typeStr.c_str(), message);
   }
 
 /// ===Renderer========================================================================================================================================///
   Renderer::Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight)
   {
     gladLoadGL(loadFunc);
-    this->fboPool = std::make_unique<FramebufferPool>(2, contextWidth, contextHeight);
-    this->fboA = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
-    this->fboB = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
-    this->scratch = std::make_unique<Framebuffer>(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
-    this->fullscreenQuad = std::make_unique<Mesh>(fullscreenQuadVerts, fullscreenQuadUVs);
-    this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
-    this->shaderText = std::make_unique<Shader>("Text Shader", textVert, textFrag);
+    this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
+    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
+    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
+    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
+    this->fullscreenQuad = Mesh(fullscreenQuadVerts, fullscreenQuadUVs);
+    this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
+    this->shaderText = Shader("Text Shader", textVert, textFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
@@ -184,7 +188,7 @@ void main()
   {
     this->useBackBuffer();
     glViewport(0, 0, (int) width, (int) height);
-    this->fboPool->onResize(width, height);
+    this->fboPool.onResize(width, height);
   }
   
   void Renderer::setGlobalPostStack(std::shared_ptr<PostStack> stack)
@@ -197,136 +201,157 @@ void main()
     this->layerPostStack[layer] = std::move(stack);
   }
   
-  void Renderer::useBackBuffer()
+  void Renderer::useBackBuffer() const
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
   
-  void Renderer::render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection)
+  void Renderer::renderWithoutPost(RenderList &renderList, Texture const *curTexture)
   {
-    if(renderList.empty()) return;
-    this->view = view;
-    this->projection = projection;
-    Texture const *curTexture = renderList[0].texture;
-    renderList[0].texture->use(0);
-    if(this->layerPostStack.empty()) //No postprocessing
+    this->pingPong();
+    
+    for(auto &entry : renderList.list)
     {
-      this->pingPong();
-      for(auto &entry : renderList.list)
+      if(entry.texture->handle != curTexture->handle)
       {
-        if(entry.texture->handle != curTexture->handle)
-        {
-          curTexture = entry.texture;
-          entry.texture->use(0);
-        }
-        this->drawRenderable(entry);
+        curTexture = entry.texture;
+        entry.texture->use(0);
       }
+      
+      this->drawRenderable(entry);
     }
-    else //Postprocess
+  }
+  
+  void Renderer::renderWithPost(RenderList &renderList, Texture const *curTexture)
+  {
+    this->scratch.use();
+    this->clearCurrentFramebuffer();
+    this->pingPong();
+    bool bind = false;
+    size_t prevLayer = renderList[0].layer;
+    
+    for(size_t i = 0; i < renderList.size(); i++)
     {
-      this->scratch->use();
-      this->clearCurrentFramebuffer();
-      this->pingPong();
-      bool bind = false;
-      size_t prevLayer = renderList[0].layer;
-      for(size_t i = 0; i < renderList.size(); i++)
+      auto &entry = renderList[i];
+      
+      if(entry.texture->handle != curTexture->handle)
       {
-        auto &entry = renderList[i];
-        if(entry.texture->handle != curTexture->handle)
+        bind = true;
+        curTexture = entry.texture;
+      }
+      
+      if(i == 0)
+      {
+        if(bind)
         {
-          bind = true;
-          curTexture = entry.texture;
+          curTexture->use(0);
         }
         
-        if(i == 0)
-        {
-          if(bind)
-          {
-            curTexture->use(0);
-          }
-          this->drawRenderable(entry);
-        }
-        else if(i == renderList.size() - 1)
-        {
-          if(entry.layer != prevLayer)
-          {
-            this->postProcessLayer(prevLayer);
-            this->drawToScratch();
-            this->pingPong();
-            curTexture->use(0);
-          }
-          if(bind)
-          {
-            curTexture->use(0);
-          }
-          this->drawRenderable(entry);
-          this->postProcessLayer(entry.layer);
-          this->drawToScratch();
-        }
-        else
-        {
-          if(entry.layer != prevLayer)
-          {
-            this->postProcessLayer(prevLayer);
-            this->drawToScratch();
-            this->pingPong();
-            curTexture->use(0);
-          }
-          if(bind)
-          {
-            curTexture->use(0);
-          }
-          this->drawRenderable(entry);
-        }
-        prevLayer = entry.layer;
-        bind = false;
+        this->drawRenderable(entry);
       }
-      this->scratchToPingPong();
+      else if(i == renderList.size() - 1)
+      {
+        if(entry.layer != prevLayer)
+        {
+          this->postProcessLayer(prevLayer);
+          this->drawToScratch();
+          this->pingPong();
+          curTexture->use(0);
+        }
+        
+        if(bind)
+        {
+          curTexture->use(0);
+        }
+        
+        this->drawRenderable(entry);
+        this->postProcessLayer(entry.layer);
+        this->drawToScratch();
+      }
+      else
+      {
+        if(entry.layer != prevLayer)
+        {
+          this->postProcessLayer(prevLayer);
+          this->drawToScratch();
+          this->pingPong();
+          curTexture->use(0);
+        }
+        
+        if(bind)
+        {
+          curTexture->use(0);
+        }
+        
+        this->drawRenderable(entry);
+      }
+      
+      prevLayer = entry.layer;
+      bind = false;
     }
+    
+    this->scratchToPingPong();
+  }
+  
+  void Renderer::render(RenderList renderList, mat4x4<float> const &viewMat, mat4x4<float> const &projectionMat)
+  {
+    if(renderList.empty())
+    {
+      return;
+    }
+    
+    this->view = viewMat;
+    this->projection = projectionMat;
+    Texture const *curTexture = renderList[0].texture;
+    curTexture->use(0);
+    
+    this->layerPostStack.empty() ? this->renderWithoutPost(renderList, curTexture) : this->renderWithPost(renderList, curTexture);
+    
     if(this->globalPostStack && !this->globalPostStack->isEmpty())
     {
       this->postProcessGlobal();
     }
+    
     this->drawToBackBuffer();
   }
   
-  void Renderer::setClearColor(Color color)
+  void Renderer::setClearColor(Color color) const
   {
     auto colorF = color.asRGBAf();
     glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
   }
   
-  void Renderer::clearCurrentFramebuffer()
+  void Renderer::clearCurrentFramebuffer() const
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
   
-  void Renderer::setScissorTest(bool val)
+  void Renderer::setScissorTest(bool val) const
   {
     val ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
   }
   
-  void Renderer::setDepthTest(bool val)
+  void Renderer::setDepthTest(bool val) const
   {
     val ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
   }
   
-  void Renderer::setBlending(bool val)
+  void Renderer::setBlending(bool val) const
   {
     val ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
   }
   
-  void Renderer::setBlendMode(uint32_t src, uint32_t dst)
+  void Renderer::setBlendMode(uint32_t src, uint32_t dst) const
   {
     glBlendFunc(src, dst);
   }
   
-  void Renderer::setCullFace(bool val)
+  void Renderer::setCullFace(bool val) const
   {
     val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
   }
   
-  void Renderer::setFilterMode(FilterMode mode)
+  void Renderer::setFilterMode(FilterMode mode) const
   {
     switch(mode)
     {
@@ -347,14 +372,14 @@ void main()
     }
   }
   
-  void Renderer::draw(DrawMode mode, size_t numElements)
+  void Renderer::draw(DrawMode mode, size_t numElements) const
   {
     glDrawArrays((GLenum) mode, 0, (GLsizei) numElements);
   }
   
   void Renderer::pingPong()
   {
-    this->curFBO.swap() ? this->fboA->use() : this->fboB->use();
+    this->curFBO.swap() ? this->fboA.use() : this->fboB.use();
     this->clearCurrentFramebuffer();
   }
   
@@ -384,30 +409,30 @@ void main()
   
   void Renderer::drawToBackBuffer()
   {
-    this->fullscreenQuad->use();
+    this->fullscreenQuad.use();
     this->useBackBuffer();
     this->clearCurrentFramebuffer();
-    this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA->bind(Attachment::COLOR, 0) : this->fboB->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
+    this->shaderTransfer.use();
+    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::drawToScratch()
   {
-    this->fullscreenQuad->use();
-    this->scratch->use();
-    this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA->bind(Attachment::COLOR, 0) : this->fboB->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
+    this->fullscreenQuad.use();
+    this->scratch.use();
+    this->shaderTransfer.use();
+    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::scratchToPingPong()
   {
-    this->fullscreenQuad->use();
+    this->fullscreenQuad.use();
     this->pingPong();
-    this->shaderTransfer->use();
-    this->scratch->bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
+    this->shaderTransfer.use();
+    this->scratch.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::drawRenderable(Renderable &entry)
@@ -415,14 +440,14 @@ void main()
     if(entry.characterInfo.character != '\0') //Text rendering
     {
       this->setFilterMode(FilterMode::TRILINEAR);
-      quat<float> rotation;
-      rotation.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
-      vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
-      this->model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.scale}, 1));
+      quat<float> rotQuat;
+      rotQuat.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
+      vec3<float> pos3 = vec3<float>{vec2<float>{entry.pos}, 0};
+      this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2<float>{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      this->shaderText->use();
-      this->shaderText->sendMat4f("mvp", &this->mvp.data[0][0]);
-      this->shaderText->sendVec4f("inputColor", entry.characterInfo.color.asRGBAf().data);
+      this->shaderText.use();
+      this->shaderText.sendMat4f("mvp", &this->mvp.data[0][0]);
+      this->shaderText.sendVec4f("inputColor", entry.characterInfo.color.asRGBAf().data);
       std::array<float, 12> quadVerts{1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0}; //Lower left origin
       std::array<float, 8> quadUVs{entry.characterInfo.atlasUVs.lowerRight.x(), entry.characterInfo.atlasUVs.lowerRight.y(), entry.characterInfo.atlasUVs.lowerLeft.x(), entry.characterInfo.atlasUVs.lowerLeft.y(), entry.characterInfo.atlasUVs.upperRight.x(), entry.characterInfo.atlasUVs.upperRight.y(), entry.characterInfo.atlasUVs.upperLeft.x(), entry.characterInfo.atlasUVs.upperLeft.y()};
       Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
@@ -444,12 +469,12 @@ void main()
     }
   }
   
-  void Renderer::bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format)
+  void Renderer::bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format) const
   {
     glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t) mode, (uint32_t) format);
   }
   
-  void Renderer::startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize)
+  void Renderer::startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize) const
   {
     glDispatchCompute((uint32_t) (std::ceil((float) (contextSize.x()) / (float) workSize.x())), (uint32_t) (std::ceil((float) (contextSize.y()) / (float) workSize.y())), 1);
   }

@@ -28,23 +28,23 @@ namespace glr
     GLRENDER_API void onContextResize(uint32_t width, uint32_t height);
     GLRENDER_API void setGlobalPostStack(std::shared_ptr<PostStack> stack);
     GLRENDER_API void setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack);
-    GLRENDER_API void useBackBuffer();
-    GLRENDER_API void render(RenderList renderList, mat4x4<float> const &view, mat4x4<float> const &projection);
-    GLRENDER_API void setClearColor(Color color);
-    GLRENDER_API void clearCurrentFramebuffer();
-    GLRENDER_API void setScissorTest(bool val);
-    GLRENDER_API void setDepthTest(bool val);
-    GLRENDER_API void setBlending(bool val);
-    GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst);
-    GLRENDER_API void setCullFace(bool val);
-    GLRENDER_API void setFilterMode(FilterMode mode);
-    GLRENDER_API void draw(DrawMode mode, size_t numElements);
+    GLRENDER_API void useBackBuffer() const;
+    GLRENDER_API void render(RenderList renderList, mat4x4<float> const &viewMat, mat4x4<float> const &projectionMat);
+    GLRENDER_API void setClearColor(Color color) const;
+    GLRENDER_API void clearCurrentFramebuffer() const;
+    GLRENDER_API void setScissorTest(bool val) const;
+    GLRENDER_API void setDepthTest(bool val) const;
+    GLRENDER_API void setBlending(bool val) const;
+    GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst) const;
+    GLRENDER_API void setCullFace(bool val) const;
+    GLRENDER_API void setFilterMode(FilterMode mode) const;
+    GLRENDER_API void draw(DrawMode mode, size_t numElements) const;
     GLRENDER_API void pingPong();
     
-    GLRENDER_API static void bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format);
-    GLRENDER_API static void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {WORKSIZEX, WORKSIZEY});
+    GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format) const;
+    GLRENDER_API void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {WORKSIZEX, WORKSIZEY}) const;
     
-    std::unique_ptr<FramebufferPool> fboPool = nullptr;
+    FramebufferPool fboPool{};
     
     GLRENDER_API static uint32_t WORKSIZEX;
     GLRENDER_API static uint32_t WORKSIZEY;
@@ -67,6 +67,9 @@ namespace glr
       bool alt = true;
     };
     
+    void renderWithoutPost(RenderList &renderList, Texture const *curTexture);
+    void renderWithPost(RenderList &renderList, Texture const *curTexture);
+    
     void postProcessGlobal();
     void postProcessLayer(uint64_t layer);
     void drawToScratch();
@@ -80,12 +83,12 @@ namespace glr
     mat4x4<float> view = {};
     mat4x4<float> projection = {};
     mat4x4<float> mvp = {};
-    std::shared_ptr<Framebuffer> fboA = nullptr;
-    std::shared_ptr<Framebuffer> fboB = nullptr;
-    std::shared_ptr<Framebuffer> scratch = nullptr;
-    std::unique_ptr<Mesh> fullscreenQuad = nullptr;
-    std::unique_ptr<Shader> shaderTransfer = nullptr;
-    std::unique_ptr<Shader> shaderText = nullptr;
+    Framebuffer fboA{};
+    Framebuffer fboB{};
+    Framebuffer scratch{};
+    Mesh fullscreenQuad{};
+    Shader shaderTransfer{};
+    Shader shaderText{};
     Alternator curFBO = {};
   };
 }
