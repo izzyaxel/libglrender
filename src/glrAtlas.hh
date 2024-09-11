@@ -7,7 +7,6 @@
 
 #include <commons/math/vec2.hh>
 #include <vector>
-#include <unordered_map>
 #include <string>
 #include <memory>
 
@@ -17,8 +16,6 @@ namespace glr
   struct Atlas
   {
     GLRENDER_API Atlas() = default;
-    
-    GLRENDER_API ~Atlas();
     
     Atlas(Atlas const &copyFrom) = delete;
     Atlas& operator=(Atlas const &copyFrom) = delete;
@@ -43,18 +40,16 @@ namespace glr
     [[nodiscard]] GLRENDER_API vec2<float> getTileDimensions(std::string const &name);
     
     /// Bind this atlas for rendering use
-    GLRENDER_API void use(uint32_t target = 0) const;
+    GLRENDER_API void use(const Texture& atlasTexture, uint32_t target = 0) const;
     
     /// Check if this atlas contains a tile of the given name
     [[nodiscard]] GLRENDER_API bool contains(std::string const &tileName);
     
     /// Create the atlas and send it to the GPU
-    GLRENDER_API void finalize(std::string const &name, TexColorFormat fmt);
+    GLRENDER_API void finalize(std::string const &name, Texture& atlasTexture, TexColorFormat fmt);
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
-    
-    Texture atlasTexture = {};
     
     private:
     struct AtlasImg

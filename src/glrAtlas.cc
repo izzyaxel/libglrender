@@ -20,7 +20,7 @@ namespace glr
       delete this->p_root;
     }
     
-    vec2<uint32_t> pack(uint32_t width, uint32_t height)
+    vec2<uint32_t> pack(const uint32_t width, const uint32_t height)
     {
       if(width == 0 || height == 0)
       {
@@ -52,12 +52,12 @@ namespace glr
       return out;
     }
     
-    uint32_t width() const
+    [[nodiscard]] uint32_t width() const
     {
       return this->p_root->p_width;
     }
     
-    uint32_t height() const
+    [[nodiscard]] uint32_t height() const
     {
       return this->p_root->p_height;
     }
@@ -90,7 +90,7 @@ namespace glr
       BSPNode *p_childA = nullptr;
       BSPNode *p_childB = nullptr;
       
-      GLRENDER_API inline void packIter(bool &ok, uint32_t const &width, uint32_t const &height, vec2<uint32_t> &pos)
+      GLRENDER_API void packIter(bool &ok, uint32_t const &width, uint32_t const &height, vec2<uint32_t> &pos)
       {
         if(this->p_isEndpoint || (width > this->p_width) || (height > this->p_height))
         {
@@ -137,7 +137,6 @@ namespace glr
           this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
           ok = true;
           pos = this->p_childA->p_coords;
-          return;
         }
       }
     };
@@ -145,18 +144,10 @@ namespace glr
     BSPNode *p_root = nullptr;
   };
   
-  Atlas::~Atlas()
-  {
-    this->atlasTexture.reset();
-  }
-  
   Atlas::Atlas(Atlas &&moveFrom) noexcept
   {
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
-    
-    this->atlasTexture = std::move(moveFrom.atlasTexture);
-    moveFrom.atlasTexture = {};
     
     this->atlasDims = moveFrom.atlasDims;
     moveFrom.atlasDims = {};
@@ -168,13 +159,10 @@ namespace glr
     moveFrom.init = false;
   }
   
-  Atlas &Atlas::operator =(glr::Atlas &&moveFrom) noexcept
+  Atlas &Atlas::operator =(Atlas &&moveFrom) noexcept
   {
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
-    
-    this->atlasTexture = std::move(moveFrom.atlasTexture);
-    moveFrom.atlasTexture = {};
     
     this->atlasDims = moveFrom.atlasDims;
     moveFrom.atlasDims = {};
@@ -248,10 +236,10 @@ namespace glr
         break;
       }
     }
-    vec2<float> ll = vec2<float>{(float) location.x(), (float) location.y()};
-    vec2<float> ul = vec2<float>{(float) location.x(), (float) (location.y() + height)};
-    vec2<float> lr = vec2<float>{(float) (location.x() + width), (float) location.y()};
-    vec2<float> ur = vec2<float>{(float) (location.x() + width), (float) (location.y() + height)};
+    vec2<float> ll = vec2{(float) location.x(), (float) location.y()};
+    vec2<float> ul = vec2{(float) location.x(), (float) (location.y() + height)};
+    vec2<float> lr = vec2{(float) (location.x() + width), (float) location.y()};
+    vec2<float> ur = vec2{(float) (location.x() + width), (float) (location.y() + height)};
     ll = ll / this->atlasDims;
     ul = ul / this->atlasDims;
     lr = lr / this->atlasDims;
@@ -266,13 +254,13 @@ namespace glr
     {
       if(tile.name == name)
       {
-        return vec2<float>{(float)tile.width, (float)tile.height};
+        return vec2{(float)tile.width, (float)tile.height};
       }
     }
-    return vec2<float>{0.0f, 0.0f};
+    return vec2{0.0f, 0.0f};
   }
   
-  void Atlas::use(uint32_t target) const
+  void Atlas::use(const Texture& atlasTexture, const uint32_t target) const
   {
     if(!this->finalized)
     {
@@ -280,7 +268,7 @@ namespace glr
     }
     else
     {
-      this->atlasTexture.use(target);
+      atlasTexture.use(target);
     }
   }
   
@@ -296,7 +284,7 @@ namespace glr
     return false;
   }
   
-  void Atlas::finalize(std::string const &name, TexColorFormat fmt)
+  void Atlas::finalize(std::string const &name, Texture& atlasTexture, const TexColorFormat fmt)
   {
     if(this->finalized)
     {
@@ -324,13 +312,20 @@ namespace glr
       printf("Atlas error: After layout, this atlas would have 0 width or height, finalization failed\n");
       return;
     }
-    this->atlasTexture = Texture(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-    this->atlasTexture.clear();
+    
+    atlasTexture.name = name;
+    atlasTexture.height = layout.height();
+    atlasTexture.width = layout.width();
+    atlasTexture.fmt = fmt;
+    atlasTexture.setFilterMode(FilterMode::NEAREST, FilterMode::NEAREST);
+    
+    //this->atlasTexture = Texture(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
+    atlasTexture.clear();
     for(auto &tile: this->atlas)
     {
-      this->atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
+      atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
     }
-    this->atlasDims = {(float) layout.width(), (float) layout.height()};
+    this->atlasDims = {(float)layout.width(), (float)layout.height()};
     this->finalized = true;
     this->init = true;
   }
@@ -342,7 +337,6 @@ namespace glr
   
   void Atlas::reset()
   {
-    this->atlasTexture.reset();
     this->atlas.clear();
     this->finalized = false;
     this->atlasDims = {};
