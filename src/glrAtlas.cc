@@ -319,8 +319,7 @@ namespace glr
     atlasTexture.fmt = fmt;
     atlasTexture.setFilterMode(FilterMode::NEAREST, FilterMode::NEAREST);
     
-    //this->atlasTexture = Texture(Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST));
-    atlasTexture.clear();
+    atlasTexture = Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST);
     for(auto &tile: this->atlas)
     {
       atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
