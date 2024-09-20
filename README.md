@@ -10,13 +10,11 @@ Provides the following classes:
 * Framebuffer - OpenGL framebuffer object
 * PostPass - Postprocessing step
 * PostStack - Ordered collection of PostPass steps
-* Image - In-RAM editable image
+* Image - On-CPU editable image
 * Atlas - OpenGL texture made from smaller images stitched together
 * Color - An intermediary color representation with conversions
 
 
 Windowing libraries like SDL2 can be used to load OpenGL's functions by passing their load proc function pointer to the constructor of Renderer.
 
-This library uses GLAD to load OpenGL functions.  There is currently no option to set up libGLRender in an existing context, but it's on the roadmap.
-
-Content management may be added in the future.
+This library uses GLAD to load OpenGL functions.  There is no option to set up libGLRender in an existing context.
