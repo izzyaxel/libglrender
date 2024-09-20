@@ -3,9 +3,9 @@
 namespace glr
 {
   #if defined(WINDOWS)
-#define GLRENDER_API __declspec(dllexport)
+  #define GLRENDER_API __declspec(dllexport)
   #else
-#define GLRender_API
+  #define GLRENDER_API
   #endif
 }
 
