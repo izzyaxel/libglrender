@@ -18,7 +18,7 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = texture(tex, uv);
+  fragColor = texture(tex, uv);
 })";
   
   std::string transferVert =
@@ -30,8 +30,8 @@ out vec2 uv;
 
 void main()
 {
-	uv = uv_in;
-	gl_Position = vec4(pos, 1.0);
+  uv = uv_in;
+  gl_Position = vec4(pos, 1.0);
 })";
   
   std::string textFrag =
@@ -44,7 +44,7 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = vec4(inputColor.rgb, texture(tex, uv).r * inputColor.w);
+  fragColor = vec4(inputColor.rgb, texture(tex, uv).r * inputColor.w);
 })";
   
   std::string textVert =
@@ -57,8 +57,8 @@ uniform mat4 mvp;
 
 void main()
 {
-	uv = uv_in;
-	gl_Position = mvp * vec4(pos, 1.0);
+  uv = uv_in;
+  gl_Position = mvp * vec4(pos, 1.0);
 })";
   
   std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
@@ -67,7 +67,7 @@ void main()
 /// ===Data===========================================================================///
   
   
-  void glDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei messageLength, GLchar const *message, void const *userParam)
+  void glDebug(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei messageLength, const GLchar* message, const void* userParam)
   {
     std::string severityStr;
     std::string typeStr;
@@ -152,13 +152,13 @@ void main()
   }
 
 /// ===Renderer========================================================================================================================================///
-  Renderer::Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight)
+  Renderer::Renderer(const GLLoadFunc loadFunc, const uint32_t contextWidth, const uint32_t contextHeight)
   {
     gladLoadGL(loadFunc);
     this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
-    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Ping");
-    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA}, "Pong");
-    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list<Attachment>{Attachment::COLOR}, "Scratch");
+    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Ping");
+    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Pong");
+    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR}, "Scratch");
     this->fullscreenQuad = Mesh(fullscreenQuadVerts, fullscreenQuadUVs);
     this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
     this->shaderText = Shader("Text Shader", textVert, textFrag);
@@ -170,7 +170,7 @@ void main()
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glViewport(0, 0, (GLsizei) contextWidth, (GLsizei) contextHeight);
+    glViewport(0, 0, (GLsizei)contextWidth, (GLsizei)contextHeight);
   }
   
   Renderer::~Renderer()
@@ -184,10 +184,10 @@ void main()
     this->layerPostStack.clear();
   }
   
-  void Renderer::onContextResize(uint32_t width, uint32_t height)
+  void Renderer::onContextResize(const uint32_t width, const uint32_t height)
   {
     this->useBackBuffer();
-    glViewport(0, 0, (int) width, (int) height);
+    glViewport(0, 0, (int)width, (int)height);
     this->fboPool.onResize(width, height);
   }
   
@@ -196,7 +196,7 @@ void main()
     this->globalPostStack = std::move(stack);
   }
   
-  void Renderer::setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack)
+  void Renderer::setLayerPostStack(const uint64_t layer, std::shared_ptr<PostStack> stack)
   {
     this->layerPostStack[layer] = std::move(stack);
   }
@@ -206,11 +206,11 @@ void main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
   
-  void Renderer::renderWithoutPost(RenderList &renderList, Texture const *curTexture)
+  void Renderer::renderWithoutPost(const RenderList& renderList, const Texture* curTexture)
   {
     this->pingPong();
     
-    for(auto &entry : renderList.list)
+    for(const auto& entry : renderList.list)
     {
       if(entry.texture->handle != curTexture->handle)
       {
@@ -222,7 +222,7 @@ void main()
     }
   }
   
-  void Renderer::renderWithPost(RenderList &renderList, Texture const *curTexture)
+  void Renderer::renderWithPost(RenderList& renderList, const Texture* curTexture)
   {
     this->scratch.use();
     this->clearCurrentFramebuffer();
@@ -232,7 +232,7 @@ void main()
     
     for(size_t i = 0; i < renderList.size(); i++)
     {
-      auto &entry = renderList[i];
+      const auto& entry = renderList[i];
       
       if(entry.texture->handle != curTexture->handle)
       {
@@ -293,7 +293,7 @@ void main()
     this->scratchToPingPong();
   }
   
-  void Renderer::render(RenderList renderList, mat4x4<float> const &viewMat, mat4x4<float> const &projectionMat)
+  void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
   {
     if(renderList.empty())
     {
@@ -302,7 +302,7 @@ void main()
     
     this->view = viewMat;
     this->projection = projectionMat;
-    Texture const *curTexture = renderList[0].texture;
+    const Texture* curTexture = renderList[0].texture;
     curTexture->use(0);
     
     this->layerPostStack.empty() ? this->renderWithoutPost(renderList, curTexture) : this->renderWithPost(renderList, curTexture);
@@ -315,7 +315,7 @@ void main()
     this->drawToBackBuffer();
   }
   
-  void Renderer::setClearColor(Color color) const
+  void Renderer::setClearColor(const Color color) const
   {
     auto colorF = color.asRGBAf();
     glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
@@ -326,32 +326,32 @@ void main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
   
-  void Renderer::setScissorTest(bool val) const
+  void Renderer::setScissorTest(const bool val) const
   {
     val ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
   }
   
-  void Renderer::setDepthTest(bool val) const
+  void Renderer::setDepthTest(const bool val) const
   {
     val ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
   }
   
-  void Renderer::setBlending(bool val) const
+  void Renderer::setBlending(const bool val) const
   {
     val ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
   }
   
-  void Renderer::setBlendMode(uint32_t src, uint32_t dst) const
+  void Renderer::setBlendMode(const uint32_t src, const uint32_t dst) const
   {
     glBlendFunc(src, dst);
   }
   
-  void Renderer::setCullFace(bool val) const
+  void Renderer::setCullFace(const bool val) const
   {
     val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
   }
   
-  void Renderer::setFilterMode(FilterMode mode) const
+  void Renderer::setFilterMode(const FilterMode mode) const
   {
     switch(mode)
     {
@@ -372,9 +372,9 @@ void main()
     }
   }
   
-  void Renderer::draw(DrawMode mode, size_t numElements) const
+  void Renderer::draw(const DrawMode mode, const size_t numElements) const
   {
-    glDrawArrays((GLenum) mode, 0, (GLsizei) numElements);
+    glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
   }
   
   void Renderer::pingPong()
@@ -383,7 +383,7 @@ void main()
     this->clearCurrentFramebuffer();
   }
   
-  void Renderer::postProcessLayer(uint64_t layer)
+  void Renderer::postProcessLayer(const uint64_t layer)
   {
     for(auto const &stage: this->layerPostStack[layer]->getPasses())
     {
@@ -407,7 +407,7 @@ void main()
     }
   }
   
-  void Renderer::drawToBackBuffer()
+  void Renderer::drawToBackBuffer() const
   {
     this->fullscreenQuad.use();
     this->useBackBuffer();
@@ -417,7 +417,7 @@ void main()
     draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
-  void Renderer::drawToScratch()
+  void Renderer::drawToScratch() const
   {
     this->fullscreenQuad.use();
     this->scratch.use();
@@ -435,22 +435,30 @@ void main()
     draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
-  void Renderer::drawRenderable(Renderable &entry)
+  void Renderer::drawRenderable(const Renderable& entry)
   {
     if(entry.characterInfo.character != '\0') //Text rendering
     {
       this->setFilterMode(FilterMode::TRILINEAR);
       quat<float> rotQuat;
-      rotQuat.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
-      vec3<float> pos3 = vec3<float>{vec2<float>{entry.pos}, 0};
-      this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2<float>{entry.scale}, 1));
+      rotQuat.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
+      const vec3<float> pos3 = vec3<float>{vec2{entry.pos}, 0};
+      this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       this->shaderText.use();
       this->shaderText.sendMat4f("mvp", &this->mvp.data[0][0]);
       this->shaderText.sendVec4f("inputColor", entry.characterInfo.color.asRGBAf().data);
-      std::array<float, 12> quadVerts{1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0}; //Lower left origin
-      std::array<float, 8> quadUVs{entry.characterInfo.atlasUVs.lowerRight.x(), entry.characterInfo.atlasUVs.lowerRight.y(), entry.characterInfo.atlasUVs.lowerLeft.x(), entry.characterInfo.atlasUVs.lowerLeft.y(), entry.characterInfo.atlasUVs.upperRight.x(), entry.characterInfo.atlasUVs.upperRight.y(), entry.characterInfo.atlasUVs.upperLeft.x(), entry.characterInfo.atlasUVs.upperLeft.y()};
-      Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
+      constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
+      const std::array quadUVs{
+        entry.characterInfo.atlasUVs.lowerRight.x(),
+        entry.characterInfo.atlasUVs.lowerRight.y(),
+        entry.characterInfo.atlasUVs.lowerLeft.x(),
+        entry.characterInfo.atlasUVs.lowerLeft.y(),
+        entry.characterInfo.atlasUVs.upperRight.x(),
+        entry.characterInfo.atlasUVs.upperRight.y(),
+        entry.characterInfo.atlasUVs.upperLeft.x(),
+        entry.characterInfo.atlasUVs.upperLeft.y()};
+      const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
       mesh.use();
       draw(DrawMode::TRISTRIPS, mesh.numVerts);
       this->setFilterMode(FilterMode::NEAREST);
@@ -458,9 +466,9 @@ void main()
     else
     {
       quat<float> rotation;
-      rotation.fromAxial(vec3<float>{entry.axis}, degToRad<float>((float) entry.rotation));
-      vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
-      this->model = modelMatrix(posF, rotation, vec3<float>(vec2<float>{entry.scale}, 1));
+      rotation.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
+      const vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
+      this->model = modelMatrix(posF, rotation, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       entry.shader->use();
       entry.shader->sendMat4f("mvp", &this->mvp.data[0][0]);
@@ -469,13 +477,13 @@ void main()
     }
   }
   
-  void Renderer::bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format) const
+  void Renderer::bindImage(const uint32_t target, const uint32_t& handle, const IOMode mode, const GLColorFormat format) const
   {
-    glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t) mode, (uint32_t) format);
+    glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
   }
   
-  void Renderer::startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize) const
+  void Renderer::startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize) const
   {
-    glDispatchCompute((uint32_t) (std::ceil((float) (contextSize.x()) / (float) workSize.x())), (uint32_t) (std::ceil((float) (contextSize.y()) / (float) workSize.y())), 1);
+    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t) (std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
   }
 }

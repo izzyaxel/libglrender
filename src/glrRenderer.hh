@@ -29,7 +29,7 @@ namespace glr
     GLRENDER_API void setGlobalPostStack(std::shared_ptr<PostStack> stack);
     GLRENDER_API void setLayerPostStack(uint64_t layer, std::shared_ptr<PostStack> stack);
     GLRENDER_API void useBackBuffer() const;
-    GLRENDER_API void render(RenderList renderList, mat4x4<float> const &viewMat, mat4x4<float> const &projectionMat);
+    GLRENDER_API void render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat);
     GLRENDER_API void setClearColor(Color color) const;
     GLRENDER_API void clearCurrentFramebuffer() const;
     GLRENDER_API void setScissorTest(bool val) const;
@@ -41,8 +41,8 @@ namespace glr
     GLRENDER_API void draw(DrawMode mode, size_t numElements) const;
     GLRENDER_API void pingPong();
     
-    GLRENDER_API void bindImage(uint32_t target, uint32_t const &handle, IOMode mode, GLColorFormat format) const;
-    GLRENDER_API void startComputeShader(vec2<uint32_t> const &contextSize, vec2<uint32_t> const &workSize = {WORKSIZEX, WORKSIZEY}) const;
+    GLRENDER_API void bindImage(uint32_t target, const uint32_t& handle, IOMode mode, GLColorFormat format) const;
+    GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORKSIZEX, WORKSIZEY}) const;
     
     FramebufferPool fboPool{};
     
@@ -52,13 +52,13 @@ namespace glr
     private:
     struct Alternator
     {
-      inline bool swap()
+      bool swap()
       {
         alt = !alt;
         return alt;
       }
       
-      [[nodiscard]] inline bool get() const
+      [[nodiscard]] bool get() const
       {
         return alt;
       } //true: a false: b
@@ -67,15 +67,15 @@ namespace glr
       bool alt = true;
     };
     
-    void renderWithoutPost(RenderList &renderList, Texture const *curTexture);
-    void renderWithPost(RenderList &renderList, Texture const *curTexture);
+    void renderWithoutPost(const RenderList& renderList, const Texture* curTexture);
+    void renderWithPost(RenderList& renderList, const Texture* curTexture);
     
     void postProcessGlobal();
     void postProcessLayer(uint64_t layer);
-    void drawToScratch();
-    void drawToBackBuffer();
+    void drawToScratch() const;
+    void drawToBackBuffer() const;
     void scratchToPingPong();
-    void drawRenderable(Renderable &entry);
+    void drawRenderable(const Renderable& entry);
     
     std::shared_ptr<PostStack> globalPostStack;
     std::unordered_map<uint64_t, std::shared_ptr<PostStack>> layerPostStack;
