@@ -149,7 +149,7 @@ namespace glr
     glUseProgram(this->handle);
   }
   
-  void getUniformHandle(const std::string& location, const uint32_t shaderHandle, std::unordered_map<std::string, Shader::Uniform> uniforms)
+  void makeUniform(const std::string& location, const uint32_t shaderHandle, std::unordered_map<std::string, Shader::Uniform>& uniforms)
   {
     if(!uniforms.contains(location))
     {
@@ -160,7 +160,7 @@ namespace glr
   
   void Shader::setUniform(const std::string& name, const float val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::FLOAT;
     uniform.valF = val;
@@ -168,7 +168,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const int32_t val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::INT;
     uniform.valI = val;
@@ -176,7 +176,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const uint32_t val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::UINT;
     uniform.valUI = val;
@@ -184,7 +184,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const vec2<float> val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::VEC2;
     uniform.valVec2 = val;
@@ -192,7 +192,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const vec3<float> val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::VEC3;
     uniform.valVec3 = val;
@@ -200,7 +200,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const vec4<float> val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::VEC4;
     uniform.valVec4 = val;
@@ -208,7 +208,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const mat3x3<float>& val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::MAT3;
     uniform.valMat3 = val;
@@ -216,7 +216,7 @@ namespace glr
 
   void Shader::setUniform(const std::string& name, const mat4x4<float>& val)
   {
-    getUniformHandle(name, this->handle, this->uniforms);
+    makeUniform(name, this->handle, this->uniforms);
     Uniform& uniform = this->uniforms.at(name);
     uniform.type = Uniform::MAT4;
     uniform.valMat4 = val;
