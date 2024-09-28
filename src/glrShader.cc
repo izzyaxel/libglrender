@@ -148,7 +148,7 @@ namespace glr
     }
   }
 
-  void Shader::setUniform(const std::string& name, std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> val)
+  void Shader::setUniform(const std::string& name, UniformValue val)
   {
     makeUniform(name, this->handle, this->uniforms);
     this->uniforms.at(name).val = std::move(val);

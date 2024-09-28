@@ -11,10 +11,12 @@ namespace glr
   /// An OpenGL frag/vert, geometry, or compute shader
   struct Shader
   {
+    typedef std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> UniformValue;
+    
     struct Uniform
     {
       int32_t handle = std::numeric_limits<int32_t>::max();
-      std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> val{};
+      UniformValue val{};
     };
     
     Shader() = default;
@@ -31,7 +33,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
-    GLRENDER_API void setUniform(const std::string& name, std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> val);
+    GLRENDER_API void setUniform(const std::string& name, UniformValue val);
     GLRENDER_API void sendUniforms() const;
     
     uint32_t handle = std::numeric_limits<uint32_t>::max();
