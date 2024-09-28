@@ -4,19 +4,9 @@
 
 namespace glr
 {
-  /*Shader::Shader(std::string const &name, std::vector<uint8_t> const &vertShader, std::vector<uint8_t> const &fragShader) : Shader(name, std::string{vertShader.begin(), vertShader.end()}, std::string{fragShader.begin(), fragShader.end()})
-  {
-    
-  }
-  
-  Shader::Shader(std::string const &name, std::vector<uint8_t> const &compShader) : Shader(name, std::string{compShader.begin(), compShader.end()})
-  {
-    
-  }*/
-  
   Shader::Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader)
   {
-    uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER), fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+    const uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER), fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
     this->handle = glCreateProgram();
     char const *vertSource = vertShader.data(), *fragSource = fragShader.data();
     glShaderSource(vertHandle, 1, &vertSource, nullptr);
@@ -74,7 +64,7 @@ namespace glr
   
   Shader::Shader(std::string const &name, std::string const &compShader)
   {
-    uint32_t compHandle = glCreateShader(GL_COMPUTE_SHADER);
+    const uint32_t compHandle = glCreateShader(GL_COMPUTE_SHADER);
     this->handle = glCreateProgram();
     char const *compSource = compShader.data();
     glShaderSource(compHandle, 1, &compSource, nullptr);
@@ -153,123 +143,53 @@ namespace glr
   {
     if(!uniforms.contains(location))
     {
-      uniforms.insert({location, {}});
+      uniforms[location] = {};
       uniforms.at(location).handle = glGetUniformLocation(shaderHandle, location.data());
     }
   }
-  
-  void Shader::setUniform(const std::string& name, const float val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::FLOAT;
-    uniform.valF = val;
-  }
 
-  void Shader::setUniform(const std::string& name, const int32_t val)
+  void Shader::setUniform(const std::string& name, std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> val)
   {
     makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::INT;
-    uniform.valI = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const uint32_t val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::UINT;
-    uniform.valUI = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const vec2<float> val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::VEC2;
-    uniform.valVec2 = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const vec3<float> val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::VEC3;
-    uniform.valVec3 = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const vec4<float> val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::VEC4;
-    uniform.valVec4 = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const mat3x3<float>& val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::MAT3;
-    uniform.valMat3 = val;
-  }
-
-  void Shader::setUniform(const std::string& name, const mat4x4<float>& val)
-  {
-    makeUniform(name, this->handle, this->uniforms);
-    Uniform& uniform = this->uniforms.at(name);
-    uniform.type = Uniform::MAT4;
-    uniform.valMat4 = val;
+    this->uniforms.at(name).val = std::move(val);
   }
 
   void Shader::sendUniforms() const
   {
     for(const auto& pair : this->uniforms)
     {
-      const Uniform& uniform = pair.second;
-      switch(uniform.type)
+      const auto& [handle, val] = pair.second;
+      if(std::holds_alternative<float>(val))
       {
-        case Uniform::FLOAT:
-        {
-          glUniform1f(uniform.handle, uniform.valF);
-          break;
-        }
-        case Uniform::INT:
-        {
-          glUniform1i(uniform.handle, uniform.valI);
-          break;
-        }
-        case Uniform::UINT:
-        {
-          glUniform1ui(uniform.handle, uniform.valUI);
-          break;
-        }
-        case Uniform::VEC2:
-        {
-          glUniform2fv(uniform.handle, 1, uniform.valVec2.data);
-          break;
-        }
-        case Uniform::VEC3:
-        {
-          glUniform3fv(uniform.handle, 1, uniform.valVec3.data);
-          break;
-        }
-        case Uniform::VEC4:
-        {
-          glUniform4fv(uniform.handle, 1, uniform.valVec4.data);
-          break;
-        }
-        case Uniform::MAT3:
-        {
-          glUniformMatrix3fv(uniform.handle, 1, GL_FALSE, &uniform.valMat3.data[0][0]);
-          break;
-        }
-        case Uniform::MAT4:
-        {
-          glUniformMatrix4fv(uniform.handle, 1, GL_FALSE, &uniform.valMat4.data[0][0]);
-          break;
-        }
-        case Uniform::INVALID: break;
+        glUniform1f(handle, std::get<float>(val));
+      }
+      else if(std::holds_alternative<int32_t>(val))
+      {
+        glUniform1i(handle, std::get<int32_t>(val));
+      }
+      else if(std::holds_alternative<uint32_t>(val))
+      {
+        glUniform1ui(handle, std::get<uint32_t>(val));
+      }
+      else if(std::holds_alternative<vec2<float>>(val))
+      {
+        glUniform2fv(handle, 1, std::get<vec2<float>>(val).data);
+      }
+      else if(std::holds_alternative<vec3<float>>(val))
+      {
+        glUniform3fv(handle, 1, std::get<vec3<float>>(val).data);
+      }
+      else if(std::holds_alternative<vec4<float>>(val))
+      {
+        glUniform4fv(handle, 1, std::get<vec4<float>>(val).data);
+      }
+      else if(std::holds_alternative<mat3x3<float>>(val))
+      {
+        glUniformMatrix3fv(handle, 1, GL_FALSE, &std::get<mat3x3<float>>(val).data[0][0]);
+      }
+      else if(std::holds_alternative<mat4x4<float>>(val))
+      {
+        glUniformMatrix4fv(handle, 1, GL_FALSE, &std::get<mat4x4<float>>(val).data[0][0]);
       }
     }
   }
