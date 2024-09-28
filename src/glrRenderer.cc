@@ -446,8 +446,9 @@ void main()
       this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       this->shaderText.use();
-      this->shaderText.sendMat4f("mvp", &this->mvp.data[0][0]);
-      this->shaderText.sendVec4f("inputColor", entry.characterInfo.color.asRGBAf().data);
+      this->shaderText.setUniform("mvp", this->mvp);
+      this->shaderText.setUniform("inputColor", entry.characterInfo.color.asRGBAf());
+      this->shaderText.sendUniforms();
       constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
       const std::array quadUVs{
         entry.characterInfo.atlasUVs.lowerRight.x(),
@@ -471,7 +472,8 @@ void main()
       this->model = modelMatrix(posF, rotation, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       entry.shader->use();
-      entry.shader->sendMat4f("mvp", &this->mvp.data[0][0]);
+      entry.shader->setUniform("mvp", this->mvp);
+      entry.shader->sendUniforms();
       entry.mesh->use();
       draw(DrawMode::TRISTRIPS, entry.mesh->numVerts);
     }

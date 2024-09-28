@@ -149,6 +149,131 @@ namespace glr
     glUseProgram(this->handle);
   }
   
+  void getUniformHandle(const std::string& location, const uint32_t shaderHandle, std::unordered_map<std::string, Shader::Uniform> uniforms)
+  {
+    if(!uniforms.contains(location))
+    {
+      uniforms.insert({location, {}});
+      uniforms.at(location).handle = glGetUniformLocation(shaderHandle, location.data());
+    }
+  }
+  
+  void Shader::setUniform(const std::string& name, const float val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::FLOAT;
+    uniform.valF = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const int32_t val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::INT;
+    uniform.valI = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const uint32_t val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::UINT;
+    uniform.valUI = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const vec2<float> val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::VEC2;
+    uniform.valVec2 = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const vec3<float> val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::VEC3;
+    uniform.valVec3 = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const vec4<float> val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::VEC4;
+    uniform.valVec4 = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const mat3x3<float>& val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::MAT3;
+    uniform.valMat3 = val;
+  }
+
+  void Shader::setUniform(const std::string& name, const mat4x4<float>& val)
+  {
+    getUniformHandle(name, this->handle, this->uniforms);
+    Uniform& uniform = this->uniforms.at(name);
+    uniform.type = Uniform::MAT4;
+    uniform.valMat4 = val;
+  }
+
+  void Shader::sendUniforms() const
+  {
+    for(const auto& pair : this->uniforms)
+    {
+      const Uniform& uniform = pair.second;
+      switch(uniform.type)
+      {
+        case Uniform::FLOAT:
+        {
+          glUniform1f(uniform.handle, uniform.valF);
+          break;
+        }
+        case Uniform::INT:
+        {
+          glUniform1i(uniform.handle, uniform.valI);
+          break;
+        }
+        case Uniform::UINT:
+        {
+          glUniform1ui(uniform.handle, uniform.valUI);
+          break;
+        }
+        case Uniform::VEC2:
+        {
+          glUniform2fv(uniform.handle, 1, uniform.valVec2.data);
+          break;
+        }
+        case Uniform::VEC3:
+        {
+          glUniform3fv(uniform.handle, 1, uniform.valVec3.data);
+          break;
+        }
+        case Uniform::VEC4:
+        {
+          glUniform4fv(uniform.handle, 1, uniform.valVec4.data);
+          break;
+        }
+        case Uniform::MAT3:
+        {
+          glUniformMatrix3fv(uniform.handle, 1, GL_FALSE, &uniform.valMat3.data[0][0]);
+          break;
+        }
+        case Uniform::MAT4:
+        {
+          glUniformMatrix4fv(uniform.handle, 1, GL_FALSE, &uniform.valMat4.data[0][0]);
+          break;
+        }
+        case Uniform::INVALID: break;
+      }
+    }
+  }
+  
   bool Shader::exists() const
   {
     return this->init;
@@ -160,52 +285,5 @@ namespace glr
     this->handle = std::numeric_limits<uint32_t>::max();
     this->uniforms = {};
     this->init = false;
-  }
-  
-  int32_t Shader::getUniformHandle(std::string const &location)
-  {
-    auto it = this->uniforms.find(location);
-    if(it == this->uniforms.end()) it = this->uniforms.emplace(location, glGetUniformLocation(this->handle, location.data())).first;
-    return it->second;
-  }
-  
-  void Shader::sendFloat(std::string const &location, float val)
-  {
-    glUniform1f(this->getUniformHandle(location), val);
-  }
-  
-  void Shader::sendInt(std::string const &location, int32_t val)
-  {
-    glUniform1i(this->getUniformHandle(location), val);
-  }
-  
-  void Shader::sendUInt(std::string const &location, uint32_t val)
-  {
-    glUniform1ui(this->getUniformHandle(location), val);
-  }
-  
-  void Shader::sendVec2f(std::string const &location, float *val)
-  {
-    glUniform2fv(this->getUniformHandle(location), 1, val);
-  }
-  
-  void Shader::sendVec3f(std::string const &location, float *val)
-  {
-    glUniform3fv(this->getUniformHandle(location), 1, val);
-  }
-  
-  void Shader::sendVec4f(std::string const &location, float *val)
-  {
-    glUniform4fv(this->getUniformHandle(location), 1, val);
-  }
-  
-  void Shader::sendMat3f(std::string const &location, float *val)
-  {
-    glUniformMatrix3fv(this->getUniformHandle(location), 1, GL_FALSE, val);
-  }
-  
-  void Shader::sendMat4f(std::string const &location, float *val)
-  {
-    glUniformMatrix4fv(this->getUniformHandle(location), 1, GL_FALSE, val);
   }
 }
