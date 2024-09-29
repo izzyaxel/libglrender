@@ -2,39 +2,49 @@
 
 namespace glr
 {
-  bool RenderList::renderableComparator(Renderable const &a, Renderable const &b)
+  bool RenderList::renderableComparator(const Renderable& a, const Renderable& b)
   {
     return (a.texture->handle > b.texture->handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
   }
   
-  RenderList& RenderList::operator +(RenderList &other)
+  RenderList& RenderList::operator +(RenderList& other)
   {
     this->list.insert(this->list.end(), other.list.begin(), other.list.end());
     return *this;
   }
   
-  RenderList& RenderList::operator +=(RenderList &other)
+  RenderList& RenderList::operator +=(RenderList& other)
   {
     this->list.insert(this->list.end(), other.list.begin(), other.list.end());
     return *this;
   }
   
-  Renderable &RenderList::operator [](size_t index)
+  Renderable &RenderList::operator [](const size_t index)
   {
     return this->list[index];
   }
   
-  auto RenderList::begin()
+  std::vector<Renderable>::iterator RenderList::begin()
   {
     return this->list.begin();
   }
   
-  auto RenderList::end()
+  std::vector<Renderable>::iterator RenderList::end()
   {
     return this->list.end();
   }
+
+  Renderable& RenderList::front()
+  {
+    return this->list.front();
+  }
+
+  Renderable& RenderList::back()
+  {
+    return this->list.back();
+  }
   
-  void RenderList::add(std::initializer_list<Renderable> const &renderables)
+  void RenderList::add(const std::initializer_list<Renderable>& renderables)
   {
     this->list.insert(this->list.end(), renderables.begin(), renderables.end());
   }
@@ -54,7 +64,7 @@ namespace glr
     return this->list.size();
   }
   
-  void RenderList::sort(Comparator const &cmp)
+  void RenderList::sort(const Comparator& cmp)
   {
     std::sort(this->list.begin(), this->list.end(), cmp);
   }

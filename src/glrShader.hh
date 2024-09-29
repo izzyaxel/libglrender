@@ -21,14 +21,14 @@ namespace glr
     
     Shader() = default;
     
-    GLRENDER_API Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader);
-    GLRENDER_API Shader(std::string const &name, std::string const &compShader);
+    GLRENDER_API Shader(const std::string& name, const std::string& vertShader, const std::string& fragShader);
+    GLRENDER_API Shader(const std::string& name, const std::string& compShader);
     GLRENDER_API ~Shader();
     
-    Shader(Shader const &copyFrom) = delete;
-    Shader& operator=(Shader const &copyFrom) = delete;
-    GLRENDER_API Shader(Shader &&moveFrom) noexcept;
-    GLRENDER_API Shader& operator=(Shader &&moveFrom) noexcept;
+    Shader(const Shader& copyFrom) = delete;
+    Shader& operator=(const Shader& copyFrom) = delete;
+    GLRENDER_API Shader(Shader&& moveFrom) noexcept;
+    GLRENDER_API Shader& operator=(Shader&& moveFrom) noexcept;
 
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();

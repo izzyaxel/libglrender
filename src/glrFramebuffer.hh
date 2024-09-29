@@ -13,13 +13,13 @@ namespace glr
   struct Framebuffer
   {
     Framebuffer() = default;
-    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<Attachment> const &options, std::string const &name);
+    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, const std::initializer_list<Attachment>& options, const std::string& name);
     GLRENDER_API ~Framebuffer();
     
-    Framebuffer(Framebuffer &other) = delete;
-    Framebuffer& operator =(Framebuffer const &copyFrom) = delete;
-    GLRENDER_API Framebuffer(Framebuffer &&moveFrom) noexcept;
-    GLRENDER_API Framebuffer &operator =(Framebuffer &&moveFrom) noexcept;
+    Framebuffer(Framebuffer& other) = delete;
+    Framebuffer& operator =(const Framebuffer& other) = delete;
+    GLRENDER_API Framebuffer(Framebuffer&& other) noexcept;
+    GLRENDER_API Framebuffer &operator =(Framebuffer&& other) noexcept;
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
@@ -41,7 +41,7 @@ namespace glr
     
     private:
     void createFBO();
-    void clearFBO();
+    void clearFBO() const;
     bool init = false;
   };
   
@@ -50,10 +50,10 @@ namespace glr
     GLRENDER_API FramebufferPool() = default;
     GLRENDER_API FramebufferPool(size_t alloc, uint32_t width, uint32_t height);
     
-    FramebufferPool(FramebufferPool const &other) = delete;
-    FramebufferPool& operator=(FramebufferPool const &other) = delete;
-    GLRENDER_API FramebufferPool(FramebufferPool &&other) noexcept;
-    GLRENDER_API FramebufferPool& operator=(FramebufferPool &&other) noexcept;
+    FramebufferPool(const FramebufferPool& other) = delete;
+    FramebufferPool& operator=(const FramebufferPool& other) = delete;
+    GLRENDER_API FramebufferPool(FramebufferPool&& other) noexcept;
+    GLRENDER_API FramebufferPool& operator=(FramebufferPool&& other) noexcept;
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();

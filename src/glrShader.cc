@@ -4,11 +4,12 @@
 
 namespace glr
 {
-  Shader::Shader(std::string const &name, std::string const &vertShader, std::string const &fragShader)
+  Shader::Shader(const std::string& name, const std::string& vertShader, const std::string& fragShader)
   {
     const uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER), fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
     this->handle = glCreateProgram();
-    char const *vertSource = vertShader.data(), *fragSource = fragShader.data();
+    const char* vertSource = vertShader.data();
+    const char* fragSource = fragShader.data();
     glShaderSource(vertHandle, 1, &vertSource, nullptr);
     glShaderSource(fragHandle, 1, &fragSource, nullptr);
     glCompileShader(vertHandle);
@@ -21,7 +22,7 @@ namespace glr
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
       glGetShaderInfoLog(vertHandle, maxLen, &maxLen, error.data());
-      std::string errorStr{error.begin(), error.end()};
+      const std::string errorStr{error.begin(), error.end()};
       printf("Vert/Frag shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
@@ -35,7 +36,7 @@ namespace glr
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
       glGetShaderInfoLog(fragHandle, maxLen, &maxLen, error.data());
-      std::string errorStr{error.begin(), error.end()};
+      const std::string errorStr{error.begin(), error.end()};
       printf("Vert/Frag shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
@@ -62,11 +63,11 @@ namespace glr
     this->init = true;
   }
   
-  Shader::Shader(std::string const &name, std::string const &compShader)
+  Shader::Shader(const std::string& name, const std::string& compShader)
   {
     const uint32_t compHandle = glCreateShader(GL_COMPUTE_SHADER);
     this->handle = glCreateProgram();
-    char const *compSource = compShader.data();
+    const char* compSource = compShader.data();
     glShaderSource(compHandle, 1, &compSource, nullptr);
     glCompileShader(compHandle);
     int32_t success = 0;
@@ -78,7 +79,7 @@ namespace glr
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
       glGetShaderInfoLog(compHandle, maxLen, &maxLen, error.data());
-      std::string errorStr{error.begin(), error.end()};
+      const std::string errorStr{error.begin(), error.end()};
       printf("Compute shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
@@ -94,7 +95,7 @@ namespace glr
       std::vector<char> error;
       error.resize(maxLen * sizeof(GLchar));
       glGetShaderInfoLog(this->handle, maxLen, &maxLen, error.data());
-      std::string errorStr{error.begin(), error.end()};
+      const std::string errorStr{error.begin(), error.end()};
       printf("Compute shader program error: %s failed to link: %s\n", name.c_str(), errorStr.c_str());
       return;
     }
@@ -108,7 +109,7 @@ namespace glr
     glDeleteProgram(this->handle);
   }
   
-  Shader::Shader(Shader &&moveFrom) noexcept
+  Shader::Shader(Shader&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();
@@ -120,7 +121,7 @@ namespace glr
     moveFrom.init = false;
   }
   
-  Shader& Shader::operator=(Shader &&moveFrom) noexcept
+  Shader& Shader::operator=(Shader&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();

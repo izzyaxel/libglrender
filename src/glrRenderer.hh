@@ -20,8 +20,7 @@ namespace glr
   /// The OpenGL 4.5+ rendering engine
   struct Renderer
   {
-    /// You're expected to be using a windowing library like SDL2, it will provide you
-    /// with @param loadFunc
+    /// You're expected to be using a windowing library like SDL or Qt, it will provide you with @param loadFunc
     GLRENDER_API Renderer(GLLoadFunc loadFunc, uint32_t contextWidth, uint32_t contextHeight);
     GLRENDER_API ~Renderer();
     
@@ -41,7 +40,7 @@ namespace glr
     GLRENDER_API void draw(DrawMode mode, size_t numElements) const;
     GLRENDER_API void pingPong();
     
-    GLRENDER_API void bindImage(uint32_t target, const uint32_t& handle, IOMode mode, GLColorFormat format) const;
+    GLRENDER_API void bindImage(uint32_t target, uint32_t handle, IOMode mode, GLColorFormat format) const;
     GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORKSIZEX, WORKSIZEY}) const;
     
     FramebufferPool fboPool{};
@@ -67,7 +66,7 @@ namespace glr
       bool alt = true;
     };
     
-    void renderWithoutPost(const RenderList& renderList, const Texture* curTexture);
+    void renderWithoutPost(RenderList& renderList, const Texture* curTexture);
     void renderWithPost(RenderList& renderList, const Texture* curTexture);
     
     void postProcessGlobal();
@@ -75,7 +74,7 @@ namespace glr
     void drawToScratch() const;
     void drawToBackBuffer() const;
     void scratchToPingPong();
-    void drawRenderable(const Renderable& entry);
+    void drawRenderable(Renderable& entry);
     
     std::shared_ptr<PostStack> globalPostStack;
     std::unordered_map<uint64_t, std::shared_ptr<PostStack>> layerPostStack;

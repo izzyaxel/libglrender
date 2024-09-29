@@ -8,7 +8,7 @@
 
 namespace glr
 {
-  typedef std::function<void(Framebuffer&, Framebuffer&, void * const)> ProcessFunc;
+  typedef std::function<void(Framebuffer&, Framebuffer&, const void*)> ProcessFunc;
   
   struct PostPass
   {

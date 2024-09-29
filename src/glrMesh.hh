@@ -26,44 +26,50 @@ namespace glr
     GLRENDER_API ~Mesh();
     
     //Base constructors, all others should be able to delegate to these
-    GLRENDER_API Mesh(float const *verts, size_t vertsSize);
-    GLRENDER_API Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize);
-    GLRENDER_API Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize, float const *normals, size_t normalsSize);
+    GLRENDER_API Mesh(const float* verts, size_t vertsSize);
+    GLRENDER_API Mesh(const float* verts, size_t vertsSize, const float* uvs, size_t uvsSize);
+    GLRENDER_API Mesh(const float* verts, size_t vertsSize, const float* uvs, size_t uvsSize, const float* normals, size_t normalsSize);
     
     //Values
-    GLRENDER_API explicit Mesh(std::vector<float> const &verts);
-    GLRENDER_API Mesh(std::vector<float> const &verts, std::vector<float> const &uvs);
-    GLRENDER_API Mesh(std::vector<float> const &verts, std::vector<float> const &uvs, std::vector<float> const &normals);
-    GLRENDER_API Mesh(std::initializer_list<float> const &verts);
-    GLRENDER_API Mesh(std::initializer_list<float> const &verts, std::initializer_list<float> const &uvs);
-    GLRENDER_API Mesh(std::initializer_list<float> const &verts, std::initializer_list<float> const &uvs, std::initializer_list<float> const &normals);
+    GLRENDER_API explicit Mesh(const std::vector<float>& verts);
+    GLRENDER_API Mesh(const std::vector<float>& verts, const std::vector<float>& uvs);
+    GLRENDER_API Mesh(const std::vector<float>& verts, const std::vector<float>& uvs, const std::vector<float>& normals);
+    GLRENDER_API explicit Mesh(const std::initializer_list<float>& verts);
+    GLRENDER_API Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs);
+    GLRENDER_API Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs, const std::initializer_list<float>& normals);
     
-    template <size_t N> GLRENDER_API explicit Mesh(std::array<float, N> const &verts) : Mesh(verts.data(), verts.size())
+    template <size_t N> GLRENDER_API explicit Mesh(const std::array<float, N>& verts) :
+    Mesh(verts.data(), verts.size())
     {}
-    template <size_t N> GLRENDER_API Mesh(std::array<float, N> const &verts, std::array<float, N> const &uvs) : Mesh(verts.data(), verts.size(), uvs.data(), uvs.size())
+    template <size_t N> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, N>& uvs) :
+    Mesh(verts.data(), verts.size(), uvs.data(), uvs.size())
     {}
-    template <size_t N> GLRENDER_API Mesh(std::array<float, N> const &verts, std::array<float, N> const &uvs, std::array<float, N> const &normals) : Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
+    template <size_t N> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, N>& uvs, const std::array<float, N>& normals) :
+    Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
     {}
     
     //Raw data read out of files
-    GLRENDER_API explicit Mesh(std::vector<uint8_t> const &verts);
-    GLRENDER_API Mesh(std::vector<uint8_t> const &verts, std::vector<uint8_t> const &uvs);
-    GLRENDER_API Mesh(std::vector<uint8_t> const &verts, std::vector<uint8_t> const &uvs, std::vector<uint8_t> const &normals);
-    GLRENDER_API Mesh(std::initializer_list<uint8_t> const &verts);
-    GLRENDER_API Mesh(std::initializer_list<uint8_t> const &verts, std::initializer_list<uint8_t> const &uvs);
-    GLRENDER_API Mesh(std::initializer_list<uint8_t> const &verts, std::initializer_list<uint8_t> const &uvs, std::initializer_list<uint8_t> const &normals);
+    GLRENDER_API explicit Mesh(const std::vector<uint8_t>& verts);
+    GLRENDER_API Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs);
+    GLRENDER_API Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs, const std::vector<uint8_t>& normals);
+    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts);
+    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs);
+    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs, const std::initializer_list<uint8_t>& normals);
     
-    template <size_t N> GLRENDER_API explicit Mesh(std::array<uint8_t, N> const &verts) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4)
+    template <size_t N> GLRENDER_API explicit Mesh(const std::array<uint8_t, N>& verts) :
+    Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4)
     {}
-    template <size_t N> GLRENDER_API Mesh(std::array<uint8_t, N> const &verts, std::array<uint8_t, N> const &uvs) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4, reinterpret_cast<float const *>(uvs.data()), uvs.size() / 4)
+    template <size_t N> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, N>& uvs) :
+    Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4)
     {}
-    template <size_t N> GLRENDER_API Mesh(std::array<uint8_t, N> const &verts, std::array<uint8_t, N> const &uvs, std::array<uint8_t, N> const &normals) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4, reinterpret_cast<float const *>(uvs.data()), uvs.size() / 4, reinterpret_cast<float const *>(normals.data()), normals.size() / 4)
+    template <size_t N> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, N>& uvs, const std::array<uint8_t, N>& normals) :
+    Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4, reinterpret_cast<const float*>(normals.data()), normals.size() / 4)
     {}
     
-    Mesh(Mesh const &copyFrom) = delete;
-    Mesh& operator=(Mesh const &copyFrom) = delete;
-    GLRENDER_API Mesh(Mesh &&moveFrom) noexcept;
-    GLRENDER_API Mesh& operator=(Mesh &&moveFrom) noexcept;
+    Mesh(const Mesh& copyFrom) = delete;
+    Mesh& operator=(const Mesh& copyFrom) = delete;
+    GLRENDER_API Mesh(Mesh&& moveFrom) noexcept;
+    GLRENDER_API Mesh& operator=(Mesh&& moveFrom) noexcept;
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();

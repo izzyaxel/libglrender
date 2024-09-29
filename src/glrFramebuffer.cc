@@ -5,7 +5,7 @@
 
 namespace glr
 {
-  Framebuffer::Framebuffer(uint32_t width, uint32_t height, const std::initializer_list<Attachment> &options, const std::string &name)
+  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, const std::initializer_list<Attachment>& options, const std::string& name)
   {
     this->width = width;
     this->height = height;
@@ -39,7 +39,7 @@ namespace glr
     this->clearFBO();
   }
   
-  Framebuffer::Framebuffer(Framebuffer &&other) noexcept
+  Framebuffer::Framebuffer(Framebuffer&& other) noexcept
   {
     this->handle = other.handle;
     other.handle = std::numeric_limits<uint32_t>::max();
@@ -78,7 +78,7 @@ namespace glr
     other.init = false;
   }
   
-  Framebuffer &Framebuffer::operator =(Framebuffer &&other) noexcept
+  Framebuffer &Framebuffer::operator =(Framebuffer&& other) noexcept
   {
     this->handle = other.handle;
     other.handle = std::numeric_limits<uint32_t>::max();
@@ -145,7 +145,7 @@ namespace glr
     glBindFramebuffer(GL_FRAMEBUFFER, this->handle);
   }
   
-  void Framebuffer::bind(Attachment type, uint32_t target) const
+  void Framebuffer::bind(const Attachment type, const uint32_t target) const
   {
     switch(type)
     {
@@ -163,7 +163,7 @@ namespace glr
     }
   }
   
-  void Framebuffer::regenerate(uint32_t width, uint32_t height)
+  void Framebuffer::regenerate(const uint32_t width, const uint32_t height)
   {
     this->width = width;
     this->height = height;
@@ -175,22 +175,22 @@ namespace glr
   {
     glCreateFramebuffers(1, &this->handle);
     this->use();
-    glViewport(0, 0, (GLsizei) this->width, (GLsizei) this->height);
-    glScissor(0, 0, (GLsizei) this->width, (GLsizei) this->height);
+    glViewport(0, 0, (GLsizei)this->width, (GLsizei)this->height);
+    glScissor(0, 0, (GLsizei)this->width, (GLsizei)this->height);
     if(this->hasColor) glCreateTextures(GL_TEXTURE_2D, 1, &this->colorHandle);
     if(this->hasDepth) glCreateTextures(GL_TEXTURE_2D, 1, &this->depthHandle);
-    glTextureStorage2D(this->colorHandle, 1, this->hasAlpha ? GL_RGBA32F : GL_RGB32F, (GLsizei) this->width, (GLsizei) this->height);
+    glTextureStorage2D(this->colorHandle, 1, this->hasAlpha ? GL_RGBA32F : GL_RGB32F, (GLsizei)this->width, (GLsizei)this->height);
     glNamedFramebufferTexture(this->handle, GL_COLOR_ATTACHMENT0, this->colorHandle, 0);
     if(this->hasDepth)
     {
-      glTextureStorage2D(this->depthHandle, 1, GL_DEPTH_COMPONENT32F, (GLsizei) this->width, (GLsizei) this->height);
+      glTextureStorage2D(this->depthHandle, 1, GL_DEPTH_COMPONENT32F, (GLsizei)this->width, (GLsizei)this->height);
       glNamedFramebufferTexture(this->handle, GL_DEPTH_ATTACHMENT, this->depthHandle, 0);
     }
     std::vector<GLenum> drawBuffers;
     drawBuffers.emplace_back(GL_COLOR_ATTACHMENT0);
     if(this->hasDepth) drawBuffers.emplace_back(GL_COLOR_ATTACHMENT1);
-    glNamedFramebufferDrawBuffers(this->handle, static_cast<int32_t>(drawBuffers.size()), drawBuffers.data());
-    GLenum error = glCheckNamedFramebufferStatus(this->handle, GL_FRAMEBUFFER);
+    glNamedFramebufferDrawBuffers(this->handle, (int32_t)(drawBuffers.size()), drawBuffers.data());
+    const GLenum error = glCheckNamedFramebufferStatus(this->handle, GL_FRAMEBUFFER);
     if(error != GL_FRAMEBUFFER_COMPLETE)
     {
       std::string er = "Framebuffer Creation Error: ";
@@ -216,14 +216,14 @@ namespace glr
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
   
-  void Framebuffer::clearFBO()
+  void Framebuffer::clearFBO() const
   {
     glDeleteFramebuffers(1, &this->handle);
     glDeleteTextures(1, &this->colorHandle);
     glDeleteTextures(1, &this->depthHandle);
   }
   
-  FramebufferPool::FramebufferPool(size_t alloc, uint32_t width, uint32_t height)
+  FramebufferPool::FramebufferPool(const size_t alloc, const uint32_t width, const uint32_t height)
   {
     this->pool.resize(alloc);
     for(size_t i = 0; i < alloc; i++)
@@ -233,7 +233,7 @@ namespace glr
     this->init = true;
   }
   
-  FramebufferPool::FramebufferPool(FramebufferPool &&other) noexcept
+  FramebufferPool::FramebufferPool(FramebufferPool&& other) noexcept
   {
     this->pool = std::move(other.pool);
     other.pool.clear();
@@ -242,7 +242,7 @@ namespace glr
     other.init = false;
   }
   
-  FramebufferPool& FramebufferPool::operator=(FramebufferPool &&other) noexcept
+  FramebufferPool& FramebufferPool::operator=(FramebufferPool&& other) noexcept
   {
     this->pool = std::move(other.pool);
     other.pool.clear();
@@ -264,7 +264,7 @@ namespace glr
     this->init = false;
   }
   
-  Framebuffer& FramebufferPool::getNextAvailableFBO(uint32_t width, uint32_t height)
+  Framebuffer& FramebufferPool::getNextAvailableFBO(const uint32_t width, const uint32_t height)
   {
     Framebuffer out;
     for(auto &fbo: this->pool)
@@ -273,20 +273,20 @@ namespace glr
       {
         if(fbo.width != width || fbo.height != height)
         {
-          fbo = Framebuffer(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+          fbo = Framebuffer(width, height, std::initializer_list{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
         }
         fbo.use();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return fbo;
       }
     }
-    this->pool.emplace_back(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+    this->pool.emplace_back(width, height, std::initializer_list{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
     this->pool.back().use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return this->pool.back();
   }
   
-  void FramebufferPool::onResize(uint32_t width, uint32_t height)
+  void FramebufferPool::onResize(const uint32_t width, const uint32_t height)
   {
     for(auto &fbo: this->pool)
     {

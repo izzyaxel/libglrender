@@ -2,24 +2,24 @@
 
 namespace glr
 {
-  Image::Image(size_t width, size_t height)
+  Image::Image(const size_t width, const size_t height)
   {
     this->imageData.resize(width * height);
   }
   
-  Image::Image(size_t width, size_t height, Color const &color)
+  Image::Image(const size_t width, const size_t height, const Color& color)
   {
     this->imageData.resize(width * height);
     FillOperation fillOperation = FillOperation(color);
     fillOperation.run(*this);
   }
   
-  Image::Image(const uint32_t *data)
+  Image::Image(const uint32_t* data)
   {
     //TODO
   }
   
-  Image::Image(Image &&moveFrom) noexcept
+  Image::Image(Image&& moveFrom) noexcept
   {
     this->imageData = moveFrom.imageData;
     moveFrom.imageData = {};
@@ -34,7 +34,7 @@ namespace glr
     moveFrom.bitDepth = 0;
   }
   
-  Image& Image::operator=(Image &&moveFrom) noexcept
+  Image& Image::operator=(Image&& moveFrom) noexcept
   {
     this->imageData = moveFrom.imageData;
     moveFrom.imageData = {};
@@ -51,22 +51,22 @@ namespace glr
     return *this;
   }
   
-  Color *Image::getImageData()
+  Color* Image::getImageData()
   {
     return this->imageData.data();
   }
   
-  Color *Image::getRow(size_t row)
+  Color* Image::getRow(const size_t row)
   {
     return this->imageData.data() + row * this->width;
   }
   
-  size_t Image::index(size_t x, size_t y) const
+  size_t Image::index(const size_t x, const size_t y) const
   {
     return x + (y * this->width);
   }
   
-  void Image::expand(size_t xAmount, size_t yAmount, Color const &newPixelsColor)
+  void Image::expand(const size_t xAmount, const size_t yAmount, const Color& newPixelsColor)
   {
     std::vector<Color> newData((this->width + xAmount) * (this->height + yAmount), newPixelsColor);
     for(size_t row = 0; row < this->height; row++)
@@ -79,23 +79,25 @@ namespace glr
     this->imageData = std::move(newData);
   }
   
-  void Image::copyFrom(Image const &src, size_t xOffset, size_t yOffset)
+  void Image::copyFrom(const Image& src, const size_t xOffset, const size_t yOffset)
   {
     std::vector<Color> newData;
     //TODO
     this->imageData = newData;
   }
   
-  Color &Image::getPixel(size_t x, size_t y)
+  Color &Image::getPixel(const size_t x, const size_t y)
   {
     return this->imageData[this->index(x, y)];
   }
   
   ImageOperation::ImageOperation()
   {}
-  ReplaceColorOperation::ReplaceColorOperation(Color const &src, Color const &dst) : src(src), dst(dst)
+  ReplaceColorOperation::ReplaceColorOperation(const Color& src, const Color& dst) :
+  src(src), dst(dst)
   {}
-  FillOperation::FillOperation(Color const &fillColor) : fillColor(fillColor)
+  FillOperation::FillOperation(const Color& fillColor) :
+  fillColor(fillColor)
   {}
   
   ImageOperation::~ImageOperation() noexcept
@@ -105,12 +107,12 @@ namespace glr
   ReplaceColorOperation::~ReplaceColorOperation() noexcept
   {}
   
-  void FillOperation::run(Image &image)
+  void FillOperation::run(Image& image)
   {
     for(auto &pix: image.imageData) pix = this->fillColor;
   }
   
-  void ReplaceColorOperation::run(Image &image)
+  void ReplaceColorOperation::run(Image& image)
   {
     for(auto &pix: image.imageData) if(pix == this->src) pix = this->dst;
   }

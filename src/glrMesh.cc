@@ -13,7 +13,7 @@ namespace glr
     glDeleteVertexArrays(1, &this->vao);
   }
   
-  Mesh::Mesh(float const *verts, size_t vertsSize)
+  Mesh::Mesh(const float* verts, const size_t vertsSize)
   {
     if(vertsSize != 0)
     {
@@ -31,7 +31,7 @@ namespace glr
     this->init = true;
   }
   
-  Mesh::Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize)
+  Mesh::Mesh(const float* verts, const size_t vertsSize, const float* uvs, const size_t uvsSize)
   {
     if(vertsSize != 0)
     {
@@ -43,13 +43,13 @@ namespace glr
     glCreateBuffers(1, &this->vboV);
     glCreateBuffers(1, &this->vboU);
     
-    glNamedBufferData(this->vboV, (GLsizeiptr) (vertsSize * sizeof(float)), verts, GL_STATIC_DRAW);
+    glNamedBufferData(this->vboV, (GLsizeiptr)(vertsSize * sizeof(float)), verts, GL_STATIC_DRAW);
     glVertexArrayAttribBinding(this->vao, 0, 0);
     glVertexArrayVertexBuffer(this->vao, 0, this->vboV, 0, this->vertexStride);
     glEnableVertexArrayAttrib(this->vao, 0);
     glVertexArrayAttribFormat(this->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
     
-    glNamedBufferData(this->vboU, (GLsizeiptr) (uvsSize * sizeof(float)), uvs, GL_STATIC_DRAW);
+    glNamedBufferData(this->vboU, (GLsizeiptr)(uvsSize * sizeof(float)), uvs, GL_STATIC_DRAW);
     glVertexArrayAttribBinding(this->vao, 1, 1);
     glVertexArrayVertexBuffer(this->vao, 1, this->vboU, 0, this->uvStride);
     glEnableVertexArrayAttrib(this->vao, 1);
@@ -57,7 +57,7 @@ namespace glr
     this->init = true;
   }
   
-  Mesh::Mesh(float const *verts, size_t vertsSize, float const *uvs, size_t uvsSize, float const *normals, size_t normalsSize)
+  Mesh::Mesh(const float* verts, const size_t vertsSize, const float* uvs, const size_t uvsSize, const float* normals, const size_t normalsSize)
   {
     if(vertsSize != 0)
     {
@@ -71,19 +71,19 @@ namespace glr
     glCreateBuffers(1, &this->vboU);
     glCreateBuffers(1, &this->vboN);
     
-    glNamedBufferData(this->vboV, (GLsizeiptr) (vertsSize * sizeof(float)), verts, GL_STATIC_DRAW);
+    glNamedBufferData(this->vboV, (GLsizeiptr)(vertsSize * sizeof(float)), verts, GL_STATIC_DRAW);
     glVertexArrayAttribBinding(this->vao, 0, 0);
     glVertexArrayVertexBuffer(this->vao, 0, this->vboV, 0, this->vertexStride);
     glEnableVertexArrayAttrib(this->vao, 0);
     glVertexArrayAttribFormat(this->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
     
-    glNamedBufferData(this->vboU, (GLsizeiptr) (uvsSize * sizeof(float)), uvs, GL_STATIC_DRAW);
+    glNamedBufferData(this->vboU, (GLsizeiptr)(uvsSize * sizeof(float)), uvs, GL_STATIC_DRAW);
     glVertexArrayAttribBinding(this->vao, 1, 1);
     glVertexArrayVertexBuffer(this->vao, 1, this->vboU, 0, this->uvStride);
     glEnableVertexArrayAttrib(this->vao, 1);
     glVertexArrayAttribFormat(this->vao, 1, 2, GL_FLOAT, GL_FALSE, 0);
     
-    glNamedBufferData(this->vboN, (GLsizeiptr) (normalsSize * sizeof(float)), normals, GL_STATIC_DRAW);
+    glNamedBufferData(this->vboN, (GLsizeiptr)(normalsSize * sizeof(float)), normals, GL_STATIC_DRAW);
     glVertexArrayAttribBinding(this->vao, 2, 2);
     glVertexArrayVertexBuffer(this->vao, 2, this->vboN, 0, this->normalStride);
     glEnableVertexArrayAttrib(this->vao, 2);
@@ -91,33 +91,45 @@ namespace glr
     this->init = true;
   }
   
-  Mesh::Mesh(std::vector<float> const &verts) : Mesh(verts.data(), verts.size())
+  Mesh::Mesh(const std::vector<float>& verts) :
+  Mesh(verts.data(), verts.size())
   {}
-  Mesh::Mesh(std::vector<float> const &verts, std::vector<float> const &uvs) : Mesh(verts.data(), verts.size(), uvs.data(), uvs.size())
+  Mesh::Mesh(const std::vector<float>& verts, const std::vector<float>& uvs) :
+  Mesh(verts.data(), verts.size(), uvs.data(), uvs.size())
   {}
-  Mesh::Mesh(std::vector<float> const &verts, std::vector<float> const &uvs, std::vector<float> const &normals) : Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
+  Mesh::Mesh(const std::vector<float>& verts, const std::vector<float>& uvs, const std::vector<float>& normals) :
+  Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
   {}
-  Mesh::Mesh(std::initializer_list<float> const &verts) : Mesh(verts.begin(), verts.size())
+  Mesh::Mesh(const std::initializer_list<float>& verts) :
+  Mesh(verts.begin(), verts.size())
   {}
-  Mesh::Mesh(std::initializer_list<float> const &verts, std::initializer_list<float> const &uvs) : Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size())
+  Mesh::Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs) :
+  Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size())
   {}
-  Mesh::Mesh(std::initializer_list<float> const &verts, std::initializer_list<float> const &uvs, std::initializer_list<float> const &normals) : Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size(), normals.begin(), normals.size())
-  {}
-  
-  Mesh::Mesh(std::vector<uint8_t> const &verts) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4)
-  {}
-  Mesh::Mesh(std::vector<uint8_t> const &verts, std::vector<uint8_t> const &uvs) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4, reinterpret_cast<float const *>(uvs.data()), uvs.size() / 4)
-  {}
-  Mesh::Mesh(std::vector<uint8_t> const &verts, std::vector<uint8_t> const &uvs, std::vector<uint8_t> const &normals) : Mesh(reinterpret_cast<float const *>(verts.data()), verts.size() / 4, reinterpret_cast<float const *>(uvs.data()), uvs.size() / 4, reinterpret_cast<float const *>(normals.data()), normals.size() / 4)
-  {}
-  Mesh::Mesh(std::initializer_list<uint8_t> const &verts) : Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4)
-  {}
-  Mesh::Mesh(std::initializer_list<uint8_t> const &verts, std::initializer_list<uint8_t> const &uvs) : Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4, reinterpret_cast<float const *>(uvs.begin()), uvs.size() / 4)
-  {}
-  Mesh::Mesh(std::initializer_list<uint8_t> const &verts, std::initializer_list<uint8_t> const &uvs, std::initializer_list<uint8_t> const &normals) : Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4, reinterpret_cast<float const *>(uvs.begin()), uvs.size() / 4, reinterpret_cast<float const *>(normals.begin()), normals.size() / 4)
+  Mesh::Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs, const std::initializer_list<float>& normals) :
+  Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size(), normals.begin(), normals.size())
   {}
   
-  Mesh::Mesh(Mesh &&moveFrom) noexcept
+  Mesh::Mesh(const std::vector<uint8_t>& verts) :
+  Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4)
+  {}
+  Mesh::Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs) :
+  Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4)
+  {}
+  Mesh::Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs, const std::vector<uint8_t>& normals) :
+  Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4, reinterpret_cast<const float*>(normals.data()), normals.size() / 4)
+  {}
+  Mesh::Mesh(const std::initializer_list<uint8_t>& verts) :
+  Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4)
+  {}
+  Mesh::Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs) :
+  Mesh(reinterpret_cast<const float*>(verts.begin()), verts.size() / 4, reinterpret_cast<const float*>(uvs.begin()), uvs.size() / 4)
+  {}
+  Mesh::Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs, const std::initializer_list<uint8_t>& normals) :
+  Mesh(reinterpret_cast<const float*>(verts.begin()), verts.size() / 4, reinterpret_cast<const float*>(uvs.begin()), uvs.size() / 4, reinterpret_cast<const float*>(normals.begin()), normals.size() / 4)
+  {}
+  
+  Mesh::Mesh(Mesh&& moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
     moveFrom.vboV = std::numeric_limits<uint32_t>::max();
@@ -150,7 +162,7 @@ namespace glr
     moveFrom.init = false;
   }
   
-  Mesh& Mesh::operator=(Mesh &&moveFrom) noexcept
+  Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
     moveFrom.vboV = std::numeric_limits<uint32_t>::max();

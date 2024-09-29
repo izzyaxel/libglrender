@@ -7,9 +7,9 @@ namespace glr
 {
   struct BSPLayout
   {
-    BSPLayout(uint32_t initWidth, uint32_t initHeight)
+    BSPLayout(const uint32_t initWidth, const uint32_t initHeight)
     {
-      this->p_root = new BSPNode(false, initWidth, initHeight);
+      this->root = new BSPNode(false, initWidth, initHeight);
     }
     
     BSPLayout() : BSPLayout(0, 0)
@@ -17,7 +17,7 @@ namespace glr
     
     ~BSPLayout()
     {
-      delete this->p_root;
+      delete this->root;
     }
     
     vec2<uint32_t> pack(const uint32_t width, const uint32_t height)
@@ -29,24 +29,24 @@ namespace glr
       }
       vec2<uint32_t> out = {};
       bool ok;
-      this->p_root->packIter(ok, width, height, out);
+      this->root->packIter(ok, width, height, out);
       if(!ok)
       {
-        if(this->p_root->p_width + width > this->p_root->p_height + height)
+        if(this->root->width + width > this->root->height + height)
         {
-          BSPNode *newRoot = new BSPNode(false, std::max(this->p_root->p_width, width), this->p_root->p_height + height);
-          newRoot->p_childA = this->p_root;
-          newRoot->p_childB = new BSPNode(false, std::max(this->p_root->p_width, width), height, 0, this->p_root->p_height);
+          BSPNode* newRoot = new BSPNode(false, std::max(this->root->width, width), this->root->height + height);
+          newRoot->childA = this->root;
+          newRoot->childB = new BSPNode(false, std::max(this->root->width, width), height, 0, this->root->height);
           newRoot->packIter(ok, width, height, out);
-          this->p_root = newRoot;
+          this->root = newRoot;
         }
         else
         {
-          BSPNode *newRoot = new BSPNode(false, this->p_root->p_width + width, std::max(this->p_root->p_height, height));
-          newRoot->p_childA = this->p_root;
-          newRoot->p_childB = new BSPNode(false, width, std::max(this->p_root->p_height, height), this->p_root->p_width, 0);
+          BSPNode* newRoot = new BSPNode(false, this->root->width + width, std::max(this->root->height, height));
+          newRoot->childA = this->root;
+          newRoot->childB = new BSPNode(false, width, std::max(this->root->height, height), this->root->width, 0);
           newRoot->packIter(ok, width, height, out);
-          this->p_root = newRoot;
+          this->root = newRoot;
         }
       }
       return out;
@@ -54,97 +54,97 @@ namespace glr
     
     [[nodiscard]] uint32_t width() const
     {
-      return this->p_root->p_width;
+      return this->root->width;
     }
     
     [[nodiscard]] uint32_t height() const
     {
-      return this->p_root->p_height;
+      return this->root->height;
     }
     
     private:
     struct BSPNode
     {
-      BSPNode(bool isEndpoint, uint32_t width, uint32_t height, uint32_t x, uint32_t y) :
-        p_width(width), p_height(height), p_coords(x, y), p_isEndpoint(isEndpoint)
+      BSPNode(const bool isEndpoint, const uint32_t width, const uint32_t height, const uint32_t x, const uint32_t y) :
+        width(width), height(height), coords(x, y), isEndpoint(isEndpoint)
       {}
       
-      BSPNode(bool isEndpoint, uint32_t width, uint32_t height) :
+      BSPNode(const bool isEndpoint, const uint32_t width, const uint32_t height) :
         BSPNode(isEndpoint, width, height, 0, 0)
       {}
       
       ~BSPNode()
       {
-        if(this->p_childA && this->p_childB)
+        if(this->childA && this->childB)
         {
-          delete this->p_childA;
-          delete this->p_childB;
+          delete this->childA;
+          delete this->childB;
         }
       }
       
-      uint32_t const p_width = 0;
-      uint32_t const p_height = 0;
-      vec2<uint32_t> p_coords = {};
-      bool p_isEndpoint = false;
+      const uint32_t width = 0;
+      const uint32_t height = 0;
+      vec2<uint32_t> coords = {};
+      bool isEndpoint = false;
       
-      BSPNode *p_childA = nullptr;
-      BSPNode *p_childB = nullptr;
+      BSPNode* childA = nullptr;
+      BSPNode* childB = nullptr;
       
-      GLRENDER_API void packIter(bool &ok, uint32_t const &width, uint32_t const &height, vec2<uint32_t> &pos)
+      GLRENDER_API void packIter(bool& ok, const uint32_t width, const uint32_t height, vec2<uint32_t>& pos)
       {
-        if(this->p_isEndpoint || (width > this->p_width) || (height > this->p_height))
+        if(this->isEndpoint || (width > this->width) || (height > this->height))
         {
           ok = false;
           return;
         }
         
-        if(this->p_childA && this->p_childB)
+        if(this->childA && this->childB)
         {
-          this->p_childA->packIter(ok, width, height, pos);
+          this->childA->packIter(ok, width, height, pos);
           if(ok) return;
-          this->p_childB->packIter(ok, width, height, pos);
+          this->childB->packIter(ok, width, height, pos);
           return;
         }
         
-        if(width == this->p_width && height == this->p_height)
+        if(width == this->width && height == this->height)
         {
-          this->p_isEndpoint = true;
+          this->isEndpoint = true;
           ok = true;
-          pos = this->p_coords;
+          pos = this->coords;
           return;
         }
         
-        if(width != this->p_width && height != this->p_height)
+        if(width != this->width && height != this->height)
         {
-          this->p_childA = new BSPNode(false, width, this->p_height, this->p_coords.x(), this->p_coords.y());
-          this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
-          this->p_childA->packIter(ok, width, height, pos);
+          this->childA = new BSPNode(false, width, this->height, this->coords.x(), this->coords.y());
+          this->childB = new BSPNode(false, this->width - width, this->height, this->coords.x() + width, this->coords.y());
+          this->childA->packIter(ok, width, height, pos);
           return;
         }
         
-        if(width == this->p_width)
+        if(width == this->width)
         {
-          this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
-          this->p_childB = new BSPNode(false, width, this->p_height - height, this->p_coords.x(), this->p_coords.y() + height);
+          this->childA = new BSPNode(true, width, height, this->coords.x(), this->coords.y());
+          this->childB = new BSPNode(false, width, this->height - height, this->coords.x(), this->coords.y() + height);
           ok = true;
-          pos = this->p_childA->p_coords;
+          pos = this->childA->coords;
           return;
         }
         
-        if(height == this->p_height)
+        if(height == this->height)
         {
-          this->p_childA = new BSPNode(true, width, height, this->p_coords.x(), this->p_coords.y());
-          this->p_childB = new BSPNode(false, this->p_width - width, this->p_height, this->p_coords.x() + width, this->p_coords.y());
+          this->childA = new BSPNode(true, width, height, this->coords.x(), this->coords.y());
+          this->childB = new BSPNode(false, this->width - width, this->height, this->coords.x() + width, this->coords.y());
           ok = true;
-          pos = this->p_childA->p_coords;
+          pos = this->childA->coords;
         }
       }
     };
     
-    BSPNode *p_root = nullptr;
+    BSPNode* root = nullptr;
   };
   
-  Atlas::Atlas(Atlas &&moveFrom) noexcept
+  Atlas::Atlas(Atlas&& moveFrom) noexcept
   {
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
@@ -159,7 +159,7 @@ namespace glr
     moveFrom.init = false;
   }
   
-  Atlas &Atlas::operator =(Atlas &&moveFrom) noexcept
+  Atlas &Atlas::operator =(Atlas&& moveFrom) noexcept
   {
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
@@ -176,7 +176,7 @@ namespace glr
     return *this;
   }
   
-  void Atlas::addTile(std::string const &name, std::vector<uint8_t> const &tileData, TexColorFormat format, uint32_t width, uint32_t height)
+  void Atlas::addTile(const std::string& name, const std::vector<uint8_t>& tileData, const TexColorFormat format, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -197,7 +197,7 @@ namespace glr
     this->init = true;
   }
   
-  void Atlas::addTile(std::string const &name, TexColorFormat fmt, std::vector<uint8_t> &&tileData, uint32_t width, uint32_t height)
+  void Atlas::addTile(const std::string& name, const TexColorFormat fmt, std::vector<uint8_t>&& tileData, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -218,7 +218,7 @@ namespace glr
     this->init = true;
   }
   
-  QuadUVs Atlas::getUVsForTile(std::string const &name)
+  QuadUVs Atlas::getUVsForTile(const std::string& name)
   {
     if(!this->finalized || !this->contains(name))
     {
@@ -226,7 +226,7 @@ namespace glr
     }
     vec2<uint32_t> location{};
     uint32_t width = 0, height = 0;
-    for(auto &tile: this->atlas)
+    for(auto& tile: this->atlas)
     {
       if(tile.name == name)
       {
@@ -247,10 +247,10 @@ namespace glr
     return QuadUVs{ul, ll, ur, lr};
   }
   
-  vec2<float> Atlas::getTileDimensions(std::string const &name)
+  vec2<float> Atlas::getTileDimensions(const std::string& name)
   {
     if(!this->contains(name)) return {0.0f, 0.0f};
-    for(auto const &tile: this->atlas)
+    for(const auto& tile: this->atlas)
     {
       if(tile.name == name)
       {
@@ -272,9 +272,9 @@ namespace glr
     }
   }
   
-  bool Atlas::contains(std::string const &tileName)
+  bool Atlas::contains(const std::string& tileName)
   {
-    for(auto const &img: this->atlas)
+    for(const auto& img: this->atlas)
     {
       if(img.name == tileName)
       {
@@ -284,7 +284,7 @@ namespace glr
     return false;
   }
   
-  void Atlas::finalize(std::string const &name, Texture& atlasTexture, const TexColorFormat fmt)
+  void Atlas::finalize(const std::string& name, Texture& atlasTexture, const TexColorFormat fmt)
   {
     if(this->finalized)
     {
@@ -298,7 +298,7 @@ namespace glr
     }
     BSPLayout layout;
     std::sort(this->atlas.begin(), this->atlas.end(), AtlasImg::comparator);
-    for(auto &tile: this->atlas)
+    for(auto& tile: this->atlas)
     {
       if(tile.width == 0 || tile.height == 0)
       {
@@ -320,7 +320,7 @@ namespace glr
     atlasTexture.setFilterMode(FilterMode::NEAREST, FilterMode::NEAREST);
     
     atlasTexture = Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST);
-    for(auto &tile: this->atlas)
+    for(auto& tile: this->atlas)
     {
       atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
     }

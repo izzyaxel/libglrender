@@ -13,8 +13,8 @@ namespace glr
     using ColorFmt = uint16_t;
     
     GLRENDER_API Color() = default;
-    GLRENDER_API Color operator +(Color const &other) const;
-    GLRENDER_API bool operator ==(Color const &other) const;
+    GLRENDER_API Color operator +(const Color& other) const;
+    GLRENDER_API bool operator ==(const Color& other) const;
     
     GLRENDER_API void fromRGBf(float r, float g, float b);
     GLRENDER_API void fromRGBAf(float r, float g, float b, float a);
@@ -23,7 +23,7 @@ namespace glr
     GLRENDER_API void fromRGBui16(uint16_t r, uint16_t g, uint16_t b);
     GLRENDER_API void fromRGBAui16(uint16_t r, uint16_t g, uint16_t b, uint16_t a);
     GLRENDER_API void fromHex(uint32_t hex);
-    GLRENDER_API void fromWeb(std::string const &color);
+    GLRENDER_API void fromWeb(const std::string& color);
     
     /// 0-1 float RGB representation
     [[nodiscard]] GLRENDER_API vec3<float> asRGBf() const;

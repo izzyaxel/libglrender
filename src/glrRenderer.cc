@@ -187,7 +187,7 @@ void main()
   void Renderer::onContextResize(const uint32_t width, const uint32_t height)
   {
     this->useBackBuffer();
-    glViewport(0, 0, (int)width, (int)height);
+    glViewport(0, 0, (int32_t)width, (int32_t)height);
     this->fboPool.onResize(width, height);
   }
   
@@ -206,16 +206,27 @@ void main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
   
-  void Renderer::renderWithoutPost(const RenderList& renderList, const Texture* curTexture)
+  void Renderer::renderWithoutPost(RenderList& renderList, const Texture* curTexture)
   {
     this->pingPong();
     
-    for(const auto& entry : renderList.list)
+    for(auto& entry : renderList.list)
     {
-      if(entry.texture->handle != curTexture->handle)
+      if(!curTexture)
       {
-        curTexture = entry.texture;
-        entry.texture->use(0);
+        if(entry.texture)
+        {
+          curTexture = entry.texture;
+          curTexture->use(0);
+        }
+      }
+      else
+      {
+        if(entry.texture && entry.texture->handle != curTexture->handle)
+        {
+          curTexture = entry.texture;
+          curTexture->use(0);
+        }
       }
       
       this->drawRenderable(entry);
@@ -232,17 +243,28 @@ void main()
     
     for(size_t i = 0; i < renderList.size(); i++)
     {
-      const auto& entry = renderList[i];
-      
-      if(entry.texture->handle != curTexture->handle)
+      auto &entry = renderList[i];
+
+      if(!curTexture)
       {
-        bind = true;
-        curTexture = entry.texture;
+        if(entry.texture)
+        {
+          bind = true;
+          curTexture = entry.texture;
+        }
+      }
+      else
+      {
+        if(entry.texture && entry.texture->handle != curTexture->handle)
+        {
+          bind = true;
+          curTexture = entry.texture;
+        }
       }
       
       if(i == 0)
       {
-        if(bind)
+        if(bind && curTexture)
         {
           curTexture->use(0);
         }
@@ -256,10 +278,13 @@ void main()
           this->postProcessLayer(prevLayer);
           this->drawToScratch();
           this->pingPong();
-          curTexture->use(0);
+          if(curTexture)
+          {
+            curTexture->use(0);
+          }
         }
         
-        if(bind)
+        if(bind && curTexture)
         {
           curTexture->use(0);
         }
@@ -275,10 +300,13 @@ void main()
           this->postProcessLayer(prevLayer);
           this->drawToScratch();
           this->pingPong();
-          curTexture->use(0);
+          if(curTexture)
+          {
+            curTexture->use(0);
+          }
         }
         
-        if(bind)
+        if(bind && curTexture)
         {
           curTexture->use(0);
         }
@@ -295,17 +323,21 @@ void main()
   
   void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
   {
-    if(renderList.empty())
+    RenderList rl = std::move(renderList);
+    if(rl.empty())
     {
       return;
     }
     
     this->view = viewMat;
     this->projection = projectionMat;
-    const Texture* curTexture = renderList[0].texture;
-    curTexture->use(0);
+    const Texture* curTexture = rl.front().texture;
+    if(curTexture)
+    {
+      curTexture->use(0);
+    }
     
-    this->layerPostStack.empty() ? this->renderWithoutPost(renderList, curTexture) : this->renderWithPost(renderList, curTexture);
+    this->layerPostStack.empty() ? this->renderWithoutPost(rl, curTexture) : this->renderWithPost(rl, curTexture);
     
     if(this->globalPostStack && !this->globalPostStack->isEmpty())
     {
@@ -317,7 +349,7 @@ void main()
   
   void Renderer::setClearColor(const Color color) const
   {
-    auto colorF = color.asRGBAf();
+    vec4<float> colorF = color.asRGBAf();
     glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
   }
   
@@ -435,7 +467,7 @@ void main()
     draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
-  void Renderer::drawRenderable(const Renderable& entry)
+  void Renderer::drawRenderable(Renderable& entry)
   {
     if(entry.characterInfo.character != '\0') //Text rendering
     {
@@ -468,7 +500,7 @@ void main()
     {
       quat<float> rotation;
       rotation.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
-      const vec3<float> posF = vec3<float>{vec2<float>{entry.pos}, 0};
+      const vec3<float> posF = vec3<float>{vec2{entry.pos}, 0};
       this->model = modelMatrix(posF, rotation, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       entry.shader->use();
@@ -479,13 +511,13 @@ void main()
     }
   }
   
-  void Renderer::bindImage(const uint32_t target, const uint32_t& handle, const IOMode mode, const GLColorFormat format) const
+  void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
   {
     glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
   }
   
   void Renderer::startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize) const
   {
-    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t) (std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
+    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
   }
 }

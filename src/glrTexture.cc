@@ -4,7 +4,7 @@
 
 namespace glr
 {
-  Texture::Texture(std::string const &name, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
+  Texture::Texture(const std::string& name, const uint32_t width, const uint32_t height, const TexColorFormat colorFormat, const FilterMode mode, const bool sRGB)
   {
     this->name = name;
     this->fmt = colorFormat;
@@ -34,7 +34,7 @@ namespace glr
     this->init = true;
   }
   
-  Texture::Texture(std::string const &name, uint8_t *data, uint32_t width, uint32_t height, TexColorFormat colorFormat, FilterMode mode, bool sRGB)
+  Texture::Texture(const std::string& name, const uint8_t* data, const uint32_t width, const uint32_t height, const TexColorFormat colorFormat, const FilterMode mode, const bool sRGB)
   {
     this->name = name;
     this->fmt = colorFormat;
@@ -66,7 +66,7 @@ namespace glr
     this->init = true;
   }
   
-  Texture::Texture(std::string const &name, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, bool sRGB)
+  Texture::Texture(const std::string& name, const uint8_t red, const uint8_t green, const uint8_t blue, const uint8_t alpha, const bool sRGB)
   {
     this->name = name;
     this->fmt = TexColorFormat::RGBA;
@@ -91,7 +91,7 @@ namespace glr
     glDeleteTextures(1, &this->handle);
   }
   
-  Texture::Texture(Texture &&moveFrom) noexcept
+  Texture::Texture(Texture&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();
@@ -115,7 +115,7 @@ namespace glr
     moveFrom.init = false;
   }
   
-  Texture& Texture::operator=(Texture &&moveFrom) noexcept
+  Texture& Texture::operator=(Texture&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();
@@ -158,7 +158,7 @@ namespace glr
     this->init = false;
   }
   
-  void Texture::use(uint32_t target) const
+  void Texture::use(const uint32_t target) const
   {
     int32_t curTex;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
@@ -168,7 +168,7 @@ namespace glr
     }
   }
   
-  void Texture::setFilterMode(FilterMode min, FilterMode mag) const
+  void Texture::setFilterMode(const FilterMode min, const FilterMode mag) const
   {
     GLenum glMin = GL_NEAREST, glMag = GL_NEAREST;
     switch(min)
@@ -204,12 +204,12 @@ namespace glr
     glTextureParameteri(this->handle, GL_TEXTURE_MAG_FILTER, (GLint) glMag);
   }
   
-  void Texture::setAnisotropyLevel(uint32_t level) const
+  void Texture::setAnisotropyLevel(const uint32_t level) const
   {
     glTextureParameterf(this->handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat) level);
   }
   
-  void Texture::subImage(uint8_t *data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, TexColorFormat format) const
+  void Texture::subImage(const uint8_t* data, const uint32_t w, const uint32_t h, const uint32_t xPos, const uint32_t yPos, const TexColorFormat format) const
   {
     int32_t f = 0;
     switch(format)
@@ -245,7 +245,7 @@ namespace glr
     glClearTexImage(this->handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
   }
   
-  DownloadedImageData Texture::downloadTexture(TexColorFormat colorFormat) const
+  DownloadedImageData Texture::downloadTexture(const TexColorFormat colorFormat) const
   {
     DownloadedImageData out;
     out.textureName = this->name;

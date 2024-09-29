@@ -4,21 +4,21 @@
 
 namespace glr
 {
-  void pixelStoreiPack(int i)
+  void pixelStoreiPack(const int i)
   {
     glPixelStorei(GL_PACK_ALIGNMENT, i);
   }
   
-  void pixelStoreiUnpack(int i)
+  void pixelStoreiUnpack(const int i)
   {
     glPixelStorei(GL_UNPACK_ALIGNMENT, i);
   }
   
-  std::vector<uint8_t> getPixels(uint32_t width, uint32_t height)
+  std::vector<uint8_t> getPixels(const uint32_t width, const uint32_t height)
   {
     std::vector<uint8_t> out;
     out.resize(width * height * 3);
-    glReadPixels(0, 0, (GLsizei) width, (GLsizei) height, GL_RGB, GL_UNSIGNED_BYTE, out.data());
+    glReadPixels(0, 0, (GLsizei)width, (GLsizei)height, GL_RGB, GL_UNSIGNED_BYTE, out.data());
     return out;
   }
 }
