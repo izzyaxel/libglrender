@@ -206,6 +206,163 @@ void main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
   
+  void Renderer::setClearColor(const Color color) const
+  {
+    vec4<float> colorF = color.asRGBAf();
+    glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
+  }
+  
+  void Renderer::clearCurrentFramebuffer() const
+  {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+  
+  void Renderer::setScissorTest(const bool val) const
+  {
+    val ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+  }
+  
+  void Renderer::setDepthTest(const bool val) const
+  {
+    val ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+  }
+  
+  void Renderer::setBlending(const bool val) const
+  {
+    val ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+  }
+  
+  void Renderer::setBlendMode(const uint32_t src, const uint32_t dst) const
+  {
+    glBlendFunc(src, dst);
+  }
+  
+  void Renderer::setCullFace(const bool val) const
+  {
+    val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+  }
+  
+  void Renderer::setFilterMode(const FilterMode mode) const
+  {
+    switch(mode)
+    {
+      case FilterMode::NEAREST:
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        break;
+      
+      case FilterMode::BILINEAR:
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        break;
+      
+      case FilterMode::TRILINEAR:
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        break;
+    }
+  }
+  
+  void Renderer::draw(const DrawMode mode, const size_t numElements) const
+  {
+    glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
+  }
+  
+  void Renderer::pingPong()
+  {
+    this->curFBO.swap() ? this->fboA.use() : this->fboB.use();
+    this->clearCurrentFramebuffer();
+  }
+  
+  void Renderer::drawToBackBuffer() const
+  {
+    this->fullscreenQuad.use();
+    this->useBackBuffer();
+    this->clearCurrentFramebuffer();
+    this->shaderTransfer.use();
+    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+  }
+  
+  void Renderer::drawToScratch() const
+  {
+    this->fullscreenQuad.use();
+    this->scratch.use();
+    this->shaderTransfer.use();
+    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+  }
+  
+  void Renderer::scratchToPingPong()
+  {
+    this->fullscreenQuad.use();
+    this->pingPong();
+    this->shaderTransfer.use();
+    this->scratch.bind(Attachment::COLOR, 0);
+    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+  }
+  
+  void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
+  {
+    glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
+  }
+  
+  void Renderer::startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize) const
+  {
+    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
+  }
+  
+  //==Rendering==================================================================================================================================================================================================
+  void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
+  {
+    RenderList rl = std::move(renderList);
+    if(rl.empty())
+    {
+      return;
+    }
+    
+    this->view = viewMat;
+    this->projection = projectionMat;
+    const Texture* curTexture = rl.front().texture;
+    if(curTexture)
+    {
+      curTexture->use(0);
+    }
+    
+    this->layerPostStack.empty() ? this->renderWithoutPost(rl, curTexture) : this->renderWithPost(rl, curTexture);
+    
+    if(this->globalPostStack && !this->globalPostStack->isEmpty())
+    {
+      this->postProcessGlobal();
+    }
+    
+    this->drawToBackBuffer();
+  }
+
+  void Renderer::postProcessLayer(const uint64_t layer)
+  {
+    for(const auto& stage: this->layerPostStack[layer]->getPasses())
+    {
+      if(stage.enabled)
+      {
+        this->pingPong();
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
+      }
+    }
+  }
+  
+  void Renderer::postProcessGlobal()
+  {
+    for(const auto& stage: this->globalPostStack->getPasses())
+    {
+      if(stage.enabled)
+      {
+        this->pingPong();
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
+      }
+    }
+  }
+
   void Renderer::renderWithoutPost(RenderList& renderList, const Texture* curTexture)
   {
     this->pingPong();
@@ -243,7 +400,7 @@ void main()
     
     for(size_t i = 0; i < renderList.size(); i++)
     {
-      auto &entry = renderList[i];
+      auto& entry = renderList[i];
 
       if(!curTexture)
       {
@@ -320,153 +477,7 @@ void main()
     
     this->scratchToPingPong();
   }
-  
-  void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
-  {
-    RenderList rl = std::move(renderList);
-    if(rl.empty())
-    {
-      return;
-    }
-    
-    this->view = viewMat;
-    this->projection = projectionMat;
-    const Texture* curTexture = rl.front().texture;
-    if(curTexture)
-    {
-      curTexture->use(0);
-    }
-    
-    this->layerPostStack.empty() ? this->renderWithoutPost(rl, curTexture) : this->renderWithPost(rl, curTexture);
-    
-    if(this->globalPostStack && !this->globalPostStack->isEmpty())
-    {
-      this->postProcessGlobal();
-    }
-    
-    this->drawToBackBuffer();
-  }
-  
-  void Renderer::setClearColor(const Color color) const
-  {
-    vec4<float> colorF = color.asRGBAf();
-    glClearColor(colorF.r(), colorF.g(), colorF.b(), colorF.a());
-  }
-  
-  void Renderer::clearCurrentFramebuffer() const
-  {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  }
-  
-  void Renderer::setScissorTest(const bool val) const
-  {
-    val ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
-  }
-  
-  void Renderer::setDepthTest(const bool val) const
-  {
-    val ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
-  }
-  
-  void Renderer::setBlending(const bool val) const
-  {
-    val ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-  }
-  
-  void Renderer::setBlendMode(const uint32_t src, const uint32_t dst) const
-  {
-    glBlendFunc(src, dst);
-  }
-  
-  void Renderer::setCullFace(const bool val) const
-  {
-    val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
-  }
-  
-  void Renderer::setFilterMode(const FilterMode mode) const
-  {
-    switch(mode)
-    {
-      case FilterMode::NEAREST:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        break;
-      
-      case FilterMode::BILINEAR:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        break;
-      
-      case FilterMode::TRILINEAR:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        break;
-    }
-  }
-  
-  void Renderer::draw(const DrawMode mode, const size_t numElements) const
-  {
-    glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
-  }
-  
-  void Renderer::pingPong()
-  {
-    this->curFBO.swap() ? this->fboA.use() : this->fboB.use();
-    this->clearCurrentFramebuffer();
-  }
-  
-  void Renderer::postProcessLayer(const uint64_t layer)
-  {
-    for(auto const &stage: this->layerPostStack[layer]->getPasses())
-    {
-      if(stage.enabled)
-      {
-        this->pingPong();
-        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
-      }
-    }
-  }
-  
-  void Renderer::postProcessGlobal()
-  {
-    for(auto const &stage: this->globalPostStack->getPasses())
-    {
-      if(stage.enabled)
-      {
-        this->pingPong();
-        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
-      }
-    }
-  }
-  
-  void Renderer::drawToBackBuffer() const
-  {
-    this->fullscreenQuad.use();
-    this->useBackBuffer();
-    this->clearCurrentFramebuffer();
-    this->shaderTransfer.use();
-    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
-  }
-  
-  void Renderer::drawToScratch() const
-  {
-    this->fullscreenQuad.use();
-    this->scratch.use();
-    this->shaderTransfer.use();
-    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
-  }
-  
-  void Renderer::scratchToPingPong()
-  {
-    this->fullscreenQuad.use();
-    this->pingPong();
-    this->shaderTransfer.use();
-    this->scratch.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
-  }
-  
+
   void Renderer::drawRenderable(Renderable& entry)
   {
     if(entry.characterInfo.character != '\0') //Text rendering
@@ -509,15 +520,5 @@ void main()
       entry.mesh->use();
       draw(DrawMode::TRISTRIPS, entry.mesh->numVerts);
     }
-  }
-  
-  void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
-  {
-    glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
-  }
-  
-  void Renderer::startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize) const
-  {
-    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
   }
 }
