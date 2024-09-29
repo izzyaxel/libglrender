@@ -9,8 +9,8 @@ namespace glr
 
 /// ===Data===========================================================================///
   
-  std::string transferFrag =
-    R"(#version 450
+  std::string transferFrag = R"(
+#version 450
 
 in vec2 uv;
 layout(binding = 0) uniform sampler2D tex;
@@ -21,8 +21,8 @@ void main()
   fragColor = texture(tex, uv);
 })";
   
-  std::string transferVert =
-    R"(#version 450
+  std::string transferVert = R"(
+#version 450
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec2 uv_in;
@@ -32,33 +32,6 @@ void main()
 {
   uv = uv_in;
   gl_Position = vec4(pos, 1.0);
-})";
-  
-  std::string textFrag =
-    R"(#version 450
-
-in vec2 uv;
-uniform vec4 inputColor = vec4(1, 1, 1, 1);
-layout(binding = 0) uniform sampler2D tex;
-out vec4 fragColor;
-
-void main()
-{
-  fragColor = vec4(inputColor.rgb, texture(tex, uv).r * inputColor.w);
-})";
-  
-  std::string textVert =
-    R"(#version 450
-
-layout(location = 0) in vec3 pos;
-layout(location = 1) in vec2 uv_in;
-out vec2 uv;
-uniform mat4 mvp;
-
-void main()
-{
-  uv = uv_in;
-  gl_Position = mvp * vec4(pos, 1.0);
 })";
   
   std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
@@ -155,13 +128,14 @@ void main()
   Renderer::Renderer(const GLLoadFunc loadFunc, const uint32_t contextWidth, const uint32_t contextHeight)
   {
     gladLoadGL(loadFunc);
+    this->contextSize = {contextWidth, contextHeight};
     this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
     this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Ping");
     this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Pong");
     this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR}, "Scratch");
     this->fullscreenQuad = Mesh(fullscreenQuadVerts, fullscreenQuadUVs);
     this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
-    this->shaderText = Shader("Text Shader", textVert, textFrag);
+    //this->shaderText = Shader("Text Shader", textVert, textFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
@@ -186,6 +160,7 @@ void main()
   
   void Renderer::onContextResize(const uint32_t width, const uint32_t height)
   {
+    this->contextSize = {width, height};
     this->useBackBuffer();
     glViewport(0, 0, (int32_t)width, (int32_t)height);
     this->fboPool.onResize(width, height);
@@ -242,8 +217,9 @@ void main()
     val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
   }
   
-  void Renderer::setFilterMode(const FilterMode mode) const
+  void Renderer::setFilterMode(const FilterMode mode)
   {
+    this->filterMode = mode;
     switch(mode)
     {
       case FilterMode::NEAREST:
@@ -482,16 +458,20 @@ void main()
   {
     if(entry.characterInfo.character != '\0') //Text rendering
     {
+      const FilterMode prevMode = this->filterMode;
       this->setFilterMode(FilterMode::TRILINEAR);
+      
       quat<float> rotQuat;
       rotQuat.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
       const vec3<float> pos3 = vec3<float>{vec2{entry.pos}, 0};
       this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2{entry.scale}, 1));
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      this->shaderText.use();
-      this->shaderText.setUniform("mvp", this->mvp);
-      this->shaderText.setUniform("inputColor", entry.characterInfo.color.asRGBAf());
-      this->shaderText.sendUniforms();
+      
+      entry.shader->use();
+      entry.shader->setUniform("mvp", this->mvp);
+      entry.shader->setUniform(entry.characterInfo.colorUniformLocation, entry.characterInfo.color.asRGBAf());
+      entry.shader->sendUniforms();
+      
       constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
       const std::array quadUVs{
         entry.characterInfo.atlasUVs.lowerRight.x(),
@@ -504,8 +484,10 @@ void main()
         entry.characterInfo.atlasUVs.upperLeft.y()};
       const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
       mesh.use();
+      
       draw(DrawMode::TRISTRIPS, mesh.numVerts);
-      this->setFilterMode(FilterMode::NEAREST);
+      
+      this->setFilterMode(prevMode);
     }
     else
     {

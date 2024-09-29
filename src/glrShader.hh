@@ -8,7 +8,7 @@
 
 namespace glr
 {
-  /// An OpenGL frag/vert, geometry, or compute shader
+  /// An OpenGL frag/vert, or compute shader
   struct Shader
   {
     typedef std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> UniformValue;

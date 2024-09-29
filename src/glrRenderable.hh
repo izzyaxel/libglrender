@@ -14,23 +14,20 @@ namespace glr
   {
     struct CharacterInfo
     {
-      GLRENDER_API CharacterInfo()
-      {
-        this->character = '\0';
-        this->color = {};
-        this->atlasUVs = {};
-      };
+      GLRENDER_API CharacterInfo() = default;
       
-      GLRENDER_API CharacterInfo(const char& character, const Color& color, const QuadUVs& atlasUVs)
+      GLRENDER_API CharacterInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation)
       {
         this->character = character;
         this->color = color;
         this->atlasUVs = atlasUVs;
+        this->colorUniformLocation = colorUniformLocation;
       }
       
       char character = '\0';
       Color color = {};
       QuadUVs atlasUVs = {};
+      std::string colorUniformLocation;
     };
     
     GLRENDER_API Renderable(vec2<float> const &pos,
