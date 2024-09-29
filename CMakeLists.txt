@@ -57,7 +57,9 @@ set(SRC
     src/glrExternal.cc src/glrExternal.hh
     src/glrRenderable.hh
     src/glrRenderList.cc
-    src/glrRenderList.hh)
+    src/glrRenderList.hh
+    src/glrPipeline.cc
+    src/glrPipeline.hh)
 
 project(GLRender)
 include_directories(include)
