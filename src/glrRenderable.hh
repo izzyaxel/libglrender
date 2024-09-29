@@ -14,7 +14,7 @@ namespace glr
   {
     struct CharacterInfo
     {
-      GLRENDER_API CharacterInfo() = default;
+      GLRENDER_API CharacterInfo(){}
       
       GLRENDER_API CharacterInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation)
       {
