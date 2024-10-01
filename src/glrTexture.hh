@@ -2,6 +2,7 @@
 
 #include "export.hh"
 #include "glrEnums.hh"
+#include "glrUtil.hh"
 
 #include <cstdint>
 #include <vector>
@@ -37,6 +38,7 @@ namespace glr
     GLRENDER_API Texture(Texture&& moveFrom) noexcept;
     GLRENDER_API Texture& operator=(Texture&& moveFrom) noexcept;
     
+    [[nodiscard]] GLRENDER_API bool isValid() const;
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use(uint32_t target) const;
@@ -47,7 +49,7 @@ namespace glr
     
     [[nodiscard]] GLRENDER_API DownloadedImageData downloadTexture(TexColorFormat colorFormat) const;
     
-    uint32_t handle = std::numeric_limits<uint32_t>::max();
+    uint32_t handle = INVALID_HANDLE;
     uint32_t width = 0;
     uint32_t height = 0;
     TexColorFormat fmt = {};

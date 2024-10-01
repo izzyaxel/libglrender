@@ -1,6 +1,7 @@
 #pragma once
 
 #include "export.hh"
+#include "glrUtil.hh"
 
 #include <commons/math/vec2.hh>
 #include <initializer_list>
@@ -77,15 +78,16 @@ namespace glr
     GLRENDER_API Mesh(Mesh&& moveFrom) noexcept;
     GLRENDER_API Mesh& operator=(Mesh&& moveFrom) noexcept;
     
+    [[nodiscard]] GLRENDER_API bool isValid() const;
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     
-    uint32_t vao =  std::numeric_limits<uint32_t>::max();
-    uint32_t vboV = std::numeric_limits<uint32_t>::max();
-    uint32_t vboU = std::numeric_limits<uint32_t>::max();
-    uint32_t vboN = std::numeric_limits<uint32_t>::max();
-    uint32_t vboI = std::numeric_limits<uint32_t>::max();
+    uint32_t vao =  INVALID_HANDLE;
+    uint32_t vboV = INVALID_HANDLE;
+    uint32_t vboU = INVALID_HANDLE;
+    uint32_t vboN = INVALID_HANDLE;
+    uint32_t vboI = INVALID_HANDLE;
     size_t numVerts = 0;
     bool hasVerts = false;
     bool hasUVs = false;
@@ -93,7 +95,7 @@ namespace glr
     
     private:
     int32_t vertexStride = 3 * sizeof(float);
-    int32_t uvStride = 2 * sizeof(float);
+    int32_t uvStride =     2 * sizeof(float);
     int32_t normalStride = 3 * sizeof(float);
     bool init = false;
   };

@@ -42,16 +42,16 @@ namespace glr
   Framebuffer::Framebuffer(Framebuffer&& other) noexcept
   {
     this->handle = other.handle;
-    other.handle = std::numeric_limits<uint32_t>::max();
+    other.handle = INVALID_HANDLE;
     
     this->colorHandle = other.colorHandle;
-    other.colorHandle = std::numeric_limits<uint32_t>::max();
+    other.colorHandle = INVALID_HANDLE;
     
     this->depthHandle = other.depthHandle;
-    other.depthHandle = std::numeric_limits<uint32_t>::max();
+    other.depthHandle = INVALID_HANDLE;
     
     this->stencilHandle = other.stencilHandle;
-    other.stencilHandle = std::numeric_limits<uint32_t>::max();
+    other.stencilHandle = INVALID_HANDLE;
     
     this->width = other.width;
     other.width = 0;
@@ -81,16 +81,16 @@ namespace glr
   Framebuffer &Framebuffer::operator =(Framebuffer&& other) noexcept
   {
     this->handle = other.handle;
-    other.handle = std::numeric_limits<uint32_t>::max();
+    other.handle = INVALID_HANDLE;
     
     this->colorHandle = other.colorHandle;
-    other.colorHandle = std::numeric_limits<uint32_t>::max();
+    other.colorHandle = INVALID_HANDLE;
     
     this->depthHandle = other.depthHandle;
-    other.depthHandle = std::numeric_limits<uint32_t>::max();
+    other.depthHandle = INVALID_HANDLE;
     
     this->stencilHandle = other.stencilHandle;
-    other.stencilHandle = std::numeric_limits<uint32_t>::max();
+    other.stencilHandle = INVALID_HANDLE;
     
     this->width = other.width;
     other.width = 0;
@@ -119,6 +119,16 @@ namespace glr
     return *this;
   }
   
+  bool Framebuffer::isValid() const
+  {
+    return this->init &&
+    this->handle != INVALID_HANDLE &&
+    (this->hasColor || this->hasDepth || this->hasStencil) &&
+      ((this->hasColor && this->colorHandle != INVALID_HANDLE) ||
+      (this->hasDepth && this->depthHandle != INVALID_HANDLE) ||
+      (this->hasStencil && this->stencilHandle != INVALID_HANDLE));
+  }
+  
   bool Framebuffer::exists() const
   {
     return this->init;
@@ -126,12 +136,12 @@ namespace glr
   
   void Framebuffer::reset()
   {
-    this->handle = std::numeric_limits<uint32_t>::max();
-    this->colorHandle = std::numeric_limits<uint32_t>::max();
-    this->depthHandle = std::numeric_limits<uint32_t>::max();
-    this->stencilHandle = std::numeric_limits<uint32_t>::max();
-    this->width = std::numeric_limits<uint32_t>::max();
-    this->height = std::numeric_limits<uint32_t>::max();
+    this->handle = INVALID_HANDLE;
+    this->colorHandle = INVALID_HANDLE;
+    this->depthHandle = INVALID_HANDLE;
+    this->stencilHandle = INVALID_HANDLE;
+    this->width = INVALID_HANDLE;
+    this->height = INVALID_HANDLE;
     this->hasColor = false;
     this->hasDepth = false;
     this->hasAlpha = false;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "export.hh"
+#include "glrUtil.hh"
 
 #include <variant>
 #include <string>
@@ -18,7 +19,7 @@ namespace glr
       INVALID = 0,
       FRAGVERT,
       COMP,
-      GEOMETRY,
+      GEOMFRAG,
       TESSELLATION
     };
     
@@ -39,13 +40,14 @@ namespace glr
     GLRENDER_API Shader(Shader&& moveFrom) noexcept;
     GLRENDER_API Shader& operator=(Shader&& moveFrom) noexcept;
     
+    [[nodiscard]] GLRENDER_API bool isValid() const;
     [[nodiscard]] [[maybe_unused]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     GLRENDER_API void setUniform(const std::string& name, UniformValue val);
     GLRENDER_API void sendUniforms() const;
     
-    uint32_t handle = std::numeric_limits<uint32_t>::max();
+    uint32_t handle = INVALID_HANDLE;
     
     Type type = INVALID;
     

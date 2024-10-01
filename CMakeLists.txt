@@ -58,8 +58,10 @@ set(SRC
     src/glrRenderable.hh
     src/glrRenderList.cc
     src/glrRenderList.hh
-    src/glrPipeline.cc
-    src/glrPipeline.hh)
+    src/glrShaderPipeline.cc
+    src/glrShaderPipeline.hh
+    src/glrUtil.cc
+    src/glrUtil.hh)
 
 project(GLRender)
 include_directories(include)

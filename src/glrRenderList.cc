@@ -7,6 +7,28 @@ namespace glr
     return (a.texture->handle > b.texture->handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
   }
   
+  RenderList::~RenderList()
+  {
+    this->shaderPipeline->reset();
+  }
+  
+  RenderList::RenderList(RenderList&& moveFrom) noexcept
+  {
+    this->list = std::move(moveFrom.list);
+    moveFrom.list = {};
+    this->shaderPipeline = std::move(moveFrom.shaderPipeline);
+    moveFrom.shaderPipeline = nullptr;
+  }
+  
+  RenderList& RenderList::operator=(RenderList&& moveFrom) noexcept
+  {
+    this->list = std::move(moveFrom.list);
+    moveFrom.list = {};
+    this->shaderPipeline = std::move(moveFrom.shaderPipeline);
+    moveFrom.shaderPipeline = nullptr;
+    return *this;
+  }
+  
   RenderList& RenderList::operator +(const RenderList& other)
   {
     this->list.insert(this->list.end(), other.list.begin(), other.list.end());
@@ -67,5 +89,11 @@ namespace glr
   void RenderList::sort(const Comparator& cmp)
   {
     std::sort(this->list.begin(), this->list.end(), cmp);
+  }
+  
+  void RenderList::reset()
+  {
+    this->clear();
+    this->shaderPipeline.reset();
   }
 }

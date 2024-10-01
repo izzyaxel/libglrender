@@ -37,7 +37,7 @@ namespace glr
     
     GLRENDER_API void copyFrom(const Image& src, size_t xOffset, size_t yOffset);
     
-    std::vector<Color> imageData = {};
+    std::vector<Color> imageData{};
     size_t width = 0;
     size_t height = 0;
     char bitDepth = 8;
@@ -58,7 +58,7 @@ namespace glr
     GLRENDER_API explicit FillOperation(const Color& fillColor);
     GLRENDER_API void run(Image& image) override;
     
-    Color fillColor = {};
+    Color fillColor{};
   };
   
   struct ReplaceColorOperation final : ImageOperation
@@ -67,7 +67,7 @@ namespace glr
     GLRENDER_API ReplaceColorOperation(const Color& src, const Color& dst);
     GLRENDER_API void run(Image& image) override;
     
-    Color src = {};
-    Color dst = {};
+    Color src{};
+    Color dst{};
   };
 }

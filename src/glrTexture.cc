@@ -94,7 +94,7 @@ namespace glr
   Texture::Texture(Texture&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = std::numeric_limits<uint32_t>::max();
+    moveFrom.handle = INVALID_HANDLE;
     
     this->width = moveFrom.width;
     moveFrom.width = 0;
@@ -118,7 +118,7 @@ namespace glr
   Texture& Texture::operator=(Texture&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = std::numeric_limits<uint32_t>::max();
+    moveFrom.handle = INVALID_HANDLE;
     
     this->width = moveFrom.width;
     moveFrom.width = 0;
@@ -141,6 +141,11 @@ namespace glr
     return *this;
   }
   
+  bool Texture::isValid() const
+  {
+    return this->exists() && this->handle != INVALID_HANDLE;
+  }
+  
   bool Texture::exists() const
   {
     return this->init;
@@ -149,7 +154,7 @@ namespace glr
   void Texture::reset()
   {
     glDeleteTextures(1, &this->handle);
-    this->handle = std::numeric_limits<uint32_t>::max();
+    this->handle = INVALID_HANDLE;
     this->width = 0;
     this->height = 0;
     this->fmt = {};

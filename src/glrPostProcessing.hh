@@ -27,6 +27,6 @@ namespace glr
     GLRENDER_API void clear();
     
     private:
-    std::vector<PostPass> postOrder;
+    std::vector<PostPass> postOrder{};
   };
 }

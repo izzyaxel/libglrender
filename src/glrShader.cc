@@ -115,7 +115,7 @@ namespace glr
   Shader::Shader(Shader&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = std::numeric_limits<uint32_t>::max();
+    moveFrom.handle = INVALID_HANDLE;
     
     this->type = moveFrom.type;
     moveFrom.type = INVALID;
@@ -130,7 +130,7 @@ namespace glr
   Shader& Shader::operator=(Shader&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
-    moveFrom.handle = std::numeric_limits<uint32_t>::max();
+    moveFrom.handle = INVALID_HANDLE;
     
     this->type = moveFrom.type;
     moveFrom.type = INVALID;
@@ -204,6 +204,11 @@ namespace glr
     }
   }
   
+  bool Shader::isValid() const
+  {
+    return this->init && this->handle != INVALID_HANDLE;
+  }
+  
   [[maybe_unused]] bool Shader::exists() const
   {
     return this->init;
@@ -212,7 +217,7 @@ namespace glr
   void Shader::reset()
   {
     glDeleteProgram(this->handle);
-    this->handle = std::numeric_limits<uint32_t>::max();
+    this->handle = INVALID_HANDLE;
     this->uniforms = {};
     this->init = false;
   }

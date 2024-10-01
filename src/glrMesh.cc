@@ -132,19 +132,19 @@ namespace glr
   Mesh::Mesh(Mesh&& moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
-    moveFrom.vboV = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboV = INVALID_HANDLE;
     
     this->vboU = moveFrom.vboU;
-    moveFrom.vboU = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboU = INVALID_HANDLE;
     
     this->vboN = moveFrom.vboN;
-    moveFrom.vboN = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboN = INVALID_HANDLE;
     
     this->vboI = moveFrom.vboI;
-    moveFrom.vboI = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboI = INVALID_HANDLE;
     
     this->vao = moveFrom.vao;
-    moveFrom.vao = std::numeric_limits<uint32_t>::max();
+    moveFrom.vao = INVALID_HANDLE;
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
@@ -165,19 +165,19 @@ namespace glr
   Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
   {
     this->vboV = moveFrom.vboV;
-    moveFrom.vboV = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboV = INVALID_HANDLE;
     
     this->vboU = moveFrom.vboU;
-    moveFrom.vboU = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboU = INVALID_HANDLE;
     
     this->vboN = moveFrom.vboN;
-    moveFrom.vboN = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboN = INVALID_HANDLE;
     
     this->vboI = moveFrom.vboI;
-    moveFrom.vboI = std::numeric_limits<uint32_t>::max();
+    moveFrom.vboI = INVALID_HANDLE;
     
     this->vao = moveFrom.vao;
-    moveFrom.vao = std::numeric_limits<uint32_t>::max();
+    moveFrom.vao = INVALID_HANDLE;
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
@@ -197,6 +197,16 @@ namespace glr
     return *this;
   }
   
+  bool Mesh::isValid() const
+  {
+    return this->init &&
+    this->vao != INVALID_HANDLE &&
+    (this->hasVerts || this->hasUVs || this->hasNormals) &&
+      ((this->hasVerts && this->vboV != INVALID_HANDLE) ||
+      (this->hasUVs && this->vboU != INVALID_HANDLE) ||
+      (this->hasNormals && this->vboN != INVALID_HANDLE));
+  }
+  
   bool Mesh::exists() const
   {
     return this->init;
@@ -209,11 +219,11 @@ namespace glr
     glDeleteBuffers(1, &this->vboN);
     glDeleteBuffers(1, &this->vboI);
     glDeleteVertexArrays(1, &this->vao);
-    this->vboV = std::numeric_limits<uint32_t>::max();
-    this->vboU = std::numeric_limits<uint32_t>::max();
-    this->vboN = std::numeric_limits<uint32_t>::max();
-    this->vboI = std::numeric_limits<uint32_t>::max();
-    this->vao = std::numeric_limits<uint32_t>::max();
+    this->vboV = INVALID_HANDLE;
+    this->vboU = INVALID_HANDLE;
+    this->vboN = INVALID_HANDLE;
+    this->vboI = INVALID_HANDLE;
+    this->vao = INVALID_HANDLE;
     this->numVerts = 0;
     this->hasVerts = false;
     this->hasUVs = false;

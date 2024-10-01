@@ -2,6 +2,7 @@
 
 #include "export.hh"
 #include "glrEnums.hh"
+#include "glrUtil.hh"
 
 #include <string>
 #include <vector>
@@ -21,16 +22,17 @@ namespace glr
     GLRENDER_API Framebuffer(Framebuffer&& other) noexcept;
     GLRENDER_API Framebuffer &operator =(Framebuffer&& other) noexcept;
     
+    [[nodiscard]] GLRENDER_API bool isValid() const;
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     GLRENDER_API void bind(Attachment type, uint32_t target) const;
     GLRENDER_API void regenerate(uint32_t width, uint32_t height);
     
-    uint32_t handle = std::numeric_limits<uint32_t>::max();
-    uint32_t colorHandle = std::numeric_limits<uint32_t>::max();
-    uint32_t depthHandle = std::numeric_limits<uint32_t>::max();
-    uint32_t stencilHandle = std::numeric_limits<uint32_t>::max();
+    uint32_t handle = INVALID_HANDLE;
+    uint32_t colorHandle = INVALID_HANDLE;
+    uint32_t depthHandle = INVALID_HANDLE;
+    uint32_t stencilHandle = INVALID_HANDLE;
     uint32_t width = 0;
     uint32_t height = 0;
     bool hasColor = false;
