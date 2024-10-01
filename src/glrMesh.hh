@@ -13,6 +13,12 @@ namespace glr
 {
   struct QuadUVs
   {
+    bool operator==(const QuadUVs& other) const
+    {
+      return this->upperLeft == other.upperLeft && this->lowerLeft == other.lowerLeft &&
+      this->upperRight == other.upperRight && this->lowerRight == other.lowerRight;
+    }
+    
     vec2<float> upperLeft = {};
     vec2<float> lowerLeft = {};
     vec2<float> upperRight = {};
@@ -34,9 +40,9 @@ namespace glr
     GLRENDER_API explicit Mesh(const std::vector<float>& verts);
     GLRENDER_API Mesh(const std::vector<float>& verts, const std::vector<float>& uvs);
     GLRENDER_API Mesh(const std::vector<float>& verts, const std::vector<float>& uvs, const std::vector<float>& normals);
-    GLRENDER_API explicit Mesh(const std::initializer_list<float>& verts);
-    GLRENDER_API Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs);
-    GLRENDER_API Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs, const std::initializer_list<float>& normals);
+    GLRENDER_API Mesh(std::initializer_list<float> verts);
+    GLRENDER_API Mesh(std::initializer_list<float> verts, std::initializer_list<float> uvs);
+    GLRENDER_API Mesh(std::initializer_list<float> verts, std::initializer_list<float> uvs, std::initializer_list<float> normals);
     
     template <size_t N> GLRENDER_API explicit Mesh(const std::array<float, N>& verts) :
     Mesh(verts.data(), verts.size())
@@ -52,9 +58,9 @@ namespace glr
     GLRENDER_API explicit Mesh(const std::vector<uint8_t>& verts);
     GLRENDER_API Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs);
     GLRENDER_API Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs, const std::vector<uint8_t>& normals);
-    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts);
-    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs);
-    GLRENDER_API Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs, const std::initializer_list<uint8_t>& normals);
+    GLRENDER_API Mesh(std::initializer_list<uint8_t> verts);
+    GLRENDER_API Mesh(std::initializer_list<uint8_t> verts, std::initializer_list<uint8_t> uvs);
+    GLRENDER_API Mesh(std::initializer_list<uint8_t> verts, std::initializer_list<uint8_t> uvs, std::initializer_list<uint8_t> normals);
     
     template <size_t N> GLRENDER_API explicit Mesh(const std::array<uint8_t, N>& verts) :
     Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4)
@@ -75,7 +81,7 @@ namespace glr
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     
-    uint32_t vao = std::numeric_limits<uint32_t>::max();
+    uint32_t vao =  std::numeric_limits<uint32_t>::max();
     uint32_t vboV = std::numeric_limits<uint32_t>::max();
     uint32_t vboU = std::numeric_limits<uint32_t>::max();
     uint32_t vboN = std::numeric_limits<uint32_t>::max();

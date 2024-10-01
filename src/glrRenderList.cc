@@ -7,13 +7,13 @@ namespace glr
     return (a.texture->handle > b.texture->handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
   }
   
-  RenderList& RenderList::operator +(RenderList& other)
+  RenderList& RenderList::operator +(const RenderList& other)
   {
     this->list.insert(this->list.end(), other.list.begin(), other.list.end());
     return *this;
   }
   
-  RenderList& RenderList::operator +=(RenderList& other)
+  RenderList& RenderList::operator +=(const RenderList& other)
   {
     this->list.insert(this->list.end(), other.list.begin(), other.list.end());
     return *this;
@@ -44,7 +44,7 @@ namespace glr
     return this->list.back();
   }
   
-  void RenderList::add(const std::initializer_list<Renderable>& renderables)
+  void RenderList::add(std::initializer_list<Renderable> renderables)
   {
     this->list.insert(this->list.end(), renderables.begin(), renderables.end());
   }

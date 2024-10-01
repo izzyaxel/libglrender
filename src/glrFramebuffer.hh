@@ -13,7 +13,7 @@ namespace glr
   struct Framebuffer
   {
     Framebuffer() = default;
-    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, const std::initializer_list<Attachment>& options, const std::string& name);
+    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<Attachment> options, const std::string& name);
     GLRENDER_API ~Framebuffer();
     
     Framebuffer(Framebuffer& other) = delete;

@@ -4,7 +4,7 @@
 
 namespace glr
 {
-  Pipeline::Pipeline(const std::vector<Shader*>& shaders)
+  Pipeline::Pipeline(std::initializer_list<Shader*> shaders)
   {
     glGenProgramPipelines(1, &this->handle);
     for(const auto& shader : shaders)

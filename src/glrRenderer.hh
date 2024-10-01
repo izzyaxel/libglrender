@@ -42,7 +42,7 @@ namespace glr
 
     /// Set the postprocessing effects chain that will be applied to all rendered objects
     /// @param stack The ordered list of postprocessing effects to apply
-    GLRENDER_API void setGlobalPostStack(std::shared_ptr<PostStack> stack);
+    GLRENDER_API void setGlobalPostStack(std::shared_ptr<PostStack> stack); //TODO should this really be a shared ptr?
 
     /// Set the postprocessing effects chain that will be applied to objects on one layer
     /// @param layer The layer to set

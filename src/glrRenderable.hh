@@ -24,6 +24,12 @@ namespace glr
         this->colorUniformLocation = colorUniformLocation;
       }
       
+      bool operator==(const CharacterInfo& other) const
+      {
+        return this->character == other.character && this->color == other.color &&
+        this->atlasUVs == other.atlasUVs && this->colorUniformLocation == other.colorUniformLocation;
+      }
+      
       char character = '\0';
       Color color = {};
       QuadUVs atlasUVs = {};
@@ -53,6 +59,14 @@ namespace glr
       name(std::move(name)),
       characterInfo(std::move(characterInfo))
     {}
+    
+    bool operator==(const Renderable& other) const
+    {
+      return this->pos == other.pos && this->scale == other.scale && this->rotation == other.rotation &&
+      this->axis == other.axis && this->texture == other.texture && this->shader == other.shader &&
+      this->mesh == other.mesh && this->layer == other.layer && this->sublayer == other.sublayer &&
+      this->name == other.name && this->characterInfo == other.characterInfo;
+    }
     
     vec2<float> pos = {};
     vec2<float> scale = {};

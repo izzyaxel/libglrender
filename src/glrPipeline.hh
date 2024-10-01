@@ -6,7 +6,7 @@ namespace glr
   struct Pipeline
   {
     Pipeline() = default;
-    explicit Pipeline(const std::vector<Shader*>& shaders);
+    Pipeline(std::initializer_list<Shader*> shaders);
     ~Pipeline();
     
     Pipeline(Pipeline&& moveFrom) noexcept;

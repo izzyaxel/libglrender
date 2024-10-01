@@ -5,7 +5,7 @@
 
 namespace glr
 {
-  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, const std::initializer_list<Attachment>& options, const std::string& name)
+  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, std::initializer_list<Attachment> options, const std::string& name)
   {
     this->width = width;
     this->height = height;

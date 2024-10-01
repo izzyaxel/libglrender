@@ -100,13 +100,13 @@ namespace glr
   Mesh::Mesh(const std::vector<float>& verts, const std::vector<float>& uvs, const std::vector<float>& normals) :
   Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
   {}
-  Mesh::Mesh(const std::initializer_list<float>& verts) :
+  Mesh::Mesh(std::initializer_list<float> verts) :
   Mesh(verts.begin(), verts.size())
   {}
-  Mesh::Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs) :
+  Mesh::Mesh(std::initializer_list<float> verts, std::initializer_list<float> uvs) :
   Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size())
   {}
-  Mesh::Mesh(const std::initializer_list<float>& verts, const std::initializer_list<float>& uvs, const std::initializer_list<float>& normals) :
+  Mesh::Mesh(std::initializer_list<float> verts, std::initializer_list<float> uvs, std::initializer_list<float> normals) :
   Mesh(verts.begin(), verts.size(), uvs.begin(), uvs.size(), normals.begin(), normals.size())
   {}
   
@@ -119,13 +119,13 @@ namespace glr
   Mesh::Mesh(const std::vector<uint8_t>& verts, const std::vector<uint8_t>& uvs, const std::vector<uint8_t>& normals) :
   Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4, reinterpret_cast<const float*>(normals.data()), normals.size() / 4)
   {}
-  Mesh::Mesh(const std::initializer_list<uint8_t>& verts) :
+  Mesh::Mesh(std::initializer_list<uint8_t> verts) :
   Mesh(reinterpret_cast<float const *>(verts.begin()), verts.size() / 4)
   {}
-  Mesh::Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs) :
+  Mesh::Mesh(std::initializer_list<uint8_t> verts, std::initializer_list<uint8_t> uvs) :
   Mesh(reinterpret_cast<const float*>(verts.begin()), verts.size() / 4, reinterpret_cast<const float*>(uvs.begin()), uvs.size() / 4)
   {}
-  Mesh::Mesh(const std::initializer_list<uint8_t>& verts, const std::initializer_list<uint8_t>& uvs, const std::initializer_list<uint8_t>& normals) :
+  Mesh::Mesh(std::initializer_list<uint8_t> verts, std::initializer_list<uint8_t> uvs, std::initializer_list<uint8_t> normals) :
   Mesh(reinterpret_cast<const float*>(verts.begin()), verts.size() / 4, reinterpret_cast<const float*>(uvs.begin()), uvs.size() / 4, reinterpret_cast<const float*>(normals.begin()), normals.size() / 4)
   {}
   
