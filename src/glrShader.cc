@@ -6,7 +6,8 @@ namespace glr
 {
   Shader::Shader(const std::string& name, const std::string& vertShader, const std::string& fragShader)
   {
-    const uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER), fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+    const uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER);
+    const uint32_t fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
     this->handle = glCreateProgram();
     const char* vertSource = vertShader.data();
     const char* fragSource = fragShader.data();
@@ -61,6 +62,7 @@ namespace glr
     glDeleteShader(vertHandle);
     glDeleteShader(fragHandle);
     this->init = true;
+    this->type = FRAGVERT;
   }
   
   Shader::Shader(const std::string& name, const std::string& compShader)
@@ -102,6 +104,7 @@ namespace glr
     glDetachShader(this->handle, compHandle);
     glDeleteShader(compHandle);
     this->init = true;
+    this->type = COMP;
   }
   
   Shader::~Shader()
@@ -114,6 +117,9 @@ namespace glr
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();
     
+    this->type = moveFrom.type;
+    moveFrom.type = INVALID;
+    
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};
     
@@ -125,6 +131,9 @@ namespace glr
   {
     this->handle = moveFrom.handle;
     moveFrom.handle = std::numeric_limits<uint32_t>::max();
+    
+    this->type = moveFrom.type;
+    moveFrom.type = INVALID;
     
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};
@@ -162,40 +171,40 @@ namespace glr
       const auto& [handle, val] = pair.second;
       if(std::holds_alternative<float>(val))
       {
-        glUniform1f(handle, std::get<float>(val));
+        glProgramUniform1f(this->handle, handle, std::get<float>(val));
       }
       else if(std::holds_alternative<int32_t>(val))
       {
-        glUniform1i(handle, std::get<int32_t>(val));
+        glProgramUniform1i(this->handle, handle, std::get<int32_t>(val));
       }
       else if(std::holds_alternative<uint32_t>(val))
       {
-        glUniform1ui(handle, std::get<uint32_t>(val));
+        glProgramUniform1ui(this->handle, handle, std::get<uint32_t>(val));
       }
       else if(std::holds_alternative<vec2<float>>(val))
       {
-        glUniform2fv(handle, 1, std::get<vec2<float>>(val).data);
+        glProgramUniform2fv(this->handle, handle, 1, std::get<vec2<float>>(val).data);
       }
       else if(std::holds_alternative<vec3<float>>(val))
       {
-        glUniform3fv(handle, 1, std::get<vec3<float>>(val).data);
+        glProgramUniform3fv(this->handle, handle, 1, std::get<vec3<float>>(val).data);
       }
       else if(std::holds_alternative<vec4<float>>(val))
       {
-        glUniform4fv(handle, 1, std::get<vec4<float>>(val).data);
+        glProgramUniform4fv(this->handle, handle, 1, std::get<vec4<float>>(val).data);
       }
       else if(std::holds_alternative<mat3x3<float>>(val))
       {
-        glUniformMatrix3fv(handle, 1, GL_FALSE, &std::get<mat3x3<float>>(val).data[0][0]);
+        glProgramUniformMatrix3fv(this->handle, handle, 1, GL_FALSE, &std::get<mat3x3<float>>(val).data[0][0]);
       }
       else if(std::holds_alternative<mat4x4<float>>(val))
       {
-        glUniformMatrix4fv(handle, 1, GL_FALSE, &std::get<mat4x4<float>>(val).data[0][0]);
+        glProgramUniformMatrix4fv(this->handle, handle, 1, GL_FALSE, &std::get<mat4x4<float>>(val).data[0][0]);
       }
     }
   }
   
-  bool Shader::exists() const
+  [[maybe_unused]] bool Shader::exists() const
   {
     return this->init;
   }

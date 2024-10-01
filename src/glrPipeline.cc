@@ -4,10 +4,21 @@
 
 namespace glr
 {
-  Pipeline::Pipeline(const std::initializer_list<Shader*> shaders)
+  Pipeline::Pipeline(const std::vector<Shader*>& shaders)
   {
     glGenProgramPipelines(1, &this->handle);
-    //TODO need shader programs, do I want to store them in Shader and get them, or take shader sources here and generate them
+    for(const auto& shader : shaders)
+    {
+      if(shader->type == Shader::FRAGVERT)
+      {
+        glUseProgramStages(GL_VERTEX_SHADER_BIT | GL_FRAGMENT_SHADER_BIT, 1, shader->handle);
+      }
+      else if(shader->type == Shader::COMP)
+      {
+        glUseProgramStages(GL_COMPUTE_SHADER_BIT, 1, shader->handle);
+      }
+      this->shaders.emplace_back(shader);
+    }
     this->init = true;
   }
 
@@ -46,5 +57,13 @@ namespace glr
   {
     glUseProgram(0);
     glBindProgramPipeline(this->handle);
+  }
+  
+  void Pipeline::sendUniforms() const
+  {
+    for(const auto& shader : this->shaders)
+    {
+      shader->sendUniforms();
+    }
   }
 }

@@ -11,6 +11,7 @@
 
 #include "commons/math/mat4.hh"
 
+//TODO support pipelines
 namespace glr
 {
   typedef void (*GLapiproc)();

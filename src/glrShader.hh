@@ -13,6 +13,15 @@ namespace glr
   {
     typedef std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> UniformValue;
     
+    enum Type
+    {
+      INVALID = 0,
+      FRAGVERT,
+      COMP,
+      GEOMETRY,
+      TESSELLATION
+    };
+    
     struct Uniform
     {
       int32_t handle = std::numeric_limits<int32_t>::max();
@@ -29,14 +38,16 @@ namespace glr
     Shader& operator=(const Shader& copyFrom) = delete;
     GLRENDER_API Shader(Shader&& moveFrom) noexcept;
     GLRENDER_API Shader& operator=(Shader&& moveFrom) noexcept;
-
-    [[nodiscard]] GLRENDER_API bool exists() const;
+    
+    [[nodiscard]] [[maybe_unused]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     GLRENDER_API void setUniform(const std::string& name, UniformValue val);
     GLRENDER_API void sendUniforms() const;
     
     uint32_t handle = std::numeric_limits<uint32_t>::max();
+    
+    Type type = INVALID;
     
     private:
     std::unordered_map<std::string, Uniform> uniforms = {};
