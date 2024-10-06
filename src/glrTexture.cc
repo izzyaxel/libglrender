@@ -117,6 +117,11 @@ namespace glr
   
   Texture& Texture::operator=(Texture&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->handle = moveFrom.handle;
     moveFrom.handle = INVALID_HANDLE;
     

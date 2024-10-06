@@ -161,6 +161,11 @@ namespace glr
   
   Atlas &Atlas::operator =(Atlas&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->atlas = moveFrom.atlas;
     moveFrom.atlas = {};
     

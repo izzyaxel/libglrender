@@ -36,6 +36,11 @@ namespace glr
   
   Image& Image::operator=(Image&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->imageData = moveFrom.imageData;
     moveFrom.imageData = {};
     

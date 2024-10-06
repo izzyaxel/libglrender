@@ -243,22 +243,27 @@ namespace glr
     this->init = true;
   }
   
-  FramebufferPool::FramebufferPool(FramebufferPool&& other) noexcept
+  FramebufferPool::FramebufferPool(FramebufferPool&& moveFrom) noexcept
   {
-    this->pool = std::move(other.pool);
-    other.pool.clear();
+    this->pool = std::move(moveFrom.pool);
+    moveFrom.pool.clear();
     
     this->init = true;
-    other.init = false;
+    moveFrom.init = false;
   }
   
-  FramebufferPool& FramebufferPool::operator=(FramebufferPool&& other) noexcept
+  FramebufferPool& FramebufferPool::operator=(FramebufferPool&& moveFrom) noexcept
   {
-    this->pool = std::move(other.pool);
-    other.pool.clear();
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
+    this->pool = std::move(moveFrom.pool);
+    moveFrom.pool.clear();
     
     this->init = true;
-    other.init = false;
+    moveFrom.init = false;
     
     return *this;
   }

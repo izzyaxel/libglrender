@@ -129,6 +129,11 @@ namespace glr
   
   Shader& Shader::operator=(Shader&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->handle = moveFrom.handle;
     moveFrom.handle = INVALID_HANDLE;
     

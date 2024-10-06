@@ -12,8 +12,8 @@ namespace glr
     
     ShaderPipeline(ShaderPipeline&& moveFrom) noexcept;
     ShaderPipeline &operator =(ShaderPipeline&& moveFrom) noexcept;
-    ShaderPipeline(const ShaderPipeline& other) = delete;
-    ShaderPipeline &operator =(const ShaderPipeline& other) = delete;
+    ShaderPipeline(const ShaderPipeline& copyFrom);
+    ShaderPipeline& operator =(const ShaderPipeline& copyFrom);
     
     [[nodiscard]] GLRENDER_API bool isValid() const;
     [[nodiscard]] GLRENDER_API bool exists() const;

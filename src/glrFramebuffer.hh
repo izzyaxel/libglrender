@@ -54,8 +54,8 @@ namespace glr
     
     FramebufferPool(const FramebufferPool& other) = delete;
     FramebufferPool& operator=(const FramebufferPool& other) = delete;
-    GLRENDER_API FramebufferPool(FramebufferPool&& other) noexcept;
-    GLRENDER_API FramebufferPool& operator=(FramebufferPool&& other) noexcept;
+    GLRENDER_API FramebufferPool(FramebufferPool&& moveFrom) noexcept;
+    GLRENDER_API FramebufferPool& operator=(FramebufferPool&& moveFrom) noexcept;
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();

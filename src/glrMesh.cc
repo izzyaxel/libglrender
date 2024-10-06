@@ -164,6 +164,11 @@ namespace glr
   
   Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->vboV = moveFrom.vboV;
     moveFrom.vboV = INVALID_HANDLE;
     

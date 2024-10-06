@@ -12,6 +12,23 @@ namespace glr
     this->shaderPipeline->reset();
   }
   
+  RenderList::RenderList(const RenderList& copyFrom)
+  {
+    this->list = copyFrom.list;
+    this->shaderPipeline = copyFrom.shaderPipeline;
+  }
+  
+  RenderList& RenderList::operator=(const RenderList& copyFrom)
+  {
+    if(this == &copyFrom)
+    {
+      return *this;
+    }
+    this->list = copyFrom.list;
+    this->shaderPipeline = copyFrom.shaderPipeline;
+    return *this;
+  }
+  
   RenderList::RenderList(RenderList&& moveFrom) noexcept
   {
     this->list = std::move(moveFrom.list);
@@ -22,6 +39,11 @@ namespace glr
   
   RenderList& RenderList::operator=(RenderList&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->list = std::move(moveFrom.list);
     moveFrom.list = {};
     this->shaderPipeline = std::move(moveFrom.shaderPipeline);

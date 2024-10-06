@@ -15,8 +15,8 @@ namespace glr
     RenderList() = default;
     ~RenderList();
     
-    RenderList(const Shader& copyFrom) = delete;
-    RenderList& operator=(const Shader& copyFrom) = delete;
+    RenderList(const RenderList& copyFrom);
+    RenderList& operator=(const RenderList& copyFrom);
     GLRENDER_API RenderList(RenderList&& moveFrom) noexcept;
     GLRENDER_API RenderList& operator=(RenderList&& moveFrom) noexcept;
     
@@ -45,7 +45,7 @@ namespace glr
     
     /// Optional, if used then all Renderables in this list will use this pipeline instead of their individual shaders
     bool useShaderPipeline = false;
-    std::unique_ptr<ShaderPipeline> shaderPipeline = nullptr;
+    std::shared_ptr<ShaderPipeline> shaderPipeline = nullptr;
     
     std::vector<Renderable> list{};
   };

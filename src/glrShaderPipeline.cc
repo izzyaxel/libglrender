@@ -25,6 +25,26 @@ namespace glr
     glDeleteProgramPipelines(1, &this->handle);
   }
   
+  ShaderPipeline::ShaderPipeline(const ShaderPipeline& copyFrom)
+  {
+    this->handle = copyFrom.handle;
+    this->shaders = copyFrom.shaders;
+    this->init = true;
+  }
+  
+  ShaderPipeline& ShaderPipeline::operator=(const ShaderPipeline& copyFrom)
+  {
+    if(this == &copyFrom)
+    {
+      return *this;
+    }
+    
+    this->handle = copyFrom.handle;
+    this->shaders = copyFrom.shaders;
+    this->init = true;
+    return *this;
+  }
+  
   ShaderPipeline::ShaderPipeline(ShaderPipeline&& moveFrom) noexcept
   {
     this->handle = moveFrom.handle;
@@ -39,6 +59,11 @@ namespace glr
 
   ShaderPipeline& ShaderPipeline::operator=(ShaderPipeline&& moveFrom) noexcept
   {
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+    
     this->handle = moveFrom.handle;
     moveFrom.handle = INVALID_HANDLE;
     
