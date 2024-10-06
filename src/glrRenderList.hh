@@ -12,11 +12,11 @@ namespace glr
   /// A sortable container for Renderables
   struct RenderList
   {
-    RenderList() = default;
-    ~RenderList();
+    GLRENDER_API RenderList() = default;
+    GLRENDER_API ~RenderList();
     
-    RenderList(const RenderList& copyFrom);
-    RenderList& operator=(const RenderList& copyFrom);
+    GLRENDER_API RenderList(const RenderList& copyFrom);
+    GLRENDER_API RenderList& operator=(const RenderList& copyFrom);
     GLRENDER_API RenderList(RenderList&& moveFrom) noexcept;
     GLRENDER_API RenderList& operator=(RenderList&& moveFrom) noexcept;
     
