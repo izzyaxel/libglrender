@@ -1,6 +1,8 @@
 #pragma once
 
+#include "export.hh"
+
 namespace glr
 {
-  extern uint32_t INVALID_HANDLE;
+  GLRENDER_API extern uint32_t INVALID_HANDLE;
 }
