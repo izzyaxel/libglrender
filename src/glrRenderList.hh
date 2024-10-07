@@ -45,7 +45,7 @@ namespace glr
     
     /// Optional, if used then all Renderables in this list will use this pipeline instead of their individual shaders
     bool useShaderPipeline = false;
-    std::shared_ptr<ShaderPipeline> shaderPipeline = nullptr;
+    std::optional<ShaderPipeline> shaderPipeline{};
     
     std::vector<Renderable> list{};
   };

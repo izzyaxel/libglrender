@@ -9,9 +9,9 @@ namespace glr
   
   RenderList::~RenderList()
   {
-    if(this->shaderPipeline)
+    if(this->shaderPipeline.has_value())
     {
-      this->shaderPipeline->reset();
+      this->shaderPipeline = {};
     }
   }
   
@@ -37,7 +37,7 @@ namespace glr
     this->list = std::move(moveFrom.list);
     moveFrom.list = {};
     this->shaderPipeline = std::move(moveFrom.shaderPipeline);
-    moveFrom.shaderPipeline = nullptr;
+    moveFrom.shaderPipeline = {};
   }
   
   RenderList& RenderList::operator=(RenderList&& moveFrom) noexcept
@@ -50,7 +50,7 @@ namespace glr
     this->list = std::move(moveFrom.list);
     moveFrom.list = {};
     this->shaderPipeline = std::move(moveFrom.shaderPipeline);
-    moveFrom.shaderPipeline = nullptr;
+    moveFrom.shaderPipeline = {};
     return *this;
   }
   
