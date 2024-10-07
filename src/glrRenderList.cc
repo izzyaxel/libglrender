@@ -9,7 +9,10 @@ namespace glr
   
   RenderList::~RenderList()
   {
-    this->shaderPipeline->reset();
+    if(this->shaderPipeline)
+    {
+      this->shaderPipeline->reset();
+    }
   }
   
   RenderList::RenderList(const RenderList& copyFrom)
