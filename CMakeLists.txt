@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.29 FATAL_ERROR)
 set(ARCH "x86_64")
 set(CMAKE_CXX_STANDARD 23)
 
+include(FetchContent)
+
 #Base flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused -Wno-array-bounds -Wno-stringop-overflow")
 
@@ -34,26 +36,13 @@ elseif(CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions(-DDEBUG)
 endif()
 
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/modules")
-  file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/modules")
-endif ()
+FetchContent_Declare(libcommons
+                     GIT_REPOSITORY "https://github.com/izzyaxel/libcommons.git"
+                     GIT_TAG "origin/master"
+                     SOURCE_DIR "modules/libcommons")
+FetchContent_MakeAvailable(libcommons)
 
-if(WIN32 OR WIN64)
-  if(EXISTS "${CMAKE_SOURCE_DIR}/modules/libcommons")
-    execute_process(COMMAND cmd /c "${CMAKE_SOURCE_DIR}/scripts/updateModules.bat" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
-  else()
-    execute_process(COMMAND cmd /c "${CMAKE_SOURCE_DIR}/scripts/pullModules.bat" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
-  endif()
-elseif(UNIX)
-  if(EXISTS "${CMAKE_SOURCE_DIR}/modules/libcommons")
-    execute_process(bash "${CMAKE_SOURCE_DIR}/scripts/updateModules.sh" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
-  else()
-    execute_process(bash "${CMAKE_SOURCE_DIR}/scripts/pullModules.sh" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
-  endif()
-endif()
-
-add_subdirectory("${CMAKE_SOURCE_DIR}/modules/libcommons" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
-include_directories("${CMAKE_SOURCE_DIR}/modules/libcommons/src/")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/modules/libcommons/src/")
 
 set(SRC
     src/gl.cc
