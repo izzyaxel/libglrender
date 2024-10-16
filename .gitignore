@@ -17,4 +17,3 @@ cmake-build-release/
 cmake-build-relwithdebinfo/
 cmake-build-minsizerel
 docs/
-modules/
