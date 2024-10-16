@@ -42,7 +42,7 @@ FetchContent_Declare(libcommons
                      SOURCE_DIR "modules/libcommons")
 FetchContent_MakeAvailable(libcommons)
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/modules/libcommons/src/")
+include_directories("${CMAKE_BINARY_DIR}/modules/libcommons/src/")
 
 set(SRC
     src/gl.cc
