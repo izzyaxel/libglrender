@@ -40,10 +40,8 @@ endif ()
 
 if(WIN32 OR WIN64)
   if(EXISTS "${CMAKE_SOURCE_DIR}/modules/libcommons")
-    message("Updating")
     execute_process(COMMAND cmd /c "${CMAKE_SOURCE_DIR}/scripts/updateModules.bat" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
   else()
-    message("Pulling")
     execute_process(COMMAND cmd /c "${CMAKE_SOURCE_DIR}/scripts/pullModules.bat" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/scripts/")
   endif()
 elseif(UNIX)
@@ -54,8 +52,8 @@ elseif(UNIX)
   endif()
 endif()
 
-add_subdirectory("modules/libcommons" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
-include_directories("modules/libcommons/src/")
+add_subdirectory("${CMAKE_SOURCE_DIR}/modules/libcommons" "${CMAKE_CURRENT_BINARY_DIR}/libcommons/build/")
+include_directories("${CMAKE_SOURCE_DIR}/modules/libcommons/src/")
 
 set(SRC
     src/gl.cc
