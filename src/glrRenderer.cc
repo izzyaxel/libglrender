@@ -461,10 +461,7 @@ void main()
       const FilterMode prevMode = this->filterMode;
       this->setFilterMode(FilterMode::TRILINEAR);
       
-      quat<float> rotQuat;
-      rotQuat.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
-      const vec3<float> pos3 = vec3<float>{vec2{entry.pos}, 0};
-      this->model = modelMatrix(pos3, rotQuat, vec3<float>(vec2{entry.scale}, 1));
+      this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       
       entry.shader->use();
@@ -491,10 +488,7 @@ void main()
     }
     else
     {
-      quat<float> rotation;
-      rotation.fromAxial(vec3{entry.axis}, degToRad<float>(entry.rotation));
-      const vec3<float> posF = vec3<float>{vec2{entry.pos}, 0};
-      this->model = modelMatrix(posF, rotation, vec3<float>(vec2{entry.scale}, 1));
+      this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       entry.shader->use();
       entry.shader->setUniform("mvp", this->mvp);

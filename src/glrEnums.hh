@@ -9,7 +9,7 @@ namespace glr
     GREY,
   };
 
-/// Framebuffer attachments
+  /// Framebuffer attachments
   enum struct Attachment
   {
     COLOR, ALPHA, DEPTH, STENCIL,
@@ -21,15 +21,15 @@ namespace glr
     TEXT,
   };
 
-/// Access type for compute shader image binding
-/// Mirrors OpenGL's enums
+  /// Access type for compute shader image binding
+  /// Mirrors OpenGL's enums
   enum struct IOMode
   {
     READ = 0x88B8, WRITE = 0x88B9, READWRITE = 0x88BA
   };
 
-/// Color format for compute shader image binding
-/// Mirrors OpenGL's enums
+  /// Color format for compute shader image binding
+  /// Mirrors OpenGL's enums
   enum struct GLColorFormat
   {
     R32F = 0x822E,
@@ -48,8 +48,8 @@ namespace glr
     DEPTH32F = 0x8CAC,
   };
 
-/// Mode to draw a VAO in
-/// Mirrors OpenGL's enums
+  /// Mode to draw a VAO in
+  /// Mirrors OpenGL's enums
   enum struct DrawMode
   {
     TRIS = 0x0004,
@@ -61,7 +61,7 @@ namespace glr
     POINTS = 0x0000,
   };
 
-/// Texture filtering mode
+  /// Texture filtering mode
   enum struct FilterMode
   {
     NEAREST,

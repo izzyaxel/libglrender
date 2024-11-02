@@ -36,42 +36,37 @@ namespace glr
       std::string colorUniformLocation;
     };
     
-    GLRENDER_API Renderable(vec2<float> const &pos,
-      const vec2<float>& scale,
-      const float rotation,
-      const vec3<float>& axis,
-      Texture *texture,
-      Shader *shader,
-      Mesh *mesh,
-      const size_t layer,
-      const size_t sublayer,
-      std::string name,
-      CharacterInfo characterInfo = CharacterInfo()) :
-      pos(pos),
-      scale(scale),
-      rotation(rotation),
-      axis(axis),
-      texture(texture),
-      shader(shader),
-      mesh(mesh),
-      layer(layer),
-      sublayer(sublayer),
-      name(std::move(name)),
-      characterInfo(std::move(characterInfo))
-    {}
+    GLRENDER_API Renderable(vec3<float> const &pos,
+                            const vec3<float>& scale,
+                            const quat<float>& rotation,
+                            Texture *texture,
+                            Shader *shader,
+                            Mesh *mesh,
+                            const size_t layer,
+                            const size_t sublayer,
+                            std::string name,
+                            CharacterInfo characterInfo = CharacterInfo()) :
+                            pos(pos),
+                            scale(scale),
+                            rotation(rotation),
+                            texture(texture),
+                            shader(shader),
+                            mesh(mesh),
+                            layer(layer),
+                            sublayer(sublayer),
+                            name(std::move(name)),
+                            characterInfo(std::move(characterInfo)) {}
     
     bool operator==(const Renderable& other) const
     {
-      return this->pos == other.pos && this->scale == other.scale && this->rotation == other.rotation &&
-      this->axis == other.axis && this->texture == other.texture && this->shader == other.shader &&
-      this->mesh == other.mesh && this->layer == other.layer && this->sublayer == other.sublayer &&
-      this->name == other.name && this->characterInfo == other.characterInfo;
+      return this->pos == other.pos && this->scale == other.scale && this->rotation == other.rotation && this->texture == other.texture &&
+             this->shader == other.shader && this->mesh == other.mesh && this->layer == other.layer &&
+             this->sublayer == other.sublayer && this->name == other.name && this->characterInfo == other.characterInfo;
     }
     
-    vec2<float> pos = {};
-    vec2<float> scale = {};
-    float rotation = 0.0f;
-    vec3<float> axis = {0.0f, 0.0f, 1.0f};
+    vec3<float> pos = {};
+    vec3<float> scale = {};
+    quat<float> rotation = {};
     Texture* texture = nullptr;
     Shader* shader = nullptr;
     Mesh* mesh = nullptr;
