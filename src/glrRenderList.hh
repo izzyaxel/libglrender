@@ -5,7 +5,7 @@
 #include "glrShaderPipeline.hh"
 
 #include <functional>
-#include <memory>
+#include <optional>
 
 namespace glr
 {
