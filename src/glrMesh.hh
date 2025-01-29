@@ -48,10 +48,10 @@ namespace glr
     template <size_t N> GLRENDER_API explicit Mesh(const std::array<float, N>& verts) :
     Mesh(verts.data(), verts.size())
     {}
-    template <size_t N> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, N>& uvs) :
+    template <size_t N, size_t O> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, O>& uvs) :
     Mesh(verts.data(), verts.size(), uvs.data(), uvs.size())
     {}
-    template <size_t N> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, N>& uvs, const std::array<float, N>& normals) :
+    template <size_t N, size_t O, size_t P> GLRENDER_API Mesh(const std::array<float, N>& verts, const std::array<float, O>& uvs, const std::array<float, P>& normals) :
     Mesh(verts.data(), verts.size(), uvs.data(), uvs.size(), normals.data(), normals.size())
     {}
     
@@ -66,10 +66,10 @@ namespace glr
     template <size_t N> GLRENDER_API explicit Mesh(const std::array<uint8_t, N>& verts) :
     Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4)
     {}
-    template <size_t N> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, N>& uvs) :
+    template <size_t N, size_t O> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, O>& uvs) :
     Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4)
     {}
-    template <size_t N> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, N>& uvs, const std::array<uint8_t, N>& normals) :
+    template <size_t N, size_t O, size_t P> GLRENDER_API Mesh(const std::array<uint8_t, N>& verts, const std::array<uint8_t, O>& uvs, const std::array<uint8_t, P>& normals) :
     Mesh(reinterpret_cast<const float*>(verts.data()), verts.size() / 4, reinterpret_cast<const float*>(uvs.data()), uvs.size() / 4, reinterpret_cast<const float*>(normals.data()), normals.size() / 4)
     {}
     
