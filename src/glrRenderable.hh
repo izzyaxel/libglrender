@@ -7,6 +7,8 @@
 
 #include "export.hh"
 
+#include <commons/math/quaternion.hh>
+
 namespace glr
 {
   /// A bundle of information the renderer can use to draw something to a framebuffer

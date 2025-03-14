@@ -5,6 +5,7 @@
 #include "glrUtil.hh"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace glr

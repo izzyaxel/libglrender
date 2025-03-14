@@ -3,6 +3,12 @@
 #include "export.hh"
 #include "glrUtil.hh"
 
+#include <commons/math/vec2.hh>
+#include <commons/math/vec3.hh>
+#include <commons/math/vec4.hh>
+#include <commons/math/mat3.hh>
+#include <commons/math/mat4.hh>
+
 #include <variant>
 #include <string>
 #include <unordered_map>

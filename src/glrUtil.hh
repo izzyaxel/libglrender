@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "export.hh"
 
 namespace glr
