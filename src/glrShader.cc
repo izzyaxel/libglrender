@@ -20,11 +20,15 @@ namespace glr
     {
       int32_t maxLen = 0;
       glGetShaderiv(vertHandle, GL_INFO_LOG_LENGTH, &maxLen);
-      std::vector<char> error;
-      error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(vertHandle, maxLen, &maxLen, error.data());
-      const std::string errorStr{error.begin(), error.end()};
-      printf("Vert/Frag shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
+      if(maxLen <= 0)
+      {
+        printf("Vert/Frag shader error: %s failed to compile", name.c_str());
+        return;
+      }
+      char* error = new char[maxLen];
+      glGetShaderInfoLog(vertHandle, maxLen, nullptr, error);
+      printf("Vert/Frag shader error: %s failed to compile, error: %s\n", name.c_str(), error);
+      delete[] error;
       return;
     }
     glCompileShader(fragHandle);
@@ -34,11 +38,15 @@ namespace glr
     {
       int32_t maxLen = 0;
       glGetShaderiv(fragHandle, GL_INFO_LOG_LENGTH, &maxLen);
-      std::vector<char> error;
-      error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(fragHandle, maxLen, &maxLen, error.data());
-      const std::string errorStr{error.begin(), error.end()};
-      printf("Vert/Frag shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
+      if(maxLen <= 0)
+      {
+        printf("Vert/Frag shader error: %s failed to compile\n", name.c_str());
+        return;
+      }
+      char* error = new char[maxLen];
+      glGetShaderInfoLog(fragHandle, maxLen, nullptr, error);
+      printf("Vert/Frag shader error: %s failed to compile, error: %s\n", name.c_str(), error);
+      delete[] error;
       return;
     }
     glAttachShader(this->handle, vertHandle);
@@ -49,12 +57,16 @@ namespace glr
     if(!success)
     {
       int32_t maxLen = 0;
-      glGetShaderiv(this->handle, GL_INFO_LOG_LENGTH, &maxLen);
-      std::vector<char> error;
-      error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(this->handle, maxLen, &maxLen, error.data());
-      std::string errorStr{error.begin(), error.end()};
-      printf("Vert/Frag shader program error: %s failed to link\n", name.c_str());
+      glGetProgramiv(this->handle, GL_INFO_LOG_LENGTH, &maxLen);
+      if(maxLen <= 0)
+      {
+        printf("Vert/Frag shader program error: %s failed to link\n", name.c_str());
+        return;
+      }
+      char* error = new char[maxLen];
+      glGetProgramInfoLog(this->handle, maxLen, nullptr, error);
+      printf("Vert/Frag shader program error: %s failed to link, error: %s\n", name.c_str(), error);
+      delete[] error;
       return;
     }
     glDetachShader(this->handle, vertHandle);
@@ -78,11 +90,15 @@ namespace glr
     {
       int32_t maxLen = 0;
       glGetShaderiv(compHandle, GL_INFO_LOG_LENGTH, &maxLen);
-      std::vector<char> error;
-      error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(compHandle, maxLen, &maxLen, error.data());
-      const std::string errorStr{error.begin(), error.end()};
-      printf("Compute shader error: %s failed to compile: %s\n", name.c_str(), errorStr.c_str());
+      if(maxLen <= 0)
+      {
+        printf("Compute shader error: %s failed to compile\n", name.c_str());
+        return;
+      }
+      char* error = new char[maxLen];
+      glGetShaderInfoLog(compHandle, maxLen, nullptr, error);
+      printf("Compute shader error: %s failed to compile, error: %s\n", name.c_str(), error);
+      delete[] error;
       return;
     }
     
@@ -94,11 +110,15 @@ namespace glr
     {
       int32_t maxLen = 0;
       glGetShaderiv(this->handle, GL_INFO_LOG_LENGTH, &maxLen);
-      std::vector<char> error;
-      error.resize(maxLen * sizeof(GLchar));
-      glGetShaderInfoLog(this->handle, maxLen, &maxLen, error.data());
-      const std::string errorStr{error.begin(), error.end()};
-      printf("Compute shader program error: %s failed to link: %s\n", name.c_str(), errorStr.c_str());
+      if(maxLen <= 0)
+      {
+        printf("Compute shader program error: %s\n", name.c_str());
+        return;
+      }
+      char* error = new char[maxLen];
+      glGetProgramInfoLog(this->handle, maxLen, nullptr, error);
+      printf("Compute shader program error: %s failed to link, error: %s\n", name.c_str(), error);
+      delete[] error;
       return;
     }
     glDetachShader(this->handle, compHandle);
