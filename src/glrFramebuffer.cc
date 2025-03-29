@@ -13,16 +13,16 @@ namespace glr
     {
       switch(option)
       {
-        case Attachment::COLOR:
+        case COLOR:
           this->hasColor = true;
           break;
-        case Attachment::ALPHA:
+        case ALPHA:
           this->hasAlpha = true;
           break;
-        case Attachment::DEPTH:
+        case DEPTH:
           this->hasDepth = true;
           break;
-        case Attachment::STENCIL:
+        case STENCIL:
           this->hasStencil = true;
           break;
         default:
@@ -159,13 +159,13 @@ namespace glr
   {
     switch(type)
     {
-      case Attachment::COLOR:
+      case COLOR:
         glBindTextureUnit(target, this->colorHandle);
         break;
-      case Attachment::DEPTH:
+      case DEPTH:
         glBindTextureUnit(target, this->depthHandle);
         break;
-      case Attachment::STENCIL:
+      case STENCIL:
         glBindTextureUnit(target, this->stencilHandle);
         break;
       default:
@@ -238,7 +238,7 @@ namespace glr
     this->pool.resize(alloc);
     for(size_t i = 0; i < alloc; i++)
     {
-      this->pool[i] = Framebuffer(width, height, std::initializer_list<Attachment>{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(i));
+      this->pool[i] = Framebuffer(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(i));
     }
     this->init = true;
   }
@@ -288,14 +288,14 @@ namespace glr
       {
         if(fbo.width != width || fbo.height != height)
         {
-          fbo = Framebuffer(width, height, std::initializer_list{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+          fbo = Framebuffer(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
         }
         fbo.use();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return fbo;
       }
     }
-    this->pool.emplace_back(width, height, std::initializer_list{Attachment::COLOR, Attachment::ALPHA, Attachment::DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+    this->pool.emplace_back(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
     this->pool.back().use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return this->pool.back();

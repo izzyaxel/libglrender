@@ -47,7 +47,6 @@ include_directories("${CMAKE_BINARY_DIR}/modules/libcommons/src/")
 set(SRC
     src/gl.cc
     src/export.hh
-    src/glrEnums.hh
     src/glrRenderer.cc src/glrRenderer.hh
     src/glrFramebuffer.cc src/glrFramebuffer.hh
     src/glrPostProcessing.cc src/glrPostProcessing.hh

@@ -4,7 +4,7 @@
 
 namespace glr
 {
-  Texture::Texture(const std::string& name, const uint32_t width, const uint32_t height, const TexColorFormat colorFormat, const FilterMode mode, const bool sRGB)
+  Texture::Texture(const std::string& name, const uint32_t width, const uint32_t height, const ColorFormat colorFormat, const FilterMode min, const FilterMode mag, const bool sRGB)
   {
     this->name = name;
     this->fmt = colorFormat;
@@ -12,56 +12,56 @@ namespace glr
     this->height = height;
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
     int32_t f = 0;
-    if(colorFormat == TexColorFormat::RGB) //It's more efficient to use an extra 8 bits of VRAM per pixel
+    if(colorFormat == RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
       if(sRGB) f = GL_SRGB8;
       else f = GL_RGB8;
     }
-    else if(colorFormat == TexColorFormat::RGBA)
+    else if(colorFormat == RGBA)
     {
       if(sRGB) f = GL_SRGB8_ALPHA8;
       else f = GL_RGBA8;
     }
-    else if(colorFormat == TexColorFormat::GREY)
+    else if(colorFormat == GREY)
     {
       f = GL_R8;
     }
-    glTextureStorage2D(this->handle, 1, f, (GLsizei) width, (GLsizei) height);
+    glTextureStorage2D(this->handle, 1, f, (int32_t)width, (int32_t)height);
     this->clear();
-    this->setFilterMode(mode, mode);
+    this->setFilterMode(min, mag);
     this->setAnisotropyLevel(1);
     
     this->init = true;
   }
   
-  Texture::Texture(const std::string& name, const uint8_t* data, const uint32_t width, const uint32_t height, const TexColorFormat colorFormat, const FilterMode mode, const bool sRGB)
+  Texture::Texture(const std::string& name, const uint8_t* data, const uint32_t width, const uint32_t height, const ColorFormat colorFormat, const FilterMode min, const FilterMode mag, const bool sRGB)
   {
     this->name = name;
     this->fmt = colorFormat;
     this->width = width;
     this->height = height;
     int32_t f = 0, cf = 0;
-    if(colorFormat == TexColorFormat::RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
+    if(colorFormat == RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
       if(sRGB) f = GL_SRGB8;
       else f = GL_RGB8;
       cf = GL_RGB;
     }
-    else if(colorFormat == TexColorFormat::RGBA)
+    else if(colorFormat == RGBA)
     {
       if(sRGB) f = GL_SRGB8_ALPHA8;
       else f = GL_RGBA8;
       cf = GL_RGBA;
     }
-    else if(colorFormat == TexColorFormat::GREY)
+    else if(colorFormat == GREY)
     {
       f = GL_R8;
       cf = GL_RED;
     }
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
-    glTextureStorage2D(this->handle, 1, f, (GLsizei) width, (GLsizei) height);
-    glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, (GLsizei) this->height, cf, GL_UNSIGNED_BYTE, data);
-    this->setFilterMode(mode, mode);
+    glTextureStorage2D(this->handle, 1, f, (int32_t)width, (int32_t)height);
+    glTextureSubImage2D(this->handle, 0, 0, 0, (int32_t)this->width, (int32_t)this->height, cf, GL_UNSIGNED_BYTE, data);
+    this->setFilterMode(min, mag);
     this->setAnisotropyLevel(1);
     this->init = true;
   }
@@ -69,7 +69,7 @@ namespace glr
   Texture::Texture(const std::string& name, const uint8_t red, const uint8_t green, const uint8_t blue, const uint8_t alpha, const bool sRGB)
   {
     this->name = name;
-    this->fmt = TexColorFormat::RGBA;
+    this->fmt = RGBA;
     this->width = 1;
     this->height = 1;
     uint8_t **data = new uint8_t *;
@@ -79,9 +79,9 @@ namespace glr
     data[0][2] = blue;
     data[0][3] = alpha;
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
-    glTextureStorage2D(this->handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (GLsizei) this->width, (GLsizei) this->height);
-    glTextureSubImage2D(this->handle, 0, 0, 0, (GLsizei) this->width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
-    this->setFilterMode(FilterMode::BILINEAR, FilterMode::BILINEAR);
+    glTextureStorage2D(this->handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (int32_t)this->width, (int32_t)this->height);
+    glTextureSubImage2D(this->handle, 0, 0, 0, (int32_t)this->width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
+    this->setFilterMode(BILINEAR, BILINEAR);
     this->setAnisotropyLevel(1);
     this->init = true;
   }
@@ -183,13 +183,13 @@ namespace glr
     GLenum glMin = GL_NEAREST, glMag = GL_NEAREST;
     switch(min)
     {
-      case FilterMode::NEAREST:
+      case NEAREST:
         glMin = GL_NEAREST;
         break;
-      case FilterMode::BILINEAR:
+      case BILINEAR:
         glMin = GL_LINEAR;
         break;
-      case FilterMode::TRILINEAR:
+      case TRILINEAR:
         glMin = GL_LINEAR_MIPMAP_LINEAR;
         break;
       default:
@@ -198,13 +198,13 @@ namespace glr
     
     switch(mag)
     {
-      case FilterMode::NEAREST:
+      case NEAREST:
         glMag = GL_NEAREST;
         break;
-      case FilterMode::BILINEAR:
+      case BILINEAR:
         glMag = GL_LINEAR;
         break;
-      case FilterMode::TRILINEAR:
+      case TRILINEAR:
         glMag = GL_LINEAR_MIPMAP_LINEAR;
         break;
       default:
@@ -219,18 +219,18 @@ namespace glr
     glTextureParameterf(this->handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat) level);
   }
   
-  void Texture::subImage(const uint8_t* data, const uint32_t w, const uint32_t h, const uint32_t xPos, const uint32_t yPos, const TexColorFormat format) const
+  void Texture::subImage(const uint8_t* data, const uint32_t w, const uint32_t h, const uint32_t xPos, const uint32_t yPos, const ColorFormat format) const
   {
     int32_t f = 0;
     switch(format)
     {
-      case TexColorFormat::RGB:
+      case RGB:
         f = GL_RGB;
         break;
-      case TexColorFormat::RGBA:
+      case RGBA:
         f = GL_RGBA;
         break;
-      case TexColorFormat::GREY:
+      case GREY:
         f = GL_RED;
         break;
     }
@@ -242,20 +242,20 @@ namespace glr
     int32_t f = 0;
     switch(this->fmt)
     {
-      case TexColorFormat::RGB:
+      case RGB:
         f = GL_RGB;
         break;
-      case TexColorFormat::RGBA:
+      case RGBA:
         f = GL_RGBA;
         break;
-      case TexColorFormat::GREY:
+      case GREY:
         f = GL_RED;
         break;
     }
     glClearTexImage(this->handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
   }
   
-  DownloadedImageData Texture::downloadTexture(const TexColorFormat colorFormat) const
+  DownloadedImageData Texture::downloadTexture(const ColorFormat colorFormat) const
   {
     DownloadedImageData out;
     out.textureName = this->name;
@@ -264,15 +264,15 @@ namespace glr
     int32_t cpp = 0;
     switch(colorFormat)
     {
-      case TexColorFormat::RGB:
+      case RGB:
         cf = GL_RGB;
         cpp = 3;
         break;
-      case TexColorFormat::RGBA:
+      case RGBA:
         cf = GL_RGBA;
         cpp = 4;
         break;
-      case TexColorFormat::GREY:
+      case GREY:
         cf = GL_RED;
         cpp = 1;
         break;

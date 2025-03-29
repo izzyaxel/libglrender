@@ -181,7 +181,7 @@ namespace glr
     return *this;
   }
   
-  void Atlas::addTile(const std::string& name, const std::vector<uint8_t>& tileData, const TexColorFormat format, const uint32_t width, const uint32_t height)
+  void Atlas::addTile(const std::string& name, const std::vector<uint8_t>& tileData, const ColorFormat format, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -202,7 +202,7 @@ namespace glr
     this->init = true;
   }
   
-  void Atlas::addTile(const std::string& name, const TexColorFormat fmt, std::vector<uint8_t>&& tileData, const uint32_t width, const uint32_t height)
+  void Atlas::addTile(const std::string& name, const ColorFormat fmt, std::vector<uint8_t>&& tileData, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -289,7 +289,7 @@ namespace glr
     return false;
   }
   
-  void Atlas::finalize(const std::string& name, Texture& atlasTexture, const TexColorFormat fmt)
+  void Atlas::finalize(const std::string& name, Texture& atlasTexture, const ColorFormat fmt)
   {
     if(this->finalized)
     {

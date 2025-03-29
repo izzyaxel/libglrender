@@ -1,7 +1,6 @@
 #pragma once
 
 #include "export.hh"
-#include "glrEnums.hh"
 #include "glrTexture.hh"
 #include "glrMesh.hh"
 
@@ -27,10 +26,10 @@ namespace glr
     /// \param tileData Flat array of pixel data
     /// \param width The width of the new tile
     /// \param height The height of the new tile
-    GLRENDER_API void addTile(const std::string& name, const std::vector<uint8_t>& tileData, TexColorFormat format, uint32_t width, uint32_t height);
+    GLRENDER_API void addTile(const std::string& name, const std::vector<uint8_t>& tileData, ColorFormat format, uint32_t width, uint32_t height);
     
     /// Add a new tile into this atlas from raw pixel data
-    GLRENDER_API void addTile(const std::string& name, TexColorFormat fmt, std::vector<uint8_t>&& tileData, uint32_t width, uint32_t height);
+    GLRENDER_API void addTile(const std::string& name, ColorFormat fmt, std::vector<uint8_t>&& tileData, uint32_t width, uint32_t height);
     
     /// Get the UV coordinates in the atlas for the given tile
     /// \return UV coordinates
@@ -45,7 +44,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool contains(const std::string& tileName);
     
     /// Create the atlas and send it to the GPU
-    GLRENDER_API void finalize(const std::string& name, Texture& atlasTexture, TexColorFormat fmt);
+    GLRENDER_API void finalize(const std::string& name, Texture& atlasTexture, ColorFormat fmt);
     
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
@@ -54,7 +53,7 @@ namespace glr
     struct AtlasImg
     {
       GLRENDER_API AtlasImg() = default;
-      GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, const TexColorFormat fmt, const vec2<uint32_t> location, const uint32_t width, const uint32_t height) :
+      GLRENDER_API AtlasImg(std::string name, std::vector<uint8_t> data, const ColorFormat fmt, const vec2<uint32_t> location, const uint32_t width, const uint32_t height) :
         name(std::move(name)), data(std::move(data)), fmt(fmt), location(location), width(width), height(height)
       {}
       
@@ -65,7 +64,7 @@ namespace glr
       
       std::string name;
       std::vector<uint8_t> data = {};
-      TexColorFormat fmt = TexColorFormat::RGBA;
+      ColorFormat fmt = ColorFormat::RGBA;
       vec2<uint32_t> location = {};
       uint32_t width = 0;
       uint32_t height = 0;

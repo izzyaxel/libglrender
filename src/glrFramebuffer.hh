@@ -1,7 +1,6 @@
 #pragma once
 
 #include "export.hh"
-#include "glrEnums.hh"
 #include "glrUtil.hh"
 
 #include <string>
@@ -10,6 +9,11 @@
 
 namespace glr
 {
+  typedef enum
+  {
+    COLOR, ALPHA, DEPTH, STENCIL,
+  } Attachment;
+  
   /// An OpenGL framebuffer
   struct Framebuffer
   {
