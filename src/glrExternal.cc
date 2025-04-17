@@ -1,4 +1,4 @@
-#include "glrExternal.hh"
+#include "GLRender/glrExternal.hh"
 
 #include <glad/gl.hh>
 

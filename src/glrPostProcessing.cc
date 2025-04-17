@@ -1,4 +1,4 @@
-#include "glrPostProcessing.hh"
+#include "GLRender/glrPostProcessing.hh"
 
 #include <algorithm>
 

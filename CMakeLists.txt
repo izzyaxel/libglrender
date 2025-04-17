@@ -46,24 +46,24 @@ include_directories("${CMAKE_BINARY_DIR}/modules/libcommons/src/")
 
 set(SRC
     src/gl.cc
-    src/export.hh
-    src/glrRenderer.cc src/glrRenderer.hh
-    src/glrFramebuffer.cc src/glrFramebuffer.hh
-    src/glrPostProcessing.cc src/glrPostProcessing.hh
-    src/glrTexture.cc src/glrTexture.hh
-    src/glrShader.cc src/glrShader.hh
-    src/glrAtlas.cc src/glrAtlas.hh
-    src/glrImage.cc src/glrImage.hh
-    src/glrColor.cc src/glrColor.hh
-    src/glrMesh.cc src/glrMesh.hh
-    src/glrExternal.cc src/glrExternal.hh
-    src/glrRenderable.hh
+    src/GLRender/export.hh
+    src/glrRenderer.cc src/GLRender/glrRenderer.hh
+    src/glrFramebuffer.cc src/GLRender/glrFramebuffer.hh
+    src/glrPostProcessing.cc src/GLRender/glrPostProcessing.hh
+    src/glrTexture.cc src/GLRender/glrTexture.hh
+    src/glrShader.cc src/GLRender/glrShader.hh
+    src/glrAtlas.cc src/GLRender/glrAtlas.hh
+    src/glrImage.cc src/GLRender/glrImage.hh
+    src/glrColor.cc src/GLRender/glrColor.hh
+    src/glrMesh.cc src/GLRender/glrMesh.hh
+    src/glrExternal.cc src/GLRender/glrExternal.hh
+    src/GLRender/glrRenderable.hh
     src/glrRenderList.cc
-    src/glrRenderList.hh
+    src/GLRender/glrRenderList.hh
     src/glrShaderPipeline.cc
-    src/glrShaderPipeline.hh
+    src/GLRender/glrShaderPipeline.hh
     src/glrUtil.cc
-    src/glrUtil.hh)
+    src/GLRender/glrUtil.hh)
 
 project(GLRender)
 include_directories(include)
