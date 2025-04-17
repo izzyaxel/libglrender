@@ -1,4 +1,4 @@
-#include "glrAtlas.hh"
+#include "GLRender/glrAtlas.hh"
 
 #include <glad/gl.hh>
 #include <algorithm>
