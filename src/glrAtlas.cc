@@ -322,9 +322,9 @@ namespace glr
     atlasTexture.height = layout.height();
     atlasTexture.width = layout.width();
     atlasTexture.fmt = fmt;
-    atlasTexture.setFilterMode(FilterMode::NEAREST, FilterMode::NEAREST);
+    atlasTexture.setFilterMode(NEAREST, NEAREST);
     
-    atlasTexture = Texture(name, layout.width(), layout.height(), fmt, FilterMode::NEAREST);
+    atlasTexture = Texture(name, layout.width(), layout.height(), fmt, NEAREST);
     for(auto& tile: this->atlas)
     {
       atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);

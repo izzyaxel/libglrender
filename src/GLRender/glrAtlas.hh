@@ -64,7 +64,7 @@ namespace glr
       
       std::string name;
       std::vector<uint8_t> data = {};
-      ColorFormat fmt = ColorFormat::RGBA;
+      ColorFormat fmt = RGBA;
       vec2<uint32_t> location = {};
       uint32_t width = 0;
       uint32_t height = 0;

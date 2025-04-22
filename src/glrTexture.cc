@@ -40,27 +40,40 @@ namespace glr
     this->fmt = colorFormat;
     this->width = width;
     this->height = height;
-    int32_t f = 0, cf = 0;
+    int32_t internalFormat = 0;
+    int32_t colorFormatEx = 0;
     if(colorFormat == RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
-      if(sRGB) f = GL_SRGB8;
-      else f = GL_RGB8;
-      cf = GL_RGB;
+      if(sRGB)
+      {
+        internalFormat = GL_SRGB8;
+      }
+      else
+      {
+        internalFormat = GL_RGB8;
+      }
+      colorFormatEx = GL_RGB;
     }
     else if(colorFormat == RGBA)
     {
-      if(sRGB) f = GL_SRGB8_ALPHA8;
-      else f = GL_RGBA8;
-      cf = GL_RGBA;
+      if(sRGB)
+      {
+        internalFormat = GL_SRGB8_ALPHA8;
+      }
+      else
+      {
+        internalFormat = GL_RGBA8;
+      }
+      colorFormatEx = GL_RGBA;
     }
     else if(colorFormat == GREY)
     {
-      f = GL_R8;
-      cf = GL_RED;
+      internalFormat = GL_R8;
+      colorFormatEx = GL_RED;
     }
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
-    glTextureStorage2D(this->handle, 1, f, (int32_t)width, (int32_t)height);
-    glTextureSubImage2D(this->handle, 0, 0, 0, (int32_t)this->width, (int32_t)this->height, cf, GL_UNSIGNED_BYTE, data);
+    glTextureStorage2D(this->handle, 1, internalFormat, (int32_t)width, (int32_t)height);
+    glTextureSubImage2D(this->handle, 0, 0, 0, (int32_t)this->width, (int32_t)this->height, colorFormatEx, GL_UNSIGNED_BYTE, data);
     this->setFilterMode(min, mag);
     this->setAnisotropyLevel(1);
     this->init = true;
