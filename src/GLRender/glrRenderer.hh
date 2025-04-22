@@ -44,8 +44,8 @@ namespace glr
   } GLColorFormat;
   
   typedef void (*GLapiproc)();
-  typedef GLapiproc (*GLLoadFunc)(const char *name);
-  //typedef void (*GLLoadFunc)(const char *name);
+  typedef GLapiproc (*GLLoadFunc)(const char* name);
+  //typedef void (*GLLoadFunc)(const char* name);
   
   /// The OpenGL 4.5+ rendering engine
   struct Renderer
@@ -87,9 +87,13 @@ namespace glr
     GLRENDER_API void setBlending(bool val) const;
     GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst) const;
     GLRENDER_API void setCullFace(bool val) const;
-    GLRENDER_API void setFilterMode(FilterMode mode);
+    GLRENDER_API void setFilterMode(FilterMode min, FilterMode mag);
     GLRENDER_API void draw(DrawMode mode, size_t numElements) const;
+
+    /// Bind an image for use in a compute shader
     GLRENDER_API void bindImage(uint32_t target, uint32_t handle, IOMode mode, GLColorFormat format) const;
+
+    /// Run the currently bound compute shader
     GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORKSIZEX, WORKSIZEY}) const;
     
     GLRENDER_API static uint32_t WORKSIZEX;
@@ -126,7 +130,8 @@ namespace glr
     void drawRenderable(Renderable& entry);
 
     vec2<uint32_t> contextSize{};
-    FilterMode filterMode{};
+    FilterMode filterModeMin{};
+    FilterMode filterModeMag{};
     std::shared_ptr<PostStack> globalPostStack = nullptr;
     std::unordered_map<uint64_t, std::shared_ptr<PostStack>> layerPostStack{};
     mat4x4<float> model = {};

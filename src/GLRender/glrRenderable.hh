@@ -11,6 +11,11 @@
 
 namespace glr
 {
+  typedef enum
+  {
+    NORMAL, COMPUTE
+  } RenderableType;
+  
   /// A bundle of information the renderer can use to draw something to a framebuffer
   struct Renderable
   {
@@ -38,7 +43,8 @@ namespace glr
       std::string colorUniformLocation;
     };
     
-    GLRENDER_API Renderable(vec3<float> const &pos,
+    GLRENDER_API Renderable(RenderableType type,
+                            vec3<float> const &pos,
                             const vec3<float>& scale,
                             const quat<float>& rotation,
                             Texture *texture,
@@ -65,7 +71,8 @@ namespace glr
              this->shader == other.shader && this->mesh == other.mesh && this->layer == other.layer &&
              this->sublayer == other.sublayer && this->name == other.name && this->characterInfo == other.characterInfo;
     }
-    
+
+    RenderableType type = NORMAL;
     vec3<float> pos = {};
     vec3<float> scale = {};
     quat<float> rotation = {};

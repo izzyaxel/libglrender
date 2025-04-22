@@ -9,8 +9,8 @@ namespace glr
 
 /// ===Data===========================================================================///
   
-  std::string transferFrag = R"(
-#version 450
+  std::string transferFrag =
+R"(#version 450
 
 in vec2 uv;
 layout(binding = 0) uniform sampler2D tex;
@@ -21,8 +21,8 @@ void main()
   fragColor = texture(tex, uv);
 })";
   
-  std::string transferVert = R"(
-#version 450
+  std::string transferVert =
+R"(#version 450
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec2 uv_in;
@@ -34,8 +34,8 @@ void main()
   gl_Position = vec4(pos, 1.0);
 })";
   
-  std::vector<float> fullscreenQuadVerts{1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 1, 0};
-  std::vector<float> fullscreenQuadUVs{1, 0, 1, 1, 0, 0, 0, 1};
+  std::array fullscreenQuadVerts{1.f, -1.f, 0.f, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, -1.f, 1.f, 0.f};
+  std::array fullscreenQuadUVs{1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f};
   
 /// ===Data===========================================================================///
   
@@ -130,12 +130,11 @@ void main()
     gladLoadGL(loadFunc);
     this->contextSize = {contextWidth, contextHeight};
     this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
-    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Ping");
-    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR, Attachment::ALPHA}, "Pong");
-    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{Attachment::COLOR}, "Scratch");
+    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Ping");
+    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Pong");
+    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR}, "Scratch");
     this->fullscreenQuad = Mesh(fullscreenQuadVerts, fullscreenQuadUVs);
     this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
-    //this->shaderText = Shader("Text Shader", textVert, textFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
@@ -217,25 +216,51 @@ void main()
     val ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
   }
   
-  void Renderer::setFilterMode(const FilterMode mode)
+  void Renderer::setFilterMode(const FilterMode min, const FilterMode mag)
   {
-    this->filterMode = mode;
-    switch(mode)
+    this->filterModeMin = min;
+    this->filterModeMag = mag;
+    
+    switch(min)
     {
-      case FilterMode::NEAREST:
+      case NEAREST:
+      {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        break;
+      }
+      
+      case BILINEAR:
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        break;
+      }
+      
+      case TRILINEAR:
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        break;
+      }
+    }
+    
+    switch(mag)
+    {
+      case NEAREST:
+      {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         break;
+      }
       
-      case FilterMode::BILINEAR:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      case BILINEAR:
+      {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         break;
+      }
       
-      case FilterMode::TRILINEAR:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      case TRILINEAR:
+      {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         break;
+      }
     }
   }
   
@@ -256,8 +281,8 @@ void main()
     this->useBackBuffer();
     this->clearCurrentFramebuffer();
     this->shaderTransfer.use();
-    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
+    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::drawToScratch() const
@@ -265,8 +290,8 @@ void main()
     this->fullscreenQuad.use();
     this->scratch.use();
     this->shaderTransfer.use();
-    this->curFBO.get() ? this->fboA.bind(Attachment::COLOR, 0) : this->fboB.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
+    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::scratchToPingPong()
@@ -274,8 +299,8 @@ void main()
     this->fullscreenQuad.use();
     this->pingPong();
     this->shaderTransfer.use();
-    this->scratch.bind(Attachment::COLOR, 0);
-    draw(DrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->scratch.bind(COLOR, 0);
+    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
@@ -458,8 +483,9 @@ void main()
   {
     if(entry.characterInfo.character != '\0') //Text rendering
     {
-      const FilterMode prevMode = this->filterMode;
-      this->setFilterMode(FilterMode::TRILINEAR);
+      const FilterMode prevMin = this->filterModeMin;
+      const FilterMode prevMag = this->filterModeMag;
+      this->setFilterMode(BILINEAR, BILINEAR);
       
       this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
@@ -469,6 +495,7 @@ void main()
       entry.shader->setUniform(entry.characterInfo.colorUniformLocation, entry.characterInfo.color.asRGBAf());
       entry.shader->sendUniforms();
       
+      //TODO FIXME batch render text quads
       constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
       const std::array quadUVs{
         entry.characterInfo.atlasUVs.lowerRight.x(),
@@ -482,19 +509,32 @@ void main()
       const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
       mesh.use();
       
-      draw(DrawMode::TRISTRIPS, mesh.numVerts);
+      this->draw(TRISTRIPS, mesh.numVerts);
       
-      this->setFilterMode(prevMode);
+      this->setFilterMode(prevMin, prevMag);
     }
     else
     {
-      this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
-      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      entry.shader->use();
-      entry.shader->setUniform("mvp", this->mvp);
-      entry.shader->sendUniforms();
-      entry.mesh->use();
-      draw(DrawMode::TRISTRIPS, entry.mesh->numVerts);
+      if(entry.type == NORMAL)
+      {
+        if(entry.mesh)
+        {
+          this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
+          this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+          entry.shader->use();
+          entry.shader->setUniform("mvp", this->mvp);
+          entry.shader->sendUniforms();
+          entry.mesh->use();
+          this->draw(TRISTRIPS, entry.mesh->numVerts);
+        }
+      }
+      else if(entry.type == COMPUTE)
+      {
+        //TODO compute shader path
+        entry.shader->use();
+        entry.shader->sendUniforms();
+        this->startComputeShader(this->contextSize);
+      }
     }
   }
 }
