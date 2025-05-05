@@ -39,23 +39,23 @@ namespace glr
 
   struct TextureComp
   {
-    Texture* texture = nullptr;
+    std::shared_ptr<Texture> texture = nullptr;
   };
   
   struct MeshComp
   {
-    Mesh* mesh = nullptr;
+    std::shared_ptr<Mesh> mesh = nullptr;
   };
   
   struct FragVertShaderComp
   {
-    Shader* shader = nullptr;
+    std::shared_ptr<Shader> shader = nullptr;
   };
 
   struct ComputeShaderComp
   {
     std::unordered_map<int32_t, Texture*> imageBindings{};
-    Shader* shader = nullptr;
+    std::shared_ptr<Shader> shader = nullptr;
     IOMode ioMode{};
     GLColorFormat glColorFormat{};
   };
