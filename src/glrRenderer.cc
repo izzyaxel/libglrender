@@ -4,8 +4,8 @@
 
 namespace glr
 {
-  uint32_t Renderer::WORKSIZEX = 40;
-  uint32_t Renderer::WORKSIZEY = 20;
+  uint32_t Renderer::WORK_SIZE_X = 40;
+  uint32_t Renderer::WORK_SIZE_Y = 20;
 
 /// ===Data===========================================================================///
   
@@ -36,9 +36,6 @@ void main()
   
   std::array fullscreenQuadVerts{1.f, -1.f, 0.f, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, -1.f, 1.f, 0.f};
   std::array fullscreenQuadUVs{1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f};
-  
-/// ===Data===========================================================================///
-  
   
   void glDebug(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei messageLength, const GLchar* message, const void* userParam)
   {
@@ -125,6 +122,18 @@ void main()
   }
 
 /// ===Renderer========================================================================================================================================///
+  
+  bool Alternator::swap()
+  {
+    alt = !alt;
+    return alt;
+  }
+      
+  bool Alternator::get() const
+  {
+    return alt;
+  } //true: a false: b
+  
   Renderer::Renderer(const GLLoadFunc loadFunc, const uint32_t contextWidth, const uint32_t contextHeight)
   {
     gladLoadGL(loadFunc);
@@ -324,9 +333,11 @@ void main()
     
     this->view = viewMat;
     this->projection = projectionMat;
-    const Texture* curTexture = rl.front().texture;
-    if(curTexture)
+
+    const Texture* curTexture = nullptr;
+    if(hasComp(rl.front(), TEXTURE))
     {
+      curTexture = getTextureComp(rl.front())->texture;
       curTexture->use(0);
     }
     
@@ -372,18 +383,25 @@ void main()
     {
       if(!curTexture)
       {
-        if(entry.texture)
+        if(hasComp(entry, TEXTURE))
         {
-          curTexture = entry.texture;
-          curTexture->use(0);
+          if(getTextureComp(entry)->texture)
+          {
+            curTexture = getTextureComp(entry)->texture;
+            curTexture->use(0);
+          }
         }
       }
       else
       {
-        if(entry.texture && entry.texture->handle != curTexture->handle)
+        if(hasComp(entry, TEXTURE))
         {
-          curTexture = entry.texture;
-          curTexture->use(0);
+          const auto tcomp = getTextureComp(entry);
+          if(tcomp->texture && tcomp->texture->handle != curTexture->handle)
+          {
+            curTexture = tcomp->texture;
+            curTexture->use(0);
+          }
         }
       }
       
@@ -397,7 +415,12 @@ void main()
     this->clearCurrentFramebuffer();
     this->pingPong();
     bool bind = false;
-    size_t prevLayer = renderList[0].layer;
+    size_t prevLayer = 0;
+
+    if(hasComp(renderList.front(), LAYER))
+    {
+      prevLayer = getLayerComp(renderList.front())->layer;
+    }
     
     for(size_t i = 0; i < renderList.size(); i++)
     {
@@ -405,18 +428,26 @@ void main()
 
       if(!curTexture)
       {
-        if(entry.texture)
+        if(hasComp(entry, TEXTURE))
         {
-          bind = true;
-          curTexture = entry.texture;
+          const auto tcomp = getTextureComp(entry);
+          if(tcomp->texture)
+          {
+            bind = true;
+            curTexture = tcomp->texture;
+          }
         }
       }
       else
       {
-        if(entry.texture && entry.texture->handle != curTexture->handle)
+        if(hasComp(entry, TEXTURE))
         {
-          bind = true;
-          curTexture = entry.texture;
+          const auto tcomp = getTextureComp(entry);
+          if(tcomp->texture && tcomp->texture->handle != curTexture->handle)
+          {
+            bind = true;
+            curTexture = tcomp->texture;
+          }
         }
       }
       
@@ -431,14 +462,17 @@ void main()
       }
       else if(i == renderList.size() - 1)
       {
-        if(entry.layer != prevLayer)
+        if(hasComp(entry, LAYER))
         {
-          this->postProcessLayer(prevLayer);
-          this->drawToScratch();
-          this->pingPong();
-          if(curTexture)
+          if(getLayerComp(entry)->layer != prevLayer)
           {
-            curTexture->use(0);
+            this->postProcessLayer(prevLayer);
+            this->drawToScratch();
+            this->pingPong();
+            if(curTexture)
+            {
+              curTexture->use(0);
+            }
           }
         }
         
@@ -448,19 +482,25 @@ void main()
         }
         
         this->drawRenderable(entry);
-        this->postProcessLayer(entry.layer);
+        if(hasComp(entry, LAYER))
+        {
+          this->postProcessLayer(getLayerComp(entry)->layer);
+        }
         this->drawToScratch();
       }
       else
       {
-        if(entry.layer != prevLayer)
+        if(hasComp(entry, LAYER))
         {
-          this->postProcessLayer(prevLayer);
-          this->drawToScratch();
-          this->pingPong();
-          if(curTexture)
+          if(getLayerComp(entry)->layer != prevLayer)
           {
-            curTexture->use(0);
+            this->postProcessLayer(prevLayer);
+            this->drawToScratch();
+            this->pingPong();
+            if(curTexture)
+            {
+              curTexture->use(0);
+            }
           }
         }
         
@@ -471,70 +511,80 @@ void main()
         
         this->drawRenderable(entry);
       }
+
+      if(hasComp(entry, LAYER))
+      {
+        prevLayer = getLayerComp(entry)->layer;
+      }
       
-      prevLayer = entry.layer;
       bind = false;
     }
     
     this->scratchToPingPong();
   }
 
-  void Renderer::drawRenderable(Renderable& entry)
+  void Renderer::drawRenderable(RenderableID entry)
   {
-    if(entry.characterInfo.character != '\0') //Text rendering
+    if(hasComp(entry, TRANSFORM), hasComp(entry, MESH) && hasComp(entry, FRAGVERTSHADER)) //Standard object rendered with a frag/vert shader
     {
+      const auto mcomp = getMeshComp(entry);
+      const auto fvcomp = getFragVertComp(entry);
+      const auto tcomp = getTransformComp(entry);
+      if(mcomp->mesh)
+      {
+        this->model = modelMatrix(tcomp->pos, tcomp->rotation, tcomp->scale);
+        this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+        fvcomp->shader->use();
+        fvcomp->shader->setUniform("mvp", this->mvp);
+        fvcomp->shader->sendUniforms();
+        mcomp->mesh->use();
+        this->draw(TRISTRIPS, mcomp->mesh->numVerts);
+      }
+    }
+    else if(hasComp(entry, COMPUTESHADER)) //Compute image generation
+    {
+      //TODO finish compute shader path
+      const auto ccomp = getComputeComp(entry);
+      for(const auto& [binding, image] : ccomp->imageBindings)
+      {
+        this->bindImage(binding, image->handle, ccomp->ioMode, ccomp->glColorFormat);
+      }
+      ccomp->shader->use();
+      ccomp->shader->sendUniforms();
+      this->startComputeShader(this->contextSize);
+    }
+    else if(hasComp(entry, TRANSFORM) && hasComp(entry, MESH) && hasComp(entry, FRAGVERTSHADER) && hasComp(entry, TEXT)) //Text object rendered with a frag/vert shader
+    {
+      const auto tecomp = getTextComp(entry);
+      const auto trcomp = getTransformComp(entry);
+      const auto fvcomp = getFragVertComp(entry);
+      
       const FilterMode prevMin = this->filterModeMin;
       const FilterMode prevMag = this->filterModeMag;
       this->setFilterMode(BILINEAR, BILINEAR);
-      
-      this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
-      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      
-      entry.shader->use();
-      entry.shader->setUniform("mvp", this->mvp);
-      entry.shader->setUniform(entry.characterInfo.colorUniformLocation, entry.characterInfo.color.asRGBAf());
-      entry.shader->sendUniforms();
-      
+
       //TODO FIXME batch render text quads
-      constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
-      const std::array quadUVs{
-        entry.characterInfo.atlasUVs.lowerRight.x(),
-        entry.characterInfo.atlasUVs.lowerRight.y(),
-        entry.characterInfo.atlasUVs.lowerLeft.x(),
-        entry.characterInfo.atlasUVs.lowerLeft.y(),
-        entry.characterInfo.atlasUVs.upperRight.x(),
-        entry.characterInfo.atlasUVs.upperRight.y(),
-        entry.characterInfo.atlasUVs.upperLeft.x(),
-        entry.characterInfo.atlasUVs.upperLeft.y()};
-      const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
-      mesh.use();
+      for(const auto& charInfo : tecomp->characterInfo)
+      {
+        this->model = modelMatrix(trcomp->pos, trcomp->rotation, trcomp->scale);
+        this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       
-      this->draw(TRISTRIPS, mesh.numVerts);
+        fvcomp->shader->use();
+        fvcomp->shader->setUniform("mvp", this->mvp);
+        fvcomp->shader->setUniform(charInfo.colorUniformLocation, charInfo.color.asRGBAf());
+        fvcomp->shader->sendUniforms();
+      
+        
+        constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
+        const auto& [ul, ll, ur, lr] = charInfo.atlasUVs;
+        const std::array quadUVs{lr.x(), lr.y(), ll.x(), ll.y(), ur.x(), ur.y(), ul.x(), ul.y()};
+        const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
+        mesh.use();
+      
+        this->draw(TRISTRIPS, mesh.numVerts);
+      }
       
       this->setFilterMode(prevMin, prevMag);
-    }
-    else
-    {
-      if(entry.type == NORMAL)
-      {
-        if(entry.mesh)
-        {
-          this->model = modelMatrix(entry.pos, entry.rotation, entry.scale);
-          this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-          entry.shader->use();
-          entry.shader->setUniform("mvp", this->mvp);
-          entry.shader->sendUniforms();
-          entry.mesh->use();
-          this->draw(TRISTRIPS, entry.mesh->numVerts);
-        }
-      }
-      else if(entry.type == COMPUTE)
-      {
-        //TODO compute shader path
-        entry.shader->use();
-        entry.shader->sendUniforms();
-        this->startComputeShader(this->contextSize);
-      }
     }
   }
 }

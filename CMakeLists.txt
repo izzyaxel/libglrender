@@ -57,13 +57,11 @@ set(SRC
     src/glrColor.cc src/GLRender/glrColor.hh
     src/glrMesh.cc src/GLRender/glrMesh.hh
     src/glrExternal.cc src/GLRender/glrExternal.hh
-    src/GLRender/glrRenderable.hh
-    src/glrRenderList.cc
-    src/GLRender/glrRenderList.hh
-    src/glrShaderPipeline.cc
-    src/GLRender/glrShaderPipeline.hh
-    src/glrUtil.cc
-    src/GLRender/glrUtil.hh)
+    src/glrRenderable.cc src/GLRender/glrRenderable.hh
+    src/glrRenderList.cc src/GLRender/glrRenderList.hh
+    src/glrShaderPipeline.cc src/GLRender/glrShaderPipeline.hh
+    src/glrUtil.cc src/GLRender/glrUtil.hh
+    src/GLRender/glrEnums.hh)
 
 project(GLRender)
 include_directories(include)

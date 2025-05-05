@@ -2,9 +2,21 @@
 
 namespace glr
 {
-  bool RenderList::renderableComparator(const Renderable& a, const Renderable& b)
+  bool RenderList::renderableComparator(const RenderableID& a, const RenderableID& b)
   {
-    return (a.texture->handle > b.texture->handle) && (a.layer == b.layer) ? a.sublayer > b.sublayer : a.layer > b.layer;
+    bool textures = false;
+    bool layers = false;
+    if(hasComp(a, TEXTURE) && hasComp(b, TEXTURE))
+    {
+      textures = getTextureComp(a)->texture->handle > getTextureComp(b)->texture->handle;
+    }
+    if(hasComp(a, LAYER) && hasComp(b, LAYER))
+    {
+      const auto& aLayerComp = getLayerComp(a);
+      const auto& bLayerComp = getLayerComp(b);
+      layers = aLayerComp->layer == bLayerComp->layer ? aLayerComp->sublayer > bLayerComp->sublayer : aLayerComp->layer > bLayerComp->layer;
+    }
+    return textures && layers;
   }
   
   RenderList::~RenderList()
@@ -66,32 +78,32 @@ namespace glr
     return *this;
   }
   
-  Renderable &RenderList::operator [](const size_t index)
+  RenderableID &RenderList::operator [](const size_t index)
   {
     return this->list[index];
   }
   
-  std::vector<Renderable>::iterator RenderList::begin()
+  std::vector<RenderableID>::iterator RenderList::begin()
   {
     return this->list.begin();
   }
   
-  std::vector<Renderable>::iterator RenderList::end()
+  std::vector<RenderableID>::iterator RenderList::end()
   {
     return this->list.end();
   }
 
-  Renderable& RenderList::front()
+  RenderableID& RenderList::front()
   {
     return this->list.front();
   }
 
-  Renderable& RenderList::back()
+  RenderableID& RenderList::back()
   {
     return this->list.back();
   }
   
-  void RenderList::add(std::initializer_list<Renderable> renderables)
+  void RenderList::add(const std::initializer_list<RenderableID> renderables)
   {
     this->list.insert(this->list.end(), renderables.begin(), renderables.end());
   }

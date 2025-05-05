@@ -1,87 +1,101 @@
 #pragma once
 
+#include "export.hh"
 #include "glrTexture.hh"
 #include "glrShader.hh"
 #include "glrMesh.hh"
 #include "glrColor.hh"
-
-#include "export.hh"
+#include "glrEnums.hh"
 
 #include <commons/math/quaternion.hh>
+#include <memory>
 
 namespace glr
 {
-  typedef enum
+  struct CharInfo
   {
-    NORMAL, COMPUTE
-  } RenderableType;
-  
-  /// A bundle of information the renderer can use to draw something to a framebuffer
-  struct Renderable
-  {
-    struct CharacterInfo
-    {
-      GLRENDER_API CharacterInfo(){}
-      
-      GLRENDER_API CharacterInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation)
-      {
-        this->character = character;
-        this->color = color;
-        this->atlasUVs = atlasUVs;
-        this->colorUniformLocation = colorUniformLocation;
-      }
-      
-      bool operator==(const CharacterInfo& other) const
-      {
-        return this->character == other.character && this->color == other.color &&
-        this->atlasUVs == other.atlasUVs && this->colorUniformLocation == other.colorUniformLocation;
-      }
-      
-      char character = '\0';
-      Color color = {};
-      QuadUVs atlasUVs = {};
-      std::string colorUniformLocation;
-    };
+    GLRENDER_API CharInfo();
+    GLRENDER_API CharInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation);
+    GLRENDER_API bool operator == (const CharInfo& other) const;
     
-    GLRENDER_API Renderable(RenderableType type,
-                            vec3<float> const &pos,
-                            const vec3<float>& scale,
-                            const quat<float>& rotation,
-                            Texture *texture,
-                            Shader *shader,
-                            Mesh *mesh,
-                            const size_t layer,
-                            const size_t sublayer,
-                            std::string name,
-                            CharacterInfo characterInfo = CharacterInfo()) :
-                            pos(pos),
-                            scale(scale),
-                            rotation(rotation),
-                            texture(texture),
-                            shader(shader),
-                            mesh(mesh),
-                            layer(layer),
-                            sublayer(sublayer),
-                            name(std::move(name)),
-                            characterInfo(std::move(characterInfo)) {}
-    
-    bool operator==(const Renderable& other) const
-    {
-      return this->pos == other.pos && this->scale == other.scale && this->rotation == other.rotation && this->texture == other.texture &&
-             this->shader == other.shader && this->mesh == other.mesh && this->layer == other.layer &&
-             this->sublayer == other.sublayer && this->name == other.name && this->characterInfo == other.characterInfo;
-    }
+    char character = '\0';
+    Color color = {};
+    QuadUVs atlasUVs = {};
+    std::string colorUniformLocation;
+  };
 
-    RenderableType type = NORMAL;
+  struct TransformComp
+  {
     vec3<float> pos = {};
     vec3<float> scale = {};
     quat<float> rotation = {};
-    Texture* texture = nullptr;
-    Shader* shader = nullptr;
-    Mesh* mesh = nullptr;
-    size_t layer = 0;
-    size_t sublayer = 0;
-    std::string name;
-    CharacterInfo characterInfo{};
   };
+
+  struct LayerComp
+  {
+    uint64_t layer = 0;
+    uint64_t sublayer = 0;
+  };
+
+  struct TextureComp
+  {
+    Texture* texture = nullptr;
+  };
+  
+  struct MeshComp
+  {
+    Mesh* mesh = nullptr;
+  };
+  
+  struct FragVertShaderComp
+  {
+    Shader* shader = nullptr;
+  };
+
+  struct ComputeShaderComp
+  {
+    std::unordered_map<int32_t, Texture*> imageBindings{};
+    Shader* shader = nullptr;
+    IOMode ioMode{};
+    GLColorFormat glColorFormat{};
+  };
+
+  struct TextComp
+  {
+    std::vector<CharInfo> characterInfo{};
+  };
+  
+  typedef enum
+  {
+    TRANSFORM, LAYER, TEXT, TEXTURE, MESH, FRAGVERTSHADER, COMPUTESHADER,
+  } RenderableCompType;
+  
+  using RenderableComps = std::vector<RenderableCompType>;
+  
+  GLRENDER_API extern const RenderableComps OBJECT_RENDERABLE_TEMPLATE;
+  GLRENDER_API extern const RenderableComps TEXT_RENDERABLE_TEMPLATE;
+  GLRENDER_API extern const RenderableComps COMPUTE_RENDERABLE_TEMPLATE;
+
+  using RenderableID = uint64_t;
+
+  GLRENDER_API RenderableID newRenderable(const RenderableComps& comps);
+
+  GLRENDER_API std::shared_ptr<TransformComp> getTransformComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<LayerComp> getLayerComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<TextureComp> getTextureComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<MeshComp> getMeshComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<FragVertShaderComp> getFragVertComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<ComputeShaderComp> getComputeComp(RenderableID id);
+  GLRENDER_API std::shared_ptr<TextComp> getTextComp(RenderableID id);
+
+  GLRENDER_API bool hasComp(RenderableID id, RenderableCompType comp);
+  GLRENDER_API bool isTemplate(RenderableID id, const RenderableComps& tmplt);
+  
+  const std::unordered_map<uint64_t, std::shared_ptr<TransformComp>>& getTransformComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<LayerComp>>& getLayerComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<TextureComp>>& getTextureComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<MeshComp>>& getMeshComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<FragVertShaderComp>>& getFragvertComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<ComputeShaderComp>>& getComputeComps();
+  const std::unordered_map<uint64_t, std::shared_ptr<TextComp>>& getTextComps();
 }
