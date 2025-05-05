@@ -25,6 +25,10 @@ namespace glr
     {
       this->shaderPipeline = {};
     }
+    for(const RenderableID& id : this->list)
+    {
+      removeRenderable(id);
+    }
   }
   
   RenderList::RenderList(const RenderList& copyFrom)

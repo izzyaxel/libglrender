@@ -79,6 +79,7 @@ namespace glr
   using RenderableID = uint64_t;
 
   GLRENDER_API RenderableID newRenderable(const RenderableComps& comps);
+  GLRENDER_API void removeRenderable(RenderableID id);
 
   GLRENDER_API std::shared_ptr<TransformComp> getTransformComp(RenderableID id);
   GLRENDER_API std::shared_ptr<LayerComp> getLayerComp(RenderableID id);

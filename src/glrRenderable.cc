@@ -81,6 +81,38 @@ namespace glr
     return id;
   }
 
+  void removeRenderable(const RenderableID id)
+  {
+    if(transformComps.contains(id))
+    {
+      transformComps.erase(id);
+    }
+    if(layerComps.contains(id))
+    {
+      layerComps.erase(id);
+    }
+    if(textureComps.contains(id))
+    {
+      textureComps.erase(id);
+    }
+    if(meshComps.contains(id))
+    {
+      meshComps.erase(id);
+    }
+    if(fragvertComps.contains(id))
+    {
+      fragvertComps.erase(id);
+    }
+    if(computeComps.contains(id))
+    {
+      computeComps.erase(id);
+    }
+    if(textComps.contains(id))
+    {
+      textComps.erase(id);
+    }
+  }
+  
   std::shared_ptr<TransformComp> getTransformComp(const RenderableID id)
   {
     return transformComps.contains(id) ? transformComps.at(id) : nullptr;
