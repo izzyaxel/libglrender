@@ -334,7 +334,7 @@ void main()
     this->view = viewMat;
     this->projection = projectionMat;
 
-    const Texture* curTexture = nullptr;
+    std::shared_ptr<Texture> curTexture = nullptr;
     if(hasComp(rl.front(), TEXTURE))
     {
       curTexture = getTextureComp(rl.front())->texture;
@@ -375,11 +375,11 @@ void main()
     }
   }
 
-  void Renderer::renderWithoutPost(RenderList& renderList, const Texture* curTexture)
+  void Renderer::renderWithoutPost(const RenderList& renderList, std::shared_ptr<Texture>& curTexture)
   {
     this->pingPong();
     
-    for(auto& entry : renderList.list)
+    for(const auto& entry : renderList.list)
     {
       if(!curTexture)
       {
@@ -409,7 +409,7 @@ void main()
     }
   }
   
-  void Renderer::renderWithPost(RenderList& renderList, const Texture* curTexture)
+  void Renderer::renderWithPost(RenderList& renderList, std::shared_ptr<Texture>& curTexture)
   {
     this->scratch.use();
     this->clearCurrentFramebuffer();

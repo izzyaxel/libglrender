@@ -83,8 +83,8 @@ namespace glr
     
     private:
     void pingPong();
-    void renderWithoutPost(RenderList& renderList, const Texture* curTexture);
-    void renderWithPost(RenderList& renderList, const Texture* curTexture);
+    void renderWithoutPost(const RenderList& renderList, std::shared_ptr<Texture>& curTexture);
+    void renderWithPost(RenderList& renderList, std::shared_ptr<Texture>& curTexture);
     void postProcessGlobal();
     void postProcessLayer(uint64_t layer);
     void drawToScratch() const;
