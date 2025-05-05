@@ -106,6 +106,11 @@ namespace glr
   {
     return this->list.back();
   }
+
+  void RenderList::add(const RenderableID renderable)
+  {
+    this->list.emplace_back(renderable);
+  }
   
   void RenderList::add(const std::initializer_list<RenderableID> renderables)
   {

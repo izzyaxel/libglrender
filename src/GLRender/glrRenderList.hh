@@ -31,6 +31,7 @@ namespace glr
     GLRENDER_API std::vector<RenderableID>::iterator end();
     GLRENDER_API RenderableID& front();
     GLRENDER_API RenderableID& back();
+    GLRENDER_API void add(RenderableID renderable);
     GLRENDER_API void add(std::initializer_list<RenderableID> renderables);
     
     /// Clear the render list
