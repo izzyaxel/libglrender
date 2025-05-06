@@ -20,19 +20,19 @@ namespace glr
     GLRENDER_API RenderList(RenderList&& moveFrom) noexcept;
     GLRENDER_API RenderList& operator=(RenderList&& moveFrom) noexcept;
     
-    using Comparator = std::function<bool(const RenderableID& a, const RenderableID& b)>;
-    GLRENDER_API static bool renderableComparator(const RenderableID& a, const RenderableID& b);
+    using Comparator = std::function<bool(const Renderable& a, const Renderable& b)>;
+    GLRENDER_API static bool renderableComparator(const Renderable& a, const Renderable& b);
     
     GLRENDER_API RenderList& operator +(const RenderList& other);
     GLRENDER_API RenderList& operator +=(const RenderList& other);
-    GLRENDER_API RenderableID& operator [](size_t index);
+    GLRENDER_API Renderable& operator [](size_t index);
     
-    GLRENDER_API std::vector<RenderableID>::iterator begin();
-    GLRENDER_API std::vector<RenderableID>::iterator end();
-    GLRENDER_API RenderableID& front();
-    GLRENDER_API RenderableID& back();
-    GLRENDER_API void add(RenderableID renderable);
-    GLRENDER_API void add(std::initializer_list<RenderableID> renderables);
+    GLRENDER_API std::vector<Renderable>::iterator begin();
+    GLRENDER_API std::vector<Renderable>::iterator end();
+    GLRENDER_API Renderable& front();
+    GLRENDER_API Renderable& back();
+    GLRENDER_API void add(Renderable renderable);
+    GLRENDER_API void add(std::initializer_list<Renderable> renderables);
     
     /// Clear the render list
     GLRENDER_API void clear();
@@ -48,6 +48,6 @@ namespace glr
     bool useShaderPipeline = false;
     std::optional<ShaderPipeline> shaderPipeline{};
     
-    std::vector<RenderableID> list{};
+    std::vector<Renderable> list{};
   };
 }

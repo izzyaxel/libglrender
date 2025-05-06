@@ -6,16 +6,6 @@ namespace glr
   const RenderableComps TEXT_RENDERABLE_TEMPLATE{TRANSFORM, TEXTURE, MESH, FRAGVERTSHADER, LAYER, TEXT};
   const RenderableComps COMPUTE_RENDERABLE_TEMPLATE{COMPUTESHADER};
   
-  RenderableID lastRenderableID = 0;
-
-  std::unordered_map<uint64_t, std::shared_ptr<TransformComp>> transformComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<LayerComp>> layerComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<TextureComp>> textureComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<MeshComp>> meshComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<FragVertShaderComp>> fragvertComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<ComputeShaderComp>> computeComps{};
-  std::unordered_map<uint64_t, std::shared_ptr<TextComp>> textComps{};
-  
   CharInfo::CharInfo() {}
 
   CharInfo::CharInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation)
@@ -32,204 +22,119 @@ namespace glr
     this->atlasUVs == other.atlasUVs && this->colorUniformLocation == other.colorUniformLocation;
   }
 
-  RenderableID newRenderable(const RenderableComps& comps)
+  Renderable newRenderable(const RenderableComps& comps)
   {
-    const RenderableID id = lastRenderableID;
-    lastRenderableID++;
+    Renderable out;
     for(const auto& comp : comps)
     {
       switch(comp)
       {
         case TRANSFORM:
         {
-          transformComps[id] = std::make_shared<TransformComp>();
+          out.transformComp = std::make_shared<TransformComp>();
           break;
         }
         case LAYER:
         {
-          layerComps[id] = std::make_shared<LayerComp>();
+          out.layerComp = std::make_shared<LayerComp>();
           break;
         }
         case TEXTURE:
         {
-          textureComps[id] = std::make_shared<TextureComp>();
+          out.textureComp = std::make_shared<TextureComp>();
           break;
         }
         case MESH:
         {
-          meshComps[id] = std::make_shared<MeshComp>();
+          out.meshComp = std::make_shared<MeshComp>();
           break;
         }
         case FRAGVERTSHADER:
         {
-          fragvertComps[id] = std::make_shared<FragVertShaderComp>();
+          out.fragVertShaderComp = std::make_shared<FragVertShaderComp>();
           break;
         }
         case COMPUTESHADER:
         {
-          computeComps[id] = std::make_shared<ComputeShaderComp>();
+          out.computeShaderComp = std::make_shared<ComputeShaderComp>();
           break;
         }
         case TEXT:
         {
-          textComps[id] = std::make_shared<TextComp>();
+          out.textComp = std::make_shared<TextComp>();
           break;
         }
         default: break;
       }
     }
-    return id;
+    return std::move(out);
   }
 
-  void removeRenderable(const RenderableID id)
+  bool isTemplate(const Renderable& renderable, const RenderableComps& tmplt)
   {
-    if(transformComps.contains(id))
-    {
-      transformComps.erase(id);
-    }
-    if(layerComps.contains(id))
-    {
-      layerComps.erase(id);
-    }
-    if(textureComps.contains(id))
-    {
-      textureComps.erase(id);
-    }
-    if(meshComps.contains(id))
-    {
-      meshComps.erase(id);
-    }
-    if(fragvertComps.contains(id))
-    {
-      fragvertComps.erase(id);
-    }
-    if(computeComps.contains(id))
-    {
-      computeComps.erase(id);
-    }
-    if(textComps.contains(id))
-    {
-      textComps.erase(id);
-    }
-  }
-  
-  std::shared_ptr<TransformComp> getTransformComp(const RenderableID id)
-  {
-    return transformComps.contains(id) ? transformComps.at(id) : nullptr;
-  }
-  
-  std::shared_ptr<LayerComp> getLayerComp(const RenderableID id)
-  {
-    return layerComps.contains(id) ? layerComps.at(id) : nullptr;
-  }
-
-  std::shared_ptr<TextureComp> getTextureComp(const RenderableID id)
-  {
-    return textureComps.contains(id) ? textureComps.at(id) : nullptr;
-  }
-
-  std::shared_ptr<MeshComp> getMeshComp(const RenderableID id)
-  {
-    return meshComps.contains(id) ? meshComps.at(id) : nullptr;
-  }
-  
-  std::shared_ptr<FragVertShaderComp> getFragVertComp(const RenderableID id)
-  {
-    return fragvertComps.contains(id) ? fragvertComps.at(id) : nullptr;
-  }
-  
-  std::shared_ptr<ComputeShaderComp> getComputeComp(const RenderableID id)
-  {
-    return computeComps.contains(id) ? computeComps.at(id) : nullptr;
-  }
-  
-  std::shared_ptr<TextComp> getTextComp(const RenderableID id)
-  {
-    return textComps.contains(id) ? textComps.at(id) : nullptr;
-  }
-
-  bool hasComp(const RenderableID id, const RenderableCompType comp)
-  {
-    switch(comp)
-    {
-      case TRANSFORM:
-      {
-        return transformComps.contains(id);
-      }
-      case LAYER:
-      {
-        return layerComps.contains(id);
-      }
-      case TEXTURE:
-      {
-        return textureComps.contains(id);
-      }
-      case MESH:
-      {
-        return meshComps.contains(id);
-      }
-      case FRAGVERTSHADER:
-      {
-        return fragvertComps.contains(id);
-      }
-      case COMPUTESHADER:
-      {
-        return computeComps.contains(id);
-      }
-      case TEXT:
-      {
-        return textComps.contains(id);
-      }
-      default: return false;
-    }
-  }
-
-  bool isTemplate(const RenderableID id, const RenderableComps& tmplt)
-  {
-    bool out = true;
     for(const auto& comp : tmplt)
     {
-      if(!hasComp(id, comp))
+      switch(comp)
       {
-        out = false;
-        break;
+        case TRANSFORM:
+        {
+          if(!renderable.transformComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case LAYER:
+        {
+          if(!renderable.layerComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case TEXT:
+        {
+          if(!renderable.textComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case TEXTURE:
+        {
+          if(!renderable.textureComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case MESH:
+        {
+          if(!renderable.meshComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case FRAGVERTSHADER:
+        {
+          if(!renderable.fragVertShaderComp)
+          {
+            return false;
+          }
+          break;
+        }
+        case COMPUTESHADER:
+        {
+          if(!renderable.computeShaderComp)
+          {
+            return false;
+          }
+          break;
+        }
+        default: break;
       }
     }
-    return out;
-  }
-
-  const std::unordered_map<uint64_t, std::shared_ptr<TransformComp>>& getTransformComps()
-  {
-    return transformComps;
-  }
-  
-  const std::unordered_map<uint64_t, std::shared_ptr<LayerComp>>& getLayerComps()
-  {
-    return layerComps;
-  }
-
-  const std::unordered_map<uint64_t, std::shared_ptr<TextureComp>>& getTextureComps()
-  {
-    return textureComps;
-  }
-
-  const std::unordered_map<uint64_t, std::shared_ptr<MeshComp>>& getMeshComps()
-  {
-    return meshComps;
-  }
-  
-  const std::unordered_map<uint64_t, std::shared_ptr<FragVertShaderComp>>& getFragvertComps()
-  {
-    return fragvertComps;
-  }
-  
-  const std::unordered_map<uint64_t, std::shared_ptr<ComputeShaderComp>>& getComputeComps()
-  {
-    return computeComps;
-  }
-  
-  const std::unordered_map<uint64_t, std::shared_ptr<TextComp>>& getTextComps()
-  {
-    return textComps;
+    return true;
   }
 }

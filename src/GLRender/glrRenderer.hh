@@ -90,7 +90,7 @@ namespace glr
     void drawToScratch() const;
     void drawToBackBuffer() const;
     void scratchToPingPong();
-    void drawRenderable(RenderableID entry);
+    void drawRenderable(const Renderable& entry);
 
     vec2<uint32_t> contextSize{};
     

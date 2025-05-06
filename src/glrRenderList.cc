@@ -2,19 +2,17 @@
 
 namespace glr
 {
-  bool RenderList::renderableComparator(const RenderableID& a, const RenderableID& b)
+  bool RenderList::renderableComparator(const Renderable& a, const Renderable& b)
   {
     bool textures = false;
     bool layers = false;
-    if(hasComp(a, TEXTURE) && hasComp(b, TEXTURE))
+    if(a.textureComp && b.textureComp)
     {
-      textures = getTextureComp(a)->texture->handle > getTextureComp(b)->texture->handle;
+      textures = a.textureComp->texture->handle > b.textureComp->texture->handle;
     }
-    if(hasComp(a, LAYER) && hasComp(b, LAYER))
+    if(a.layerComp && b.layerComp)
     {
-      const auto& aLayerComp = getLayerComp(a);
-      const auto& bLayerComp = getLayerComp(b);
-      layers = aLayerComp->layer == bLayerComp->layer ? aLayerComp->sublayer > bLayerComp->sublayer : aLayerComp->layer > bLayerComp->layer;
+      layers = a.layerComp->layer == b.layerComp->layer ? a.layerComp->sublayer > b.layerComp->sublayer : a.layerComp->layer > b.layerComp->layer;
     }
     return textures && layers;
   }
@@ -24,10 +22,6 @@ namespace glr
     if(this->shaderPipeline.has_value())
     {
       this->shaderPipeline = {};
-    }
-    for(const RenderableID& id : this->list)
-    {
-      removeRenderable(id);
     }
   }
   
@@ -82,37 +76,37 @@ namespace glr
     return *this;
   }
   
-  RenderableID &RenderList::operator [](const size_t index)
+  Renderable &RenderList::operator [](const size_t index)
   {
     return this->list[index];
   }
   
-  std::vector<RenderableID>::iterator RenderList::begin()
+  std::vector<Renderable>::iterator RenderList::begin()
   {
     return this->list.begin();
   }
   
-  std::vector<RenderableID>::iterator RenderList::end()
+  std::vector<Renderable>::iterator RenderList::end()
   {
     return this->list.end();
   }
 
-  RenderableID& RenderList::front()
+  Renderable& RenderList::front()
   {
     return this->list.front();
   }
 
-  RenderableID& RenderList::back()
+  Renderable& RenderList::back()
   {
     return this->list.back();
   }
 
-  void RenderList::add(const RenderableID renderable)
+  void RenderList::add(const Renderable renderable)
   {
     this->list.emplace_back(renderable);
   }
   
-  void RenderList::add(const std::initializer_list<RenderableID> renderables)
+  void RenderList::add(const std::initializer_list<Renderable> renderables)
   {
     this->list.insert(this->list.end(), renderables.begin(), renderables.end());
   }

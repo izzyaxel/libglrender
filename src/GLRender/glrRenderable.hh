@@ -64,6 +64,17 @@ namespace glr
   {
     std::vector<CharInfo> characterInfo{};
   };
+
+  struct Renderable
+  {
+    std::shared_ptr<TransformComp> transformComp = nullptr;
+    std::shared_ptr<LayerComp> layerComp = nullptr;
+    std::shared_ptr<TextComp> textComp = nullptr;
+    std::shared_ptr<TextureComp> textureComp = nullptr;
+    std::shared_ptr<MeshComp> meshComp = nullptr;
+    std::shared_ptr<FragVertShaderComp> fragVertShaderComp = nullptr;
+    std::shared_ptr<ComputeShaderComp> computeShaderComp = nullptr;
+  };
   
   typedef enum
   {
@@ -75,28 +86,7 @@ namespace glr
   GLRENDER_API extern const RenderableComps OBJECT_RENDERABLE_TEMPLATE;
   GLRENDER_API extern const RenderableComps TEXT_RENDERABLE_TEMPLATE;
   GLRENDER_API extern const RenderableComps COMPUTE_RENDERABLE_TEMPLATE;
-
-  using RenderableID = uint64_t;
-
-  GLRENDER_API RenderableID newRenderable(const RenderableComps& comps);
-  GLRENDER_API void removeRenderable(RenderableID id);
-
-  GLRENDER_API std::shared_ptr<TransformComp> getTransformComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<LayerComp> getLayerComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<TextureComp> getTextureComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<MeshComp> getMeshComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<FragVertShaderComp> getFragVertComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<ComputeShaderComp> getComputeComp(RenderableID id);
-  GLRENDER_API std::shared_ptr<TextComp> getTextComp(RenderableID id);
-
-  GLRENDER_API bool hasComp(RenderableID id, RenderableCompType comp);
-  GLRENDER_API bool isTemplate(RenderableID id, const RenderableComps& tmplt);
   
-  const std::unordered_map<uint64_t, std::shared_ptr<TransformComp>>& getTransformComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<LayerComp>>& getLayerComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<TextureComp>>& getTextureComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<MeshComp>>& getMeshComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<FragVertShaderComp>>& getFragvertComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<ComputeShaderComp>>& getComputeComps();
-  const std::unordered_map<uint64_t, std::shared_ptr<TextComp>>& getTextComps();
+  GLRENDER_API Renderable newRenderable(const RenderableComps& comps);
+  GLRENDER_API bool isTemplate(const Renderable& renderable, const RenderableComps& tmplt);
 }
