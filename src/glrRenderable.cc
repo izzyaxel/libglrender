@@ -67,7 +67,7 @@ namespace glr
         default: break;
       }
     }
-    return std::move(out);
+    return out;
   }
 
   bool isTemplate(const Renderable& renderable, const RenderableComps& tmplt)
