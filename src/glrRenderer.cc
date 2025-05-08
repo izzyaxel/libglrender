@@ -46,78 +46,112 @@ void main()
     switch(source)
     {
       case GL_DEBUG_SOURCE_API:
+      {
         sourceStr = "Source: OpenGL API";
         break;
+      }
       case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+      {
         sourceStr = "Source: Window-system API";
         break;
+      }
       case GL_DEBUG_SOURCE_SHADER_COMPILER:
+      {
         sourceStr = "Source: Shader Compiler";
         break;
+      }
       case GL_DEBUG_SOURCE_THIRD_PARTY:
+      {
         sourceStr = "Source: Third-party Application";
         break;
+      }
       case GL_DEBUG_SOURCE_APPLICATION:
+      {
         sourceStr = "Source: User's Application";
         break;
+      }
       case GL_DEBUG_SOURCE_OTHER:
+      {
         sourceStr = "Source: Other";
         break;
-      default:
-        break;
+      }
+      default: break;
     }
     
     switch(severity)
     {
       case GL_DEBUG_SEVERITY_NOTIFICATION:
+      {
         severityStr = "Severity: NOTIFICATION";
         break;
+      }
       case GL_DEBUG_SEVERITY_LOW:
+      {
         severityStr = "Severity: LOW";
         break;
+      }
       case GL_DEBUG_SEVERITY_MEDIUM:
+      {
         severityStr = "Severity: MEDIUM";
         break;
+      }
       case GL_DEBUG_SEVERITY_HIGH:
+      {
         severityStr = "Severity: HIGH";
         break;
-      default:
-        break;
+      }
+      default: break;
     }
     
     switch(type)
     {
       case GL_DEBUG_TYPE_ERROR:
+      {
         typeStr = "Type: Error";
         break;
+      }
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+      {
         typeStr = "Type: Deprecated Behavior";
         break;
+      }
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+      {
         typeStr = "Type: Undefined Behavior";
         break;
+      }
       case GL_DEBUG_TYPE_PORTABILITY:
+      {
         typeStr = "Type: Portability";
         break;
+      }
       case GL_DEBUG_TYPE_PERFORMANCE:
+      {
         typeStr = "Type: Performance";
         break;
+      }
       case GL_DEBUG_TYPE_MARKER:
+      {
         typeStr = "Type: Command Stream Annotation";
         break;
+      }
       case GL_DEBUG_TYPE_PUSH_GROUP:
+      {
         typeStr = "Type: Group Pushing";
         break;
+      }
       case GL_DEBUG_TYPE_POP_GROUP:
+      {
         typeStr = "Type: Group Popping";
         break;
+      }
       case GL_DEBUG_TYPE_OTHER:
+      {
         typeStr = "Type: Other";
         break;
-      default:
-        break;
+      }
+      default: break;
     }
-    
     printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", sourceStr.c_str(), severityStr.c_str(), id, typeStr.c_str(), message);
   }
 
@@ -128,7 +162,7 @@ void main()
     alt = !alt;
     return alt;
   }
-      
+  
   bool Alternator::get() const
   {
     return alt;
@@ -142,7 +176,7 @@ void main()
     this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Ping");
     this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Pong");
     this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR}, "Scratch");
-    this->fullscreenQuad = Mesh(fullscreenQuadVerts, fullscreenQuadUVs);
+    this->fullscreenQuad.addVerts(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
     this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -160,7 +194,6 @@ void main()
     this->fboA.reset();
     this->fboB.reset();
     this->scratch.reset();
-    this->fullscreenQuad.reset();
     this->shaderTransfer.reset();
     this->globalPostStack.reset();
     this->layerPostStack.clear();
@@ -273,7 +306,7 @@ void main()
     }
   }
   
-  void Renderer::draw(const DrawMode mode, const size_t numElements) const
+  void Renderer::draw(const GLDrawMode mode, const size_t numElements) const
   {
     glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
   }
@@ -291,7 +324,7 @@ void main()
     this->clearCurrentFramebuffer();
     this->shaderTransfer.use();
     this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
-    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::drawToScratch() const
@@ -300,7 +333,7 @@ void main()
     this->scratch.use();
     this->shaderTransfer.use();
     this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
-    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::scratchToPingPong()
@@ -309,7 +342,7 @@ void main()
     this->pingPong();
     this->shaderTransfer.use();
     this->scratch.bind(COLOR, 0);
-    this->draw(TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
   }
   
   void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
@@ -504,7 +537,7 @@ void main()
 
   void Renderer::drawRenderable(const Renderable& entry)
   {
-    if(entry.transformComp && entry.meshComp && entry.meshComp->mesh && entry.fragVertShaderComp && entry.fragVertShaderComp->shader) //Standard object rendered with a frag/vert shader
+    if(isTemplate(entry, OBJECT_RENDERABLE_TEMPLATE) && entry.meshComp->mesh && entry.fragVertShaderComp->shader) //Standard object rendered with a frag/vert shader
     {
         this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
         this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
@@ -512,9 +545,9 @@ void main()
         entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
         entry.fragVertShaderComp->shader->sendUniforms();
         entry.meshComp->mesh->use();
-        this->draw(TRISTRIPS, entry.meshComp->mesh->numVerts);
+        this->draw(entry.meshComp->mesh->getDrawMode(), entry.meshComp->mesh->numVerts);
     }
-    else if(entry.computeShaderComp) //Compute image generation
+    else if(isTemplate(entry, COMPUTE_RENDERABLE_TEMPLATE)) //Compute image generation
     {
       //TODO finish compute shader path
       for(const auto& [binding, image] : entry.computeShaderComp->imageBindings)
@@ -525,18 +558,18 @@ void main()
       entry.computeShaderComp->shader->sendUniforms();
       this->startComputeShader(this->contextSize);
     }
-    else if(entry.transformComp && entry.meshComp && entry.meshComp->mesh && entry.fragVertShaderComp && entry.fragVertShaderComp->shader && entry.textComp) //Text object rendered with a frag/vert shader
+    else if(isTemplate(entry, TEXT_RENDERABLE_TEMPLATE) && entry.meshComp->mesh && entry.fragVertShaderComp->shader) //Text object rendered with a frag/vert shader
     {
       const FilterMode prevMin = this->filterModeMin;
       const FilterMode prevMag = this->filterModeMag;
       this->setFilterMode(BILINEAR, BILINEAR);
-
+      
       //TODO FIXME batch render text quads
       for(const auto& charInfo : entry.textComp->characterInfo)
       {
         this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
         this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      
+        
         entry.fragVertShaderComp->shader->use();
         entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
         entry.fragVertShaderComp->shader->setUniform(charInfo.colorUniformLocation, charInfo.color.asRGBAf());
@@ -545,10 +578,10 @@ void main()
         constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
         const auto& [ul, ll, ur, lr] = charInfo.atlasUVs;
         const std::array quadUVs{lr.x(), lr.y(), ll.x(), ll.y(), ur.x(), ur.y(), ul.x(), ul.y()};
-        const Mesh mesh(quadVerts.data(), quadVerts.size(), quadUVs.data(), quadUVs.size());
-        mesh.use();
-      
-        this->draw(TRISTRIPS, mesh.numVerts);
+        Mesh mesh;
+        mesh.addVerts(quadVerts.data(), quadVerts.size())->addUVs(quadUVs.data(), quadUVs.size())->use();
+        
+        this->draw(mesh.getDrawMode(), mesh.numVerts);
       }
       
       this->setFilterMode(prevMin, prevMag);

@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum
+enum struct GLDrawMode
 {
   TRIS = 0x0004,
   TRISTRIPS = 0x0005,
@@ -9,9 +9,9 @@ typedef enum
   LINESTRIPS = 0x0003,
   LINELOOPS = 0x0002,
   POINTS = 0x0000,
-} DrawMode;
+};
 
-typedef enum
+enum struct GLColorFormat
 {
   R32F = 0x822E,
   RGB8 = 0x8051,
@@ -27,6 +27,9 @@ typedef enum
   RGB32F = 0x8815,
   RGBA32F = 0x8814,
   DEPTH32F = 0x8CAC,
-} GLColorFormat;
+};
 
-
+enum struct GLDrawType
+{
+  STATIC, STREAM, DYNAMIC,
+};

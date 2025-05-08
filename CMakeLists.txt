@@ -47,6 +47,9 @@ include_directories("${CMAKE_BINARY_DIR}/modules/libcommons/src/")
 set(SRC
     src/gl.cc
     src/GLRender/export.hh
+    src/GLRender/glrEnums.hh
+    
+    src/glrUtil.cc src/GLRender/glrUtil.hh
     src/glrRenderer.cc src/GLRender/glrRenderer.hh
     src/glrFramebuffer.cc src/GLRender/glrFramebuffer.hh
     src/glrPostProcessing.cc src/GLRender/glrPostProcessing.hh
@@ -59,9 +62,7 @@ set(SRC
     src/glrExternal.cc src/GLRender/glrExternal.hh
     src/glrRenderable.cc src/GLRender/glrRenderable.hh
     src/glrRenderList.cc src/GLRender/glrRenderList.hh
-    src/glrShaderPipeline.cc src/GLRender/glrShaderPipeline.hh
-    src/glrUtil.cc src/GLRender/glrUtil.hh
-    src/GLRender/glrEnums.hh)
+    src/glrShaderPipeline.cc src/GLRender/glrShaderPipeline.hh)
 
 project(GLRender)
 include_directories(include)
