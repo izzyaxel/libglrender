@@ -27,18 +27,10 @@ namespace glr
     }
   }
   
-  Mesh::Mesh()
-  {
-    glCreateVertexArrays(1, &this->vao);
-  }
-  
   Mesh::~Mesh()
   {
-    glDeleteBuffers(1, &this->vboV);
-    glDeleteBuffers(1, &this->vboU);
-    glDeleteBuffers(1, &this->vboN);
-    glDeleteBuffers(1, &this->vboI);
-    glDeleteVertexArrays(1, &this->vao);
+    glDeleteVertexArrays(1, &this->vertArrayHandle);
+    glDeleteBuffers(1, &this->vertBufferHandle);
   }
 
   void Mesh::setDrawType(const GLDrawType type)
@@ -63,43 +55,16 @@ namespace glr
 
   Mesh* Mesh::addVerts(const float* verts, const size_t vertsSize)
   {
-    if(this->hasIndexedVerts || this->hasVerts)
+    if(this->hasVerts)
     {
       return this;
     }
-    
+
     this->hasVerts = true;
     this->numVerts = vertsSize / 3;
-  
-    glCreateBuffers(1, &this->vboV);
-    glNamedBufferData(this->vboV, (GLsizeiptr)(vertsSize * sizeof(float)), verts, this->getGLDrawType());
-    glVertexArrayAttribBinding(this->vao, 0, 0);
-    glVertexArrayVertexBuffer(this->vao, 0, this->vboV, 0, this->vertexStride);
-    glEnableVertexArrayAttrib(this->vao, 0);
-    glVertexArrayAttribFormat(this->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    return this;
-  }
-
-  Mesh* Mesh::addIndexedVerts(const uint32_t* indices, const size_t indicesSize, const float* verts, const size_t vertsSize)
-  {
-    if(this->hasVerts || this->hasIndexedVerts)
-    {
-      return this;
-    }
+    this->verts = verts;
+    this->vertsSize = vertsSize;
     
-    this->hasIndexedVerts = true;
-    this->numVerts = vertsSize / 3;
-  
-    glCreateBuffers(1, &this->vboV);
-    glNamedBufferData(this->vboV, (GLsizeiptr)(vertsSize * sizeof(float)), verts, this->getGLDrawType());
-    glVertexArrayAttribBinding(this->vao, 0, 0);
-    glVertexArrayVertexBuffer(this->vao, 0, this->vboV, 0, this->vertexStride);
-    glEnableVertexArrayAttrib(this->vao, 0);
-    glVertexArrayAttribFormat(this->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  
-    glCreateBuffers(1, &this->vboI);
-    glNamedBufferData(this->vboI, (GLsizeiptr)(indicesSize * sizeof(uint32_t)), indices, this->getGLDrawType());
-    glVertexArrayElementBuffer(this->vao, this->vboI);
     return this;
   }
 
@@ -109,14 +74,11 @@ namespace glr
     {
       return this;
     }
-    
+
     this->hasUVs = true;
-    glCreateBuffers(1, &this->vboU);
-    glNamedBufferData(this->vboU, (GLsizeiptr)(uvsSize * sizeof(float)), uvs, this->getGLDrawType());
-    glVertexArrayAttribBinding(this->vao, 1, 1);
-    glVertexArrayVertexBuffer(this->vao, 1, this->vboU, 0, this->uvStride);
-    glEnableVertexArrayAttrib(this->vao, 1);
-    glVertexArrayAttribFormat(this->vao, 1, 2, GL_FLOAT, GL_FALSE, 0);
+    this->uvs = uvs;
+    this->uvsSize = uvsSize;
+    
     return this;
   }
 
@@ -128,37 +90,57 @@ namespace glr
     }
     
     this->hasNormals = true;
-    glCreateBuffers(1, &this->vboN);
-    glNamedBufferData(this->vboN, (GLsizeiptr)(normalsSize * sizeof(float)), normals, this->getGLDrawType());
-    glVertexArrayAttribBinding(this->vao, 2, 2);
-    glVertexArrayVertexBuffer(this->vao, 2, this->vboN, 0, this->normalStride);
-    glEnableVertexArrayAttrib(this->vao, 2);
-    glVertexArrayAttribFormat(this->vao, 2, 3, GL_FLOAT, GL_FALSE, 0);
+    this->normals = normals;
+    this->normalsSize = normalsSize;
+    
     return this;
+  }
+
+  void Mesh::finalize()
+  {
+    if(!this->hasVerts || this->vertsSize == 0)
+    {
+      printf("Mesh error: can't finalize Mesh, no verticies have been added\n");
+      return;
+    }
+
+    if(this->vertArrayHandle == INVALID_HANDLE)
+    {
+      glCreateVertexArrays(1, &this->vertArrayHandle);
+    }
+
+    //Interleave data: verts normals uvs
+    const size_t total = this->vertsSize + this->hasNormals ? this->normalsSize : 0 + this->hasUVs ? this->uvsSize : 0;
+    std::vector<float> buffer{};
+    buffer.reserve(total);
+    for(size_t i = 0; i < this->vertsSize; i++)
+    {
+      buffer.insert(buffer.end(), this->verts + i * 3, this->verts + i * 3 + 3);
+      if(this->hasNormals)
+      {
+        buffer.insert(buffer.end(), this->normals + i * 3, this->normals + i * 3 + 3);
+      }
+      if(this->hasUVs)
+      {
+        buffer.insert(buffer.end(), this->uvs + i * 2, this->uvs + i * 2 + 2);
+      }
+    }
+
+    glCreateBuffers(1, &this->vertBufferHandle);
+    glNamedBufferData(this->vertBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
+    glVertexArrayAttribBinding(this->vertArrayHandle, 0, 0);
+    glVertexArrayVertexBuffer(this->vertArrayHandle, 0, this->vertBufferHandle, 0, this->vertexStride);
+    glEnableVertexArrayAttrib(this->vertArrayHandle, 0);
+    glVertexArrayAttribFormat(this->vertArrayHandle, 0, 3 + this->hasNormals ? 3 : 0 + this->hasUVs ? 2 : 0, GL_FLOAT, GL_FALSE, 0);
   }
   
   Mesh::Mesh(Mesh&& moveFrom) noexcept
   {
-    this->vboV = moveFrom.vboV;
-    moveFrom.vboV = INVALID_HANDLE;
-    
-    this->vboU = moveFrom.vboU;
-    moveFrom.vboU = INVALID_HANDLE;
-    
-    this->vboN = moveFrom.vboN;
-    moveFrom.vboN = INVALID_HANDLE;
-    
-    this->vboI = moveFrom.vboI;
-    moveFrom.vboI = INVALID_HANDLE;
-    
-    this->vao = moveFrom.vao;
-    moveFrom.vao = INVALID_HANDLE;
+    this->vertBufferHandle = moveFrom.vertBufferHandle;
+    moveFrom.vertBufferHandle = INVALID_HANDLE;
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
-
-    this->hasIndexedVerts = moveFrom.hasIndexedVerts;
-    moveFrom.hasIndexedVerts = false;
     
     this->hasVerts = moveFrom.hasVerts;
     moveFrom.hasVerts = false;
@@ -176,27 +158,13 @@ namespace glr
     {
       return *this;
     }
-    
-    this->vboV = moveFrom.vboV;
-    moveFrom.vboV = INVALID_HANDLE;
-    
-    this->vboU = moveFrom.vboU;
-    moveFrom.vboU = INVALID_HANDLE;
-    
-    this->vboN = moveFrom.vboN;
-    moveFrom.vboN = INVALID_HANDLE;
-    
-    this->vboI = moveFrom.vboI;
-    moveFrom.vboI = INVALID_HANDLE;
-    
-    this->vao = moveFrom.vao;
-    moveFrom.vao = INVALID_HANDLE;
+
+    this->vertBufferHandle = moveFrom.vertBufferHandle;
+    moveFrom.vertBufferHandle = INVALID_HANDLE;
     
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
-
-    this->hasIndexedVerts = moveFrom.hasIndexedVerts;
-    moveFrom.hasIndexedVerts = false;
+    
     this->hasVerts = moveFrom.hasVerts;
     moveFrom.hasVerts = false;
     
@@ -211,6 +179,6 @@ namespace glr
   
   void Mesh::use() const
   {
-    glBindVertexArray(this->vao);
+    glBindVertexArray(this->vertBufferHandle);
   }
 }

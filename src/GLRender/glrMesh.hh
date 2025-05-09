@@ -24,10 +24,10 @@ namespace glr
     vec2<float> lowerRight = {};
   };
 
-  //TODO interleave data to improve performance
+  //TODO indexed rendering of interleaved data
   struct Mesh
   {
-    GLRENDER_API Mesh();
+    GLRENDER_API Mesh() = default;
     GLRENDER_API ~Mesh();
     
     Mesh(const Mesh& copyFrom) = delete;
@@ -41,22 +41,18 @@ namespace glr
     GLRENDER_API GLDrawMode getDrawMode() const;
     
     GLRENDER_API Mesh* addVerts(const float* verts, size_t vertsSize);
-    GLRENDER_API Mesh* addIndexedVerts(const uint32_t* indices, size_t indicesSize, const float* verts, size_t vertsSize);
     GLRENDER_API Mesh* addUVs(const float* uvs, size_t uvsSize);
     GLRENDER_API Mesh* addNormals(const float* normals, size_t normalsSize);
     
+    GLRENDER_API void finalize();
     GLRENDER_API void use() const;
     
-    uint32_t vao =  INVALID_HANDLE;
-    uint32_t vboV = INVALID_HANDLE;
-    uint32_t vboU = INVALID_HANDLE;
-    uint32_t vboN = INVALID_HANDLE;
-    uint32_t vboI = INVALID_HANDLE;
+    uint32_t vertArrayHandle = INVALID_HANDLE;
+    uint32_t vertBufferHandle = INVALID_HANDLE;
     
     size_t numVerts = 0;
     
     bool hasVerts = false;
-    bool hasIndexedVerts = false;
     bool hasUVs = false;
     bool hasNormals = false;
     
@@ -65,6 +61,15 @@ namespace glr
 
     GLDrawType type = GLDrawType::STATIC;
     GLDrawMode mode = GLDrawMode::TRIS;
+
+    const float* verts = nullptr;
+    size_t vertsSize = 0;
+
+    const float* uvs = nullptr;
+    size_t uvsSize = 0;
+    
+    const float* normals = nullptr;
+    size_t normalsSize = 0;
     
     static constexpr int32_t vertexStride = 3 * sizeof(float);
     static constexpr int32_t uvStride =     2 * sizeof(float);

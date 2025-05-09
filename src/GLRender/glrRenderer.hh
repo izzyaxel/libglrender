@@ -110,8 +110,8 @@ namespace glr
     Framebuffer fboB{};
     Framebuffer scratch{};
     
-    Mesh fullscreenQuad{};
-    Shader shaderTransfer{};
+    std::unique_ptr<Mesh> fullscreenQuad{};
+    std::unique_ptr<Shader> shaderTransfer{};
   };
 }
 #endif

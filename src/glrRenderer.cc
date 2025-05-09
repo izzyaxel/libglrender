@@ -176,8 +176,9 @@ void main()
     this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Ping");
     this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Pong");
     this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR}, "Scratch");
-    this->fullscreenQuad.addVerts(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
-    this->shaderTransfer = Shader("Transfer Shader", transferVert, transferFrag);
+    this->fullscreenQuad = std::make_unique<Mesh>();
+    this->fullscreenQuad->addVerts(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
+    this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
@@ -319,30 +320,30 @@ void main()
   
   void Renderer::drawToBackBuffer() const
   {
-    this->fullscreenQuad.use();
+    this->fullscreenQuad->use();
     this->useBackBuffer();
     this->clearCurrentFramebuffer();
-    this->shaderTransfer.use();
+    this->shaderTransfer->use();
     this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
-    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
   void Renderer::drawToScratch() const
   {
-    this->fullscreenQuad.use();
+    this->fullscreenQuad->use();
     this->scratch.use();
-    this->shaderTransfer.use();
+    this->shaderTransfer->use();
     this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
-    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
   void Renderer::scratchToPingPong()
   {
-    this->fullscreenQuad.use();
+    this->fullscreenQuad->use();
     this->pingPong();
-    this->shaderTransfer.use();
+    this->shaderTransfer->use();
     this->scratch.bind(COLOR, 0);
-    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad.numVerts);
+    this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
   void Renderer::bindImage(const uint32_t target, const uint32_t handle, const IOMode mode, const GLColorFormat format) const
