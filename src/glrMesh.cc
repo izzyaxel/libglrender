@@ -119,6 +119,15 @@ namespace glr
       return;
     }
 
+    if(this->finalized)
+    {
+      if(callback)
+      {
+        callback(LogType::WARNING, "Mesh::finalize(): Can't finalize Mesh, Mesh has already been finalized\n");
+      }
+      return;
+    }
+
     if(this->vertArrayHandle == INVALID_HANDLE)
     {
       glCreateVertexArrays(1, &this->vertArrayHandle);
