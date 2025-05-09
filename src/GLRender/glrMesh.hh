@@ -3,9 +3,9 @@
 #include "export.hh"
 #include "glrUtil.hh"
 #include "glrEnums.hh"
+#include "glrLogging.hh"
 
 #include <commons/math/vec2.hh>
-#include <vector>
 #include <cstdint>
 
 namespace glr
@@ -40,11 +40,11 @@ namespace glr
     GLRENDER_API void setDrawMode(GLDrawMode mode);
     GLRENDER_API GLDrawMode getDrawMode() const;
     
-    GLRENDER_API Mesh* addVerts(const float* verts, size_t vertsSize);
-    GLRENDER_API Mesh* addUVs(const float* uvs, size_t uvsSize);
-    GLRENDER_API Mesh* addNormals(const float* normals, size_t normalsSize);
+    GLRENDER_API Mesh* addVerts(const float* verts, size_t vertsSize, const LoggingCallback& callback = nullptr);
+    GLRENDER_API Mesh* addUVs(const float* uvs, size_t uvsSize, const LoggingCallback& callback = nullptr);
+    GLRENDER_API Mesh* addNormals(const float* normals, size_t normalsSize, const LoggingCallback& callback = nullptr);
     
-    GLRENDER_API void finalize();
+    GLRENDER_API void finalize(const LoggingCallback& callback = nullptr);
     GLRENDER_API void use() const;
     
     uint32_t vertArrayHandle = INVALID_HANDLE;
@@ -62,14 +62,19 @@ namespace glr
     GLDrawType type = GLDrawType::STATIC;
     GLDrawMode mode = GLDrawMode::TRIS;
 
-    const float* verts = nullptr;
+    std::vector<float> verts{};
+    //const float* verts = nullptr;
     size_t vertsSize = 0;
 
-    const float* uvs = nullptr;
+    std::vector<float> uvs{};
+    //const float* uvs = nullptr;
     size_t uvsSize = 0;
-    
-    const float* normals = nullptr;
+
+    std::vector<float> normals{};
+    //const float* normals = nullptr;
     size_t normalsSize = 0;
+
+    bool finalized = false;
     
     static constexpr int32_t vertexStride = 3 * sizeof(float);
     static constexpr int32_t uvStride =     2 * sizeof(float);

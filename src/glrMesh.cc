@@ -53,54 +53,69 @@ namespace glr
     return this->mode;
   }
 
-  Mesh* Mesh::addVerts(const float* verts, const size_t vertsSize)
+  Mesh* Mesh::addVerts(const float* verts, const size_t vertsSize, const LoggingCallback& callback)
   {
-    if(this->hasVerts)
+    if(this->finalized)
     {
+      if(callback)
+      {
+        callback(LogType::ERROR, "Mesh::addVerts(): Attempting to add verticies to a finalized Mesh\n");
+      }
       return this;
     }
-
+    
     this->hasVerts = true;
     this->numVerts = vertsSize / 3;
-    this->verts = verts;
+    this->verts.insert(this->verts.end(), verts, verts + vertsSize);
     this->vertsSize = vertsSize;
     
     return this;
   }
 
-  Mesh* Mesh::addUVs(const float* uvs, const size_t uvsSize)
+  Mesh* Mesh::addUVs(const float* uvs, const size_t uvsSize, const LoggingCallback& callback)
   {
-    if(this->hasUVs)
+    if(this->finalized)
     {
+      if(callback)
+      {
+        callback(LogType::ERROR, "Mesh::addUVs(): Attempting to add UVs to a finalized Mesh\n");
+      }
       return this;
     }
-
+    
     this->hasUVs = true;
-    this->uvs = uvs;
+    this->uvs.insert(this->uvs.end(), uvs, uvs + uvsSize);
     this->uvsSize = uvsSize;
     
     return this;
   }
 
-  Mesh* Mesh::addNormals(const float* normals, const size_t normalsSize)
+  Mesh* Mesh::addNormals(const float* normals, const size_t normalsSize, const LoggingCallback& callback)
   {
-    if(this->hasNormals)
+    if(this->finalized)
     {
+      if(callback)
+      {
+        callback(LogType::ERROR, "Mesh::addNormals(): Attempting to add normals to a finalized Mesh\n");
+      }
       return this;
     }
     
     this->hasNormals = true;
-    this->normals = normals;
+    this->normals.insert(this->normals.end(), normals, normals + normalsSize);
     this->normalsSize = normalsSize;
     
     return this;
   }
 
-  void Mesh::finalize()
+  void Mesh::finalize(const LoggingCallback& callback)
   {
     if(!this->hasVerts || this->vertsSize == 0)
     {
-      printf("Mesh error: can't finalize Mesh, no verticies have been added\n");
+      if(callback)
+      {
+        callback(LogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, no verticies have been added\n");
+      }
       return;
     }
 
@@ -115,14 +130,14 @@ namespace glr
     buffer.reserve(total);
     for(size_t i = 0; i < this->vertsSize; i++)
     {
-      buffer.insert(buffer.end(), this->verts + i * 3, this->verts + i * 3 + 3);
+      buffer.insert(buffer.end(), this->verts.begin() + i * 3, this->verts.begin() + i * 3 + 3);
       if(this->hasNormals)
       {
-        buffer.insert(buffer.end(), this->normals + i * 3, this->normals + i * 3 + 3);
+        buffer.insert(buffer.end(), this->normals.begin() + i * 3, this->normals.begin() + i * 3 + 3);
       }
       if(this->hasUVs)
       {
-        buffer.insert(buffer.end(), this->uvs + i * 2, this->uvs + i * 2 + 2);
+        buffer.insert(buffer.end(), this->uvs.begin() + i * 2, this->uvs.begin() + i * 2 + 2);
       }
     }
 
@@ -132,6 +147,8 @@ namespace glr
     glVertexArrayVertexBuffer(this->vertArrayHandle, 0, this->vertBufferHandle, 0, this->vertexStride);
     glEnableVertexArrayAttrib(this->vertArrayHandle, 0);
     glVertexArrayAttribFormat(this->vertArrayHandle, 0, 3 + this->hasNormals ? 3 : 0 + this->hasUVs ? 2 : 0, GL_FLOAT, GL_FALSE, 0);
+
+    this->finalized = true;
   }
   
   Mesh::Mesh(Mesh&& moveFrom) noexcept

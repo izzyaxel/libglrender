@@ -48,6 +48,7 @@ set(SRC
     src/gl.cc
     src/GLRender/export.hh
     src/GLRender/glrEnums.hh
+    src/GLRender/glrLogging.hh
     
     src/glrUtil.cc src/GLRender/glrUtil.hh
     src/glrRenderer.cc src/GLRender/glrRenderer.hh
