@@ -63,16 +63,8 @@ namespace glr
     GLDrawMode mode = GLDrawMode::TRIS;
 
     std::vector<float> verts{};
-    //const float* verts = nullptr;
-    size_t vertsSize = 0;
-
     std::vector<float> uvs{};
-    //const float* uvs = nullptr;
-    size_t uvsSize = 0;
-
     std::vector<float> normals{};
-    //const float* normals = nullptr;
-    size_t normalsSize = 0;
 
     bool finalized = false;
     

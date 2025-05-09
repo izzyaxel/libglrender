@@ -43,7 +43,7 @@ namespace glr
     return this->type;
   }
 
-  void Mesh::setDrawMode(GLDrawMode mode)
+  void Mesh::setDrawMode(const GLDrawMode mode)
   {
     this->mode = mode;
   }
@@ -67,7 +67,6 @@ namespace glr
     this->hasVerts = true;
     this->numVerts = vertsSize / 3;
     this->verts.insert(this->verts.end(), verts, verts + vertsSize);
-    this->vertsSize = vertsSize;
     
     return this;
   }
@@ -85,7 +84,6 @@ namespace glr
     
     this->hasUVs = true;
     this->uvs.insert(this->uvs.end(), uvs, uvs + uvsSize);
-    this->uvsSize = uvsSize;
     
     return this;
   }
@@ -103,14 +101,13 @@ namespace glr
     
     this->hasNormals = true;
     this->normals.insert(this->normals.end(), normals, normals + normalsSize);
-    this->normalsSize = normalsSize;
     
     return this;
   }
 
   void Mesh::finalize(const LoggingCallback& callback)
   {
-    if(!this->hasVerts || this->vertsSize == 0)
+    if(!this->hasVerts || this->verts.empty())
     {
       if(callback)
       {
@@ -134,10 +131,10 @@ namespace glr
     }
 
     //Interleave data: verts normals uvs
-    const size_t total = this->vertsSize + this->hasNormals ? this->normalsSize : 0 + this->hasUVs ? this->uvsSize : 0;
+    const size_t total = this->verts.size() + this->hasNormals ? this->normals.size() : 0 + this->hasUVs ? this->uvs.size() : 0;
     std::vector<float> buffer{};
     buffer.reserve(total);
-    for(size_t i = 0; i < this->vertsSize; i++)
+    for(size_t i = 0; i < this->verts.size(); i++)
     {
       buffer.insert(buffer.end(), this->verts.begin() + i * 3, this->verts.begin() + i * 3 + 3);
       if(this->hasNormals)
