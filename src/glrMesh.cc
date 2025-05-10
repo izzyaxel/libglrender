@@ -221,15 +221,15 @@ namespace glr
         buffer.insert(buffer.end(), this->positions.begin() + i * this->positionElements, this->positions.begin() + i * this->positionElements + this->positionElements);
         if(this->hasNormals)
         {
-          buffer.insert(buffer.end(), this->normals.begin() + i * Mesh::NORMAL_ELEMENTS, this->normals.begin() + i * Mesh::NORMAL_ELEMENTS + Mesh::NORMAL_ELEMENTS);
+          buffer.insert(buffer.end(), this->normals.begin() + i * NORMAL_ELEMENTS, this->normals.begin() + i * NORMAL_ELEMENTS + NORMAL_ELEMENTS);
         }
         if(this->hasUVs)
         {
-          buffer.insert(buffer.end(), this->uvs.begin() + i * Mesh::UV_ELEMENTS, this->uvs.begin() + i * Mesh::UV_ELEMENTS + Mesh::UV_ELEMENTS);
+          buffer.insert(buffer.end(), this->uvs.begin() + i * UV_ELEMENTS, this->uvs.begin() + i * UV_ELEMENTS + UV_ELEMENTS);
         }
         if(this->hasColors)
         {
-          buffer.insert(buffer.end(), this->colors.begin() + i * Mesh::COLOR_ELEMENTS, this->colors.begin() + i * Mesh::COLOR_ELEMENTS + Mesh::COLOR_ELEMENTS);
+          buffer.insert(buffer.end(), this->colors.begin() + i * COLOR_ELEMENTS, this->colors.begin() + i * COLOR_ELEMENTS + COLOR_ELEMENTS);
         }
       }
 
@@ -237,22 +237,22 @@ namespace glr
       int32_t stride = this->positionStride;
       if(this->hasNormals)
       {
-        stride += Mesh::NORMAL_STRIDE;
+        stride += NORMAL_STRIDE;
       }
       if(this->hasUVs)
       {
-        stride += Mesh::UV_STRIDE;
+        stride += UV_STRIDE;
       }
       if(this->hasColors)
       {
-        stride += Mesh::COLOR_STRIDE;
+        stride += COLOR_STRIDE;
       }
       
       //Upload our vertex data to the buffer we created
       glNamedBufferData(this->vertexBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
     
       //Bind a buffer to our vertex array and give it the stride information
-      glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->vertexBufferHandle, 0, stride);
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->vertexBufferHandle, 0, stride);
     
       //Set up attributes for our potentially interleaved data buffer so OpenGL knows how to read data out of it
       glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
@@ -290,12 +290,16 @@ namespace glr
       //Upload our position data to the buffer we created
       glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
 
+      //Bind the attribute to an index in the shaders
+      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, POSITION_BINDING_POINT);
+      
       //Bind the buffer to our vertex array and give it the stride information
       glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionBufferHandle, 0, this->positionStride);
 
-      //Set up attributes for our data buffer so OpenGL knows how to read data out of it
+      //Enable the attribute for our data buffer
       glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
-      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, POSITION_BINDING_POINT);
+
+      //Define the format of the buffer so OpenGL knows how to read data out of it
       glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionElements, GL_FLOAT, GL_FALSE, 0);
 
       //Repeat for any other vertex data
@@ -304,32 +308,40 @@ namespace glr
         glCreateBuffers(1, &this->normalBufferHandle);
         glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, NORMAL_BINDING_POINT, NORMAL_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->normalBufferHandle, 0, NORMAL_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, NORMAL_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->normalBufferHandle, 0, Mesh::NORMAL_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, Mesh::NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasUVs)
       {
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, UV_BINDING_POINT, UV_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, UV_BINDING_POINT, this->uvBufferHandle, 0, UV_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, UV_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, UV_BINDING_POINT, this->uvBufferHandle, 0, Mesh::UV_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, Mesh::UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasColors)
       {
         glCreateBuffers(1, &this->colorBufferHandle);
         glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, COLOR_BINDING_POINT, COLOR_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, COLOR_BINDING_POINT, this->colorBufferHandle, 0, COLOR_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, COLOR_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, COLOR_BINDING_POINT, this->colorBufferHandle, 0, Mesh::COLOR_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, Mesh::COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
     }
     if(callback)
     {
       callback(LogType::DBG, "Mesh::finalize(): Success");
+    }
+    if(this->drawType == GLDrawType::STATIC)
+    {
+      this->indices.clear();
+      this->positions.clear();
+      this->normals.clear();
+      this->uvs.clear();
+      this->colors.clear();
     }
     this->finalized = true;
   }

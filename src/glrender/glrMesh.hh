@@ -77,22 +77,28 @@ namespace glr
     GLDrawMode drawMode = GLDrawMode::TRIS;
 
     size_t numVerts = 0;
+
+    constexpr static int32_t POSITION_BINDING_POINT = 0;
+    constexpr static int32_t NORMAL_BINDING_POINT = 1;
+    constexpr static int32_t UV_BINDING_POINT = 2;
+    constexpr static int32_t COLOR_BINDING_POINT = 3;
     
     private:
     int getGLDrawType() const;
 
     uint32_t vertexArrayHandle = INVALID_HANDLE;
-
-    //Separate
-    uint32_t positionBufferHandle = INVALID_HANDLE;
     uint32_t indexBufferHandle = INVALID_HANDLE;
+    
+    //Separate buffers
+    uint32_t positionBufferHandle = INVALID_HANDLE;
     uint32_t normalBufferHandle = INVALID_HANDLE;
     uint32_t uvBufferHandle = INVALID_HANDLE;
     uint32_t colorBufferHandle = INVALID_HANDLE;
 
-    //Interleaved
+    //Interleaved buffer
     uint32_t vertexBufferHandle = INVALID_HANDLE;
 
+    std::vector<float> indices{};
     std::vector<float> positions{};
     std::vector<float> uvs{};
     std::vector<float> normals{};
@@ -114,10 +120,5 @@ namespace glr
     constexpr static int32_t NORMAL_STRIDE = NORMAL_ELEMENTS * sizeof(float);
     constexpr static int32_t UV_STRIDE = UV_ELEMENTS * sizeof(float);
     constexpr static int32_t COLOR_STRIDE = COLOR_ELEMENTS * sizeof(float);
-    
-    constexpr static int32_t POSITION_BINDING_POINT = 0;
-    constexpr static int32_t NORMAL_BINDING_POINT = 1;
-    constexpr static int32_t UV_BINDING_POINT = 2;
-    constexpr static int32_t COLOR_BINDING_POINT = 3;
   };
 }
