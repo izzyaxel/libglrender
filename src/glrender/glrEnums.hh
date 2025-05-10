@@ -2,7 +2,7 @@
 
 enum struct LogType
 {
-  INFO, WARNING, ERROR, DEBUG
+  INFO, WARNING, ERROR, DBG
 };
 
 enum struct GLAttachment
