@@ -152,7 +152,7 @@ namespace glr
     glVertexArrayAttribBinding(this->vertArrayHandle, 0, 0);
     glVertexArrayVertexBuffer(this->vertArrayHandle, 0, this->vertBufferHandle, 0, this->vertexStride);
     glEnableVertexArrayAttrib(this->vertArrayHandle, 0);
-    glVertexArrayAttribFormat(this->vertArrayHandle, 0, 3 + this->hasNormals ? 3 : 0 + this->hasUVs ? 2 : 0, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(this->vertArrayHandle, 0, 3, GL_FLOAT, GL_FALSE, 0);
 
     this->finalized = true;
   }
