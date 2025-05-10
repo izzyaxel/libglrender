@@ -185,8 +185,6 @@ namespace glr
 
     //Create a vertex array to hold all of our state for this mesh, reducing API call overhead when switching meshes
     glCreateVertexArrays(1, &this->vertexArrayHandle);
-    glEnableVertexArrayAttrib(this->vertexArrayHandle, 0);
-    glVertexArrayAttribBinding(this->vertexArrayHandle, 0, 0);
 
     //TODO FIXME nothing renders with interleaved
     if(this->bufferType == GLBufferType::INTERLEAVED)
@@ -283,33 +281,41 @@ namespace glr
       //Upload our position data to the buffer we created
       glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
 
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, POSITION_BINDING_POINT);
       //Bind a buffer to our vertex array and give it the stride information
-      glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->positionBufferHandle, 0, this->positionStride);
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionBufferHandle, 0, this->positionStride);
       
       //Set up attributes for our data buffer so OpenGL knows how to read data out of it
-      glVertexArrayAttribFormat(this->vertexArrayHandle, 0, this->positionElements, GL_FLOAT, GL_FALSE, 0);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionElements, GL_FLOAT, GL_FALSE, 0);
 
       //Repeat for any other vertex data
       if(this->hasNormals)
       {
         glCreateBuffers(1, &this->normalBufferHandle);
         glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->normalBufferHandle, 0, Mesh::NORMAL_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, NORMAL_BINDING_POINT, NORMAL_BINDING_POINT);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, NORMAL_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->normalBufferHandle, 0, Mesh::NORMAL_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, Mesh::NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasUVs)
       {
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->uvBufferHandle, 0, Mesh::UV_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, UV_BINDING_POINT, UV_BINDING_POINT);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, UV_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, UV_BINDING_POINT, this->uvBufferHandle, 0, Mesh::UV_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, Mesh::UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasColors)
       {
         glCreateBuffers(1, &this->colorBufferHandle);
         glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->colorBufferHandle, 0, Mesh::COLOR_STRIDE);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, COLOR_BINDING_POINT, COLOR_BINDING_POINT);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, COLOR_BINDING_POINT);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, COLOR_BINDING_POINT, this->colorBufferHandle, 0, Mesh::COLOR_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, Mesh::COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
     }
     this->finalized = true;
