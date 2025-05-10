@@ -191,7 +191,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::DEBUG, "Mesh::finalize(): Creating an interleaved buffer VAO");
+        callback(LogType::DBG, "Mesh::finalize(): Creating an interleaved buffer VAO");
       }
       
       //Create a buffer in the GPU's VRAM to hold our interleaved vertex data
@@ -282,7 +282,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::DEBUG, "Mesh::finalize(): Creating a separate buffers VAO");
+        callback(LogType::DBG, "Mesh::finalize(): Creating a separate buffers VAO");
       }
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
@@ -329,7 +329,7 @@ namespace glr
     }
     if(callback)
     {
-      callback(LogType::DEBUG, "Mesh::finalize(): Success");
+      callback(LogType::DBG, "Mesh::finalize(): Success");
     }
     this->finalized = true;
   }
