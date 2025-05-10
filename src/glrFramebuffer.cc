@@ -203,14 +203,17 @@ namespace glr
       case GLAttachment::COLOR_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->colorHandle);
+        break;
       }
       case GLAttachment::DEPTH_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->depthHandle);
+        break;
       }
       case GLAttachment::STENCIL_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->stencilHandle);
+        break;
       }
       default: break;
     }
