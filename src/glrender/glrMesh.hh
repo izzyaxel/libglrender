@@ -78,10 +78,10 @@ namespace glr
 
     size_t numVerts = 0;
 
-    constexpr static int32_t POSITION_BINDING_POINT = 0;
-    constexpr static int32_t NORMAL_BINDING_POINT = 1;
-    constexpr static int32_t UV_BINDING_POINT = 2;
-    constexpr static int32_t COLOR_BINDING_POINT = 3;
+    int32_t positionBindingPoint = 0;
+    int32_t normalBindingPoint = 2;
+    int32_t uvBindingPoint = 1;
+    int32_t colorBindingPoint = 3;
     
     private:
     int getGLDrawType() const;

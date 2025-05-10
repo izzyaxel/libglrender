@@ -169,15 +169,15 @@ namespace glr
         const std::string elements = std::to_string(this->positionElements);
         callback(LogType::WARNING, "Mesh::finalize(): The number of position elements that have been added is not divisible by " + elements + ", this will cause unintended effects\n");
       }
-      if(this->hasNormals && !this->normals.empty() && this->normals.size() % 3 != 0)
+      if(this->hasNormals && !this->normals.empty() && this->normals.size() % NORMAL_ELEMENTS != 0)
       {
         callback(LogType::WARNING, "Mesh::finalize(): The number of normal elements that have been added is not divisible by 3, this will cause unintended effects\n");
       }
-      if(this->hasUVs && !this->uvs.empty() && this->uvs.size() % 2 != 0)
+      if(this->hasUVs && !this->uvs.empty() && this->uvs.size() % UV_ELEMENTS != 0)
       {
         callback(LogType::WARNING, "Mesh::finalize(): The number of UV elements that have been added is not divisible by 2, this will cause unintended effects\n");
       }
-      if(this->hasColors && !this->colors.empty() && this->colors.size() % Mesh::COLOR_ELEMENTS != 0)
+      if(this->hasColors && !this->colors.empty() && this->colors.size() % COLOR_ELEMENTS != 0)
       {
         callback(LogType::WARNING, "Mesh::finalize(): The number of color elements that have been added is not divisible by 4, this will cause unintended effects\n");
       }
@@ -252,30 +252,30 @@ namespace glr
       glNamedBufferData(this->vertexBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
     
       //Bind a buffer to our vertex array and give it the stride information
-      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->vertexBufferHandle, 0, stride);
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, positionBindingPoint, this->vertexBufferHandle, 0, stride);
     
       //Set up attributes for our potentially interleaved data buffer so OpenGL knows how to read data out of it
-      glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
-      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, this->vertexBufferHandle);
-      glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, this->positionBindingPoint);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, this->positionBindingPoint, this->vertexBufferHandle);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, this->positionBindingPoint, 3, GL_FLOAT, GL_FALSE, 0);
     
       if(this->hasNormals)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, NORMAL_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->positionStride);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->normalBindingPoint);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->normalBindingPoint, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->normalBindingPoint, 3, GL_FLOAT, GL_FALSE, this->positionStride);
       }
       if(this->hasUVs)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, UV_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, UV_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->uvBindingPoint);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->uvBindingPoint, 2, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE);
       }
       if(this->hasColors)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, COLOR_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, COLOR_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->colorBindingPoint);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->colorBindingPoint, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
     else if(this->bufferType == GLBufferType::SEPARATE)
@@ -291,44 +291,44 @@ namespace glr
       glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
 
       //Bind the attribute to an index in the shaders
-      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, POSITION_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, this->positionBindingPoint, this->positionBindingPoint);
       
       //Bind the buffer to our vertex array and give it the stride information
-      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionBufferHandle, 0, this->positionStride);
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, this->positionBindingPoint, this->positionBufferHandle, 0, this->positionStride);
 
       //Enable the attribute for our data buffer
-      glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, this->positionBindingPoint);
 
       //Define the format of the buffer so OpenGL knows how to read data out of it
-      glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionElements, GL_FLOAT, GL_FALSE, 0);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, this->positionBindingPoint, this->positionElements, GL_FLOAT, GL_FALSE, 0);
 
       //Repeat for any other vertex data
       if(this->hasNormals)
       {
         glCreateBuffers(1, &this->normalBufferHandle);
         glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
-        glVertexArrayAttribBinding(this->vertexArrayHandle, NORMAL_BINDING_POINT, NORMAL_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->normalBufferHandle, 0, NORMAL_STRIDE);
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, NORMAL_BINDING_POINT);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->normalBindingPoint, this->normalBindingPoint);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, this->normalBindingPoint, this->normalBufferHandle, 0, NORMAL_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->normalBindingPoint);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->normalBindingPoint, NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasUVs)
       {
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
-        glVertexArrayAttribBinding(this->vertexArrayHandle, UV_BINDING_POINT, UV_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, UV_BINDING_POINT, this->uvBufferHandle, 0, UV_STRIDE);
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, UV_BINDING_POINT);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->uvBindingPoint);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, this->uvBindingPoint, this->uvBufferHandle, 0, UV_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->uvBindingPoint);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->uvBindingPoint, UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
       if(this->hasColors)
       {
         glCreateBuffers(1, &this->colorBufferHandle);
         glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
-        glVertexArrayAttribBinding(this->vertexArrayHandle, COLOR_BINDING_POINT, COLOR_BINDING_POINT);
-        glVertexArrayVertexBuffer(this->vertexArrayHandle, COLOR_BINDING_POINT, this->colorBufferHandle, 0, COLOR_STRIDE);
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, COLOR_BINDING_POINT);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, this->colorBindingPoint, this->colorBindingPoint);
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, this->colorBindingPoint, this->colorBufferHandle, 0, COLOR_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, this->colorBindingPoint);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
     }
     if(callback)
