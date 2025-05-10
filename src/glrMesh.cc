@@ -4,56 +4,56 @@
 
 namespace glr
 {
-  int Mesh::getGLDrawType() const
-  {
-    switch(this->type)
-    {
-      case GLDrawType::STATIC:
-      {
-        return GL_STATIC_DRAW;
-      }
-      case GLDrawType::STREAM:
-      {
-        return GL_STREAM_DRAW;
-      }
-      case GLDrawType::DYNAMIC:
-      {
-        return GL_DYNAMIC_DRAW;
-      }
-      default:
-      {
-        return GL_STATIC_DRAW;
-      }
-    }
-  }
-  
   Mesh::~Mesh()
   {
-    glDeleteVertexArrays(1, &this->vertArrayHandle);
-    glDeleteBuffers(1, &this->vertBufferHandle);
+    glDeleteVertexArrays(1, &this->vertexArrayHandle);
+    glDeleteBuffers(1, &this->vertexBufferHandle);
   }
 
-  void Mesh::setDrawType(const GLDrawType type)
+  Mesh::Mesh(Mesh&& moveFrom) noexcept
   {
-    this->type = type;
+    this->vertexBufferHandle = moveFrom.vertexBufferHandle;
+    moveFrom.vertexBufferHandle = INVALID_HANDLE;
+    
+    this->numVerts = moveFrom.numVerts;
+    moveFrom.numVerts = 0;
+    
+    this->hasPositions = moveFrom.hasPositions;
+    moveFrom.hasPositions = false;
+    
+    this->hasUVs = moveFrom.hasUVs;
+    moveFrom.hasUVs = false;
+    
+    this->hasNormals = moveFrom.hasNormals;
+    moveFrom.hasNormals = false;
   }
-
-  GLDrawType Mesh::getDrawType() const
+  
+  Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
   {
-    return this->type;
+    if(this == &moveFrom)
+    {
+      return *this;
+    }
+
+    this->vertexBufferHandle = moveFrom.vertexBufferHandle;
+    moveFrom.vertexBufferHandle = INVALID_HANDLE;
+    
+    this->numVerts = moveFrom.numVerts;
+    moveFrom.numVerts = 0;
+    
+    this->hasPositions = moveFrom.hasPositions;
+    moveFrom.hasPositions = false;
+    
+    this->hasUVs = moveFrom.hasUVs;
+    moveFrom.hasUVs = false;
+    
+    this->hasNormals = moveFrom.hasNormals;
+    moveFrom.hasNormals = false;
+    
+    return *this;
   }
 
-  void Mesh::setDrawMode(const GLDrawMode mode)
-  {
-    this->mode = mode;
-  }
-
-  GLDrawMode Mesh::getDrawMode() const
-  {
-    return this->mode;
-  }
-
-  Mesh* Mesh::addVerts(const float* verts, const size_t vertsSize, const LoggingCallback& callback)
+  Mesh* Mesh::addPositions(const float* positions, const size_t positionsSize, const LoggingCallback& callback)
   {
     if(this->finalized)
     {
@@ -64,9 +64,9 @@ namespace glr
       return this;
     }
     
-    this->hasVerts = true;
-    this->numVerts = vertsSize / 3;
-    this->verts.insert(this->verts.end(), verts, verts + vertsSize);
+    this->hasPositions = true;
+    this->numVerts = positionsSize / 3;
+    this->positions.insert(this->positions.end(), positions, positions + positionsSize);
     
     return this;
   }
@@ -107,7 +107,7 @@ namespace glr
 
   void Mesh::finalize(const LoggingCallback& callback)
   {
-    if(!this->hasVerts || this->verts.empty())
+    if(!this->hasPositions || this->positions.empty())
     {
       if(callback)
       {
@@ -125,18 +125,19 @@ namespace glr
       return;
     }
 
-    if(this->vertArrayHandle == INVALID_HANDLE)
+    if(this->vertexArrayHandle == INVALID_HANDLE)
     {
-      glCreateVertexArrays(1, &this->vertArrayHandle);
+      //VAOs hold all the state for a VBO, reducing API call overhead
+      glCreateVertexArrays(1, &this->vertexArrayHandle);
     }
 
     //Interleave data: verts normals uvs
-    const size_t total = this->verts.size() + this->hasNormals ? this->normals.size() : 0 + this->hasUVs ? this->uvs.size() : 0;
+    const size_t total = this->positions.size() + this->hasNormals ? this->normals.size() : 0 + this->hasUVs ? this->uvs.size() : 0;
     std::vector<float> buffer{};
     buffer.reserve(total);
-    for(size_t i = 0; i < this->verts.size(); i++)
+    for(size_t i = 0; i < this->positions.size(); i++)
     {
-      buffer.insert(buffer.end(), this->verts.begin() + i * 3, this->verts.begin() + i * 3 + 3);
+      buffer.insert(buffer.end(), this->positions.begin() + i * 3, this->positions.begin() + i * 3 + 3);
       if(this->hasNormals)
       {
         buffer.insert(buffer.end(), this->normals.begin() + i * 3, this->normals.begin() + i * 3 + 3);
@@ -147,61 +148,81 @@ namespace glr
       }
     }
 
-    glCreateBuffers(1, &this->vertBufferHandle);
-    glNamedBufferData(this->vertBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
-    glVertexArrayAttribBinding(this->vertArrayHandle, 0, 0);
-    glVertexArrayVertexBuffer(this->vertArrayHandle, 0, this->vertBufferHandle, 0, this->vertexStride);
-    glEnableVertexArrayAttrib(this->vertArrayHandle, 0);
-    glVertexArrayAttribFormat(this->vertArrayHandle, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    //Create a buffer to hold our interleaved vertex data
+    glCreateBuffers(1, &this->vertexBufferHandle);
 
-    this->finalized = true;
-  }
-  
-  Mesh::Mesh(Mesh&& moveFrom) noexcept
-  {
-    this->vertBufferHandle = moveFrom.vertBufferHandle;
-    moveFrom.vertBufferHandle = INVALID_HANDLE;
-    
-    this->numVerts = moveFrom.numVerts;
-    moveFrom.numVerts = 0;
-    
-    this->hasVerts = moveFrom.hasVerts;
-    moveFrom.hasVerts = false;
-    
-    this->hasUVs = moveFrom.hasUVs;
-    moveFrom.hasUVs = false;
-    
-    this->hasNormals = moveFrom.hasNormals;
-    moveFrom.hasNormals = false;
-  }
-  
-  Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
-  {
-    if(this == &moveFrom)
+    //Upload our buffer to the GPU's VRAM
+    glNamedBufferData(this->vertexBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
+
+    //Calculate the stride between the start of one vertex and the start of the next
+    int32_t stride = Mesh::POSITION_STRIDE;
+    if(this->hasNormals)
     {
-      return *this;
+      stride += Mesh::NORMAL_STRIDE;
     }
-
-    this->vertBufferHandle = moveFrom.vertBufferHandle;
-    moveFrom.vertBufferHandle = INVALID_HANDLE;
+    if(this->hasUVs)
+    {
+      stride += Mesh::UV_STRIDE;
+    }
     
-    this->numVerts = moveFrom.numVerts;
-    moveFrom.numVerts = 0;
+    //Bind a buffer to our vertex array and give it the stride information
+    glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->vertexBufferHandle, 0, stride);
     
-    this->hasVerts = moveFrom.hasVerts;
-    moveFrom.hasVerts = false;
+    //Set up attributes for our interleaved data buffer so OpenGL knows how to read data out of it
+    glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT);
+    glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, Mesh::POSITION_BINDING_POINT);
+    glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
     
-    this->hasUVs = moveFrom.hasUVs;
-    moveFrom.hasUVs = false;
+    if(this->hasNormals)
+    {
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, Mesh::NORMAL_BINDING_POINT);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->POSITION_STRIDE);
+    }
     
-    this->hasNormals = moveFrom.hasNormals;
-    moveFrom.hasNormals = false;
+    if(this->hasUVs)
+    {
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::UV_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, Mesh::UV_BINDING_POINT);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->POSITION_STRIDE + this->NORMAL_STRIDE);
+    }
     
-    return *this;
+    this->finalized = true;
   }
   
   void Mesh::use() const
   {
-    glBindVertexArray(this->vertBufferHandle);
+    if(this->finalized)
+    {
+      glBindVertexArray(this->vertexBufferHandle);
+    }
+  }
+
+  bool Mesh::isFinalized() const
+  {
+    return this->finalized;
+  }
+
+  int Mesh::getGLDrawType() const
+  {
+    switch(this->type)
+    {
+      case GLDrawType::STATIC:
+      {
+        return GL_STATIC_DRAW;
+      }
+      case GLDrawType::STREAM:
+      {
+        return GL_STREAM_DRAW;
+      }
+      case GLDrawType::DYNAMIC:
+      {
+        return GL_DYNAMIC_DRAW;
+      }
+      default:
+      {
+        return GL_STATIC_DRAW;
+      }
+    }
   }
 }

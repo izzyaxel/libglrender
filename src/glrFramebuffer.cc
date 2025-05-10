@@ -5,7 +5,7 @@
 
 namespace glr
 {
-  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, std::initializer_list<Attachment> options, const std::string& name)
+  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, std::initializer_list<GLAttachment> options, const std::string& name)
   {
     this->width = width;
     this->height = height;
@@ -13,20 +13,42 @@ namespace glr
     {
       switch(option)
       {
-        case COLOR:
-          this->hasColor = true;
+        case GLAttachment::COLOR_TEXTURE:
+        {
+          this->hasColorTex = true;
           break;
-        case ALPHA:
+        }
+        case GLAttachment::ALPHA_TEXTURE:
+        {
           this->hasAlpha = true;
           break;
-        case DEPTH:
-          this->hasDepth = true;
+        }
+        case GLAttachment::DEPTH_TEXTURE:
+        {
+          this->hasDepthTex = true;
           break;
-        case STENCIL:
-          this->hasStencil = true;
+        }
+        case GLAttachment::STENCIL_TEXTURE:
+        {
+          this->hasStencilTex = true;
           break;
-        default:
+        }
+        case GLAttachment::COLOR_RENDERBUFFER:
+        {
+          this->hasColorRB = true;
           break;
+        }
+        case GLAttachment::DEPTH_RENDERBUFFER:
+        {
+          this->hasDepthRB = true;
+          break;
+        }
+        case GLAttachment::STENCIL_RENDERBUFFER:
+        {
+          this->hasStencilRB = true;
+          break;
+        }
+        default: break;
       }
     }
     this->name = name;
@@ -59,17 +81,17 @@ namespace glr
     this->height = other.height;
     other.height = 0;
     
-    this->hasColor = other.hasColor;
-    other.hasColor = false;
+    this->hasColorTex = other.hasColorTex;
+    other.hasColorTex = false;
     
-    this->hasDepth = other.hasDepth;
-    other.hasDepth = false;
+    this->hasDepthTex = other.hasDepthTex;
+    other.hasDepthTex = false;
     
     this->hasAlpha = other.hasAlpha;
     other.hasAlpha = false;
     
-    this->hasStencil = other.hasStencil;
-    other.hasStencil = false;
+    this->hasStencilTex = other.hasStencilTex;
+    other.hasStencilTex = false;
     
     this->name = other.name;
     other.name = "";
@@ -78,7 +100,7 @@ namespace glr
     other.init = false;
   }
   
-  Framebuffer &Framebuffer::operator =(Framebuffer&& other) noexcept
+  Framebuffer &Framebuffer::operator = (Framebuffer&& other) noexcept
   {
     this->handle = other.handle;
     other.handle = INVALID_HANDLE;
@@ -98,17 +120,17 @@ namespace glr
     this->height = other.height;
     other.height = 0;
     
-    this->hasColor = other.hasColor;
-    other.hasColor = false;
+    this->hasColorTex = other.hasColorTex;
+    other.hasColorTex = false;
     
-    this->hasDepth = other.hasDepth;
-    other.hasDepth = false;
+    this->hasDepthTex = other.hasDepthTex;
+    other.hasDepthTex = false;
     
     this->hasAlpha = other.hasAlpha;
     other.hasAlpha = false;
     
-    this->hasStencil = other.hasStencil;
-    other.hasStencil = false;
+    this->hasStencilTex = other.hasStencilTex;
+    other.hasStencilTex = false;
     
     this->name = other.name;
     other.name = "";
@@ -123,10 +145,10 @@ namespace glr
   {
     return this->init &&
     this->handle != INVALID_HANDLE &&
-    (this->hasColor || this->hasDepth || this->hasStencil) &&
-      ((this->hasColor && this->colorHandle != INVALID_HANDLE) ||
-      (this->hasDepth && this->depthHandle != INVALID_HANDLE) ||
-      (this->hasStencil && this->stencilHandle != INVALID_HANDLE));
+    (this->hasColorTex || this->hasDepthTex || this->hasStencilTex) &&
+      ((this->hasColorTex && this->colorHandle != INVALID_HANDLE) ||
+      (this->hasDepthTex && this->depthHandle != INVALID_HANDLE) ||
+      (this->hasStencilTex && this->stencilHandle != INVALID_HANDLE));
   }
   
   bool Framebuffer::exists() const
@@ -142,34 +164,55 @@ namespace glr
     this->stencilHandle = INVALID_HANDLE;
     this->width = INVALID_HANDLE;
     this->height = INVALID_HANDLE;
-    this->hasColor = false;
-    this->hasDepth = false;
+    this->hasColorTex = false;
+    this->hasDepthTex = false;
     this->hasAlpha = false;
-    this->hasStencil = false;
+    this->hasStencilTex = false;
     this->name = "";
     this->init = false;
   }
   
   void Framebuffer::use() const
   {
+    if(!this->init)
+    {
+      return;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, this->handle);
   }
   
-  void Framebuffer::bind(const Attachment type, const uint32_t target) const
+  void Framebuffer::bind(const GLAttachment type, const uint32_t target) const
   {
     switch(type)
     {
-      case COLOR:
+      case GLAttachment::COLOR_TEXTURE:
+      {
         glBindTextureUnit(target, this->colorHandle);
         break;
-      case DEPTH:
+      }
+      case GLAttachment::DEPTH_TEXTURE:
+      {
         glBindTextureUnit(target, this->depthHandle);
         break;
-      case STENCIL:
+      }
+      case GLAttachment::STENCIL_TEXTURE:
+      {
         glBindTextureUnit(target, this->stencilHandle);
         break;
-      default:
-        break;
+      }
+      case GLAttachment::COLOR_RENDERBUFFER:
+      {
+        glBindRenderbuffer(target, this->colorHandle);
+      }
+      case GLAttachment::DEPTH_RENDERBUFFER:
+      {
+        glBindRenderbuffer(target, this->depthHandle);
+      }
+      case GLAttachment::STENCIL_RENDERBUFFER:
+      {
+        glBindRenderbuffer(target, this->stencilHandle);
+      }
+      default: break;
     }
   }
   
@@ -187,18 +230,27 @@ namespace glr
     this->use();
     glViewport(0, 0, (GLsizei)this->width, (GLsizei)this->height);
     glScissor(0, 0, (GLsizei)this->width, (GLsizei)this->height);
-    if(this->hasColor) glCreateTextures(GL_TEXTURE_2D, 1, &this->colorHandle);
-    if(this->hasDepth) glCreateTextures(GL_TEXTURE_2D, 1, &this->depthHandle);
+    
+    if(this->hasColorTex)
+    {
+      glCreateTextures(GL_TEXTURE_2D, 1, &this->colorHandle);
+    }
+    if(this->hasDepthTex)
+    {
+      glCreateTextures(GL_TEXTURE_2D, 1, &this->depthHandle);
+    }
+    
     glTextureStorage2D(this->colorHandle, 1, this->hasAlpha ? GL_RGBA32F : GL_RGB32F, (GLsizei)this->width, (GLsizei)this->height);
     glNamedFramebufferTexture(this->handle, GL_COLOR_ATTACHMENT0, this->colorHandle, 0);
-    if(this->hasDepth)
+    if(this->hasDepthTex)
     {
       glTextureStorage2D(this->depthHandle, 1, GL_DEPTH_COMPONENT32F, (GLsizei)this->width, (GLsizei)this->height);
       glNamedFramebufferTexture(this->handle, GL_DEPTH_ATTACHMENT, this->depthHandle, 0);
     }
+    
     std::vector<GLenum> drawBuffers;
     drawBuffers.emplace_back(GL_COLOR_ATTACHMENT0);
-    if(this->hasDepth) drawBuffers.emplace_back(GL_COLOR_ATTACHMENT1);
+    if(this->hasDepthTex) drawBuffers.emplace_back(GL_COLOR_ATTACHMENT1);
     glNamedFramebufferDrawBuffers(this->handle, (int32_t)(drawBuffers.size()), drawBuffers.data());
     const GLenum error = glCheckNamedFramebufferStatus(this->handle, GL_FRAMEBUFFER);
     if(error != GL_FRAMEBUFFER_COMPLETE)
@@ -207,19 +259,26 @@ namespace glr
       switch(error)
       {
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        {
           er += "incomplete attachment";
           break;
+        }
         case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+        {
           er += "incomplete dimensions";
           break;
+        }
         case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        {
           er += "missing attachment";
           break;
+        }
         case GL_FRAMEBUFFER_UNSUPPORTED:
+        {
           er += "Framebuffers are not supported";
           break;
-        default:
-          break;
+        }
+        default: break;
       }
       printf("%s\n", er.c_str());
     }
@@ -238,7 +297,7 @@ namespace glr
     this->pool.resize(alloc);
     for(size_t i = 0; i < alloc; i++)
     {
-      this->pool[i] = Framebuffer(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(i));
+      this->pool[i] = Framebuffer(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(i));
     }
     this->init = true;
   }
@@ -288,14 +347,14 @@ namespace glr
       {
         if(fbo.width != width || fbo.height != height)
         {
-          fbo = Framebuffer(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+          fbo = Framebuffer(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
         }
         fbo.use();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return fbo;
       }
     }
-    this->pool.emplace_back(width, height, std::initializer_list{COLOR, ALPHA, DEPTH}, "Pool " + std::to_string(this->pool.size() + 1));
+    this->pool.emplace_back(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
     this->pool.back().use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return this->pool.back();

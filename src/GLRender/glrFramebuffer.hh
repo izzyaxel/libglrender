@@ -1,6 +1,7 @@
 #pragma once
 
 #include "export.hh"
+#include "glrEnums.hh"
 #include "glrUtil.hh"
 
 #include <string>
@@ -9,16 +10,13 @@
 
 namespace glr
 {
-  typedef enum
-  {
-    COLOR, ALPHA, DEPTH, STENCIL,
-  } Attachment;
-  
+  //TODO implement RenderBuffer attachments for fast FBO transfers/double buffering
+  //TODO modular implementation like Mesh
   /// An OpenGL framebuffer
   struct Framebuffer
   {
     Framebuffer() = default;
-    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<Attachment> options, const std::string& name);
+    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<GLAttachment> options, const std::string& name);
     GLRENDER_API ~Framebuffer();
     
     Framebuffer(Framebuffer& other) = delete;
@@ -30,19 +28,23 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
-    GLRENDER_API void bind(Attachment type, uint32_t target) const;
+    GLRENDER_API void bind(GLAttachment type, uint32_t target) const;
     GLRENDER_API void regenerate(uint32_t width, uint32_t height);
     
     uint32_t handle = INVALID_HANDLE;
     uint32_t colorHandle = INVALID_HANDLE;
     uint32_t depthHandle = INVALID_HANDLE;
     uint32_t stencilHandle = INVALID_HANDLE;
+    
     uint32_t width = 0;
     uint32_t height = 0;
-    bool hasColor = false;
-    bool hasDepth = false;
+    bool hasColorTex = false;
+    bool hasDepthTex = false;
     bool hasAlpha = false;
-    bool hasStencil = false;
+    bool hasStencilTex = false;
+    bool hasColorRB = false;
+    bool hasDepthRB = false;
+    bool hasStencilRB = false;
     std::string name;
     
     private:

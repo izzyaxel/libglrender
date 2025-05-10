@@ -173,11 +173,11 @@ void main()
     gladLoadGL(loadFunc);
     this->contextSize = {contextWidth, contextHeight};
     this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
-    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Ping");
-    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR, ALPHA}, "Pong");
-    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{COLOR}, "Scratch");
+    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE}, "Ping");
+    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE}, "Pong");
+    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLAttachment::COLOR_TEXTURE}, "Scratch");
     this->fullscreenQuad = std::make_unique<Mesh>();
-    this->fullscreenQuad->addVerts(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
+    this->fullscreenQuad->addPositions(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
     this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -324,7 +324,7 @@ void main()
     this->useBackBuffer();
     this->clearCurrentFramebuffer();
     this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
+    this->curFBO.get() ? this->fboA.bind(GLAttachment::COLOR_TEXTURE, 0) : this->fboB.bind(GLAttachment::COLOR_TEXTURE, 0);
     this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
@@ -333,7 +333,7 @@ void main()
     this->fullscreenQuad->use();
     this->scratch.use();
     this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA.bind(COLOR, 0) : this->fboB.bind(COLOR, 0);
+    this->curFBO.get() ? this->fboA.bind(GLAttachment::COLOR_TEXTURE, 0) : this->fboB.bind(GLAttachment::COLOR_TEXTURE, 0);
     this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
@@ -342,7 +342,7 @@ void main()
     this->fullscreenQuad->use();
     this->pingPong();
     this->shaderTransfer->use();
-    this->scratch.bind(COLOR, 0);
+    this->scratch.bind(GLAttachment::COLOR_TEXTURE, 0);
     this->draw(GLDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
   }
   
@@ -546,7 +546,7 @@ void main()
         entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
         entry.fragVertShaderComp->shader->sendUniforms();
         entry.meshComp->mesh->use();
-        this->draw(entry.meshComp->mesh->getDrawMode(), entry.meshComp->mesh->numVerts);
+        this->draw(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numVerts);
     }
     else if(isTemplate(entry, COMPUTE_RENDERABLE_TEMPLATE)) //Compute image generation
     {
@@ -565,26 +565,25 @@ void main()
       const FilterMode prevMag = this->filterModeMag;
       this->setFilterMode(BILINEAR, BILINEAR);
       
-      //TODO FIXME batch render text quads
+      //TODO batch render text quads
+      Mesh textMesh;
       for(const auto& charInfo : entry.textComp->characterInfo)
       {
-        this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
-        this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-        
-        entry.fragVertShaderComp->shader->use();
-        entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
-        entry.fragVertShaderComp->shader->setUniform(charInfo.colorUniformLocation, charInfo.color.asRGBAf());
-        entry.fragVertShaderComp->shader->sendUniforms();
-        
+        //TODO FIXME apply entry's position and scale to the quad's positions
         constexpr std::array quadVerts{1.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f}; //Lower left origin
         const auto& [ul, ll, ur, lr] = charInfo.atlasUVs;
         const std::array quadUVs{lr.x(), lr.y(), ll.x(), ll.y(), ur.x(), ur.y(), ul.x(), ul.y()};
-        Mesh mesh;
-        mesh.addVerts(quadVerts.data(), quadVerts.size())->addUVs(quadUVs.data(), quadUVs.size())->use();
-        
-        this->draw(mesh.getDrawMode(), mesh.numVerts);
+        textMesh.addPositions(quadVerts.data(), quadVerts.size())->addUVs(quadUVs.data(), quadUVs.size())->use();
       }
+      this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
+      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
       
+      entry.fragVertShaderComp->shader->use();
+      entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
+      //entry.fragVertShaderComp->shader->setUniform(charInfo.colorUniformLocation, charInfo.color.asRGBAf());
+      entry.fragVertShaderComp->shader->sendUniforms();
+      
+      this->draw(textMesh.drawMode, textMesh.numVerts);
       this->setFilterMode(prevMin, prevMag);
     }
   }
