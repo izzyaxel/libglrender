@@ -105,6 +105,7 @@ namespace glr
     return this;
   }
 
+  //TODO index the vertex positions
   void Mesh::finalize(const LoggingCallback& callback)
   {
     if(!this->hasPositions || this->positions.empty())
