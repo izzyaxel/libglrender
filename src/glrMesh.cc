@@ -284,6 +284,14 @@ namespace glr
       {
         callback(LogType::DBG, "Mesh::finalize(): Creating a separate buffers VAO");
       }
+
+      printf("Positions: ");
+      for(const auto pos : this->positions)
+      {
+        printf("%f ", pos);
+      }
+      printf("\n");
+      
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
       
@@ -305,6 +313,13 @@ namespace glr
       //Repeat for any other vertex data
       if(this->hasNormals)
       {
+        printf("Normals: ");
+        for(const auto pos : this->normals)
+        {
+          printf("%f ", pos);
+        }
+        printf("\n");
+        
         glCreateBuffers(1, &this->normalBufferHandle);
         glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->normalBindingPoint, this->normalBindingPoint);
@@ -314,6 +329,13 @@ namespace glr
       }
       if(this->hasUVs)
       {
+        printf("UVs: ");
+        for(const auto pos : this->uvs)
+        {
+          printf("%f ", pos);
+        }
+        printf("\n");
+        
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->uvBindingPoint);
@@ -323,6 +345,13 @@ namespace glr
       }
       if(this->hasColors)
       {
+        printf("Colors: ");
+        for(const auto pos : this->colors)
+        {
+          printf("%f ", pos);
+        }
+        printf("\n");
+        
         glCreateBuffers(1, &this->colorBufferHandle);
         glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->colorBindingPoint, this->colorBindingPoint);
