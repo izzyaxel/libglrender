@@ -189,6 +189,11 @@ namespace glr
     //TODO FIXME nothing renders with interleaved
     if(this->bufferType == GLBufferType::INTERLEAVED)
     {
+      if(callback)
+      {
+        callback(LogType::DEBUG, "Mesh::finalize(): Creating an interleaved buffer VAO");
+      }
+      
       //Create a buffer in the GPU's VRAM to hold our interleaved vertex data
       glCreateBuffers(1, &this->vertexBufferHandle);
       
@@ -250,43 +255,47 @@ namespace glr
       glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->vertexBufferHandle, 0, stride);
     
       //Set up attributes for our potentially interleaved data buffer so OpenGL knows how to read data out of it
-      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT);
-      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, this->vertexBufferHandle);
-      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, this->vertexBufferHandle);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
     
       if(this->hasNormals)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->positionStride);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, NORMAL_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, NORMAL_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->positionStride);
       }
       if(this->hasUVs)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::UV_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->positionStride + Mesh::NORMAL_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, UV_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, UV_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE);
       }
       if(this->hasColors)
       {
-        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT);
-        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT, this->vertexBufferHandle);
-        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT, 4, GL_FLOAT, GL_FALSE, this->positionStride + Mesh::NORMAL_STRIDE + Mesh::UV_STRIDE);
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, COLOR_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, COLOR_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
     else if(this->bufferType == GLBufferType::SEPARATE)
     {
+      if(callback)
+      {
+        callback(LogType::DEBUG, "Mesh::finalize(): Creating a separate buffers VAO");
+      }
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
       
       //Upload our position data to the buffer we created
       glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
 
+      //Bind the buffer to our vertex array and give it the stride information
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionBufferHandle, 0, this->positionStride);
+
+      //Set up attributes for our data buffer so OpenGL knows how to read data out of it
       glEnableVertexArrayAttrib(this->vertexArrayHandle, POSITION_BINDING_POINT);
       glVertexArrayAttribBinding(this->vertexArrayHandle, POSITION_BINDING_POINT, POSITION_BINDING_POINT);
-      //Bind a buffer to our vertex array and give it the stride information
-      glVertexArrayVertexBuffer(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionBufferHandle, 0, this->positionStride);
-      
-      //Set up attributes for our data buffer so OpenGL knows how to read data out of it
       glVertexArrayAttribFormat(this->vertexArrayHandle, POSITION_BINDING_POINT, this->positionElements, GL_FLOAT, GL_FALSE, 0);
 
       //Repeat for any other vertex data
@@ -317,6 +326,10 @@ namespace glr
         glVertexArrayVertexBuffer(this->vertexArrayHandle, COLOR_BINDING_POINT, this->colorBufferHandle, 0, Mesh::COLOR_STRIDE);
         glVertexArrayAttribFormat(this->vertexArrayHandle, COLOR_BINDING_POINT, Mesh::COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
+    }
+    if(callback)
+    {
+      callback(LogType::DEBUG, "Mesh::finalize(): Success");
     }
     this->finalized = true;
   }

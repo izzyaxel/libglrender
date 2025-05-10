@@ -1,5 +1,10 @@
 #pragma once
 
+enum struct LogType
+{
+  INFO, WARNING, ERROR, DEBUG
+};
+
 enum struct GLAttachment
 {
   COLOR_TEXTURE, ALPHA_TEXTURE, DEPTH_TEXTURE, STENCIL_TEXTURE,
