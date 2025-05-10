@@ -10,7 +10,7 @@
 
 namespace glr
 {
-  struct QuadUVs //TODO does this need to exist?
+  struct QuadUVs //Used for atlas UVs
   {
     bool operator==(const QuadUVs& other) const
     {
@@ -34,28 +34,37 @@ namespace glr
     Mesh& operator=(const Mesh& copyFrom) = delete;
     GLRENDER_API Mesh(Mesh&& moveFrom) noexcept;
     GLRENDER_API Mesh& operator=(Mesh&& moveFrom) noexcept;
-
+    
+    /// @param dimensions Set positions to 2D or 3D (2 or 3 coordinates per vertex, xy or xyz)
+    GLRENDER_API void setPositionElements(GLDimensions dimensions);
+    
     //It's the user's responsibility to keep these buffers lined up with each other
-    //Ie: you should be adding UVs and/or normals that correspond to all the positions you've added
+    //IE all UVs and/or normals must correspond to the positions you've added
     //If this isn't done, odd effects may occur
 
-    /// Add vertex positions to the OpenGL buffer, can be called multiple times to append data to the end of the positions buffer
+    /// Add vertex positions to the OpenGL buffer, can be called multiple times to append data to the positions buffer
     /// @param positions An array of vertex positions to add to the OpenGL buffer
     /// @param positionsSize How many elements are in the positions array
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addPositions(const float* positions, size_t positionsSize, const LoggingCallback& callback = nullptr);
 
-    /// Add vertex uv coordinates to the OpenGL buffer, can be called multiple times to append data to the end of the uv coordinates buffer
+    /// Add vertex uv coordinates to the OpenGL buffer, can be called multiple times to append data to the uv coordinates buffer
     /// @param uvs An array of vertex uv coordinates to add to the OpenGL buffer
     /// @param uvsSize How many elements are in the uvs array
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addUVs(const float* uvs, size_t uvsSize, const LoggingCallback& callback = nullptr);
 
-    /// Add vertex normals to the OpenGL buffer, can be called multiple times to append data to the end of the normals buffer
+    /// Add vertex normals to the OpenGL buffer, can be called multiple times to append data to the normals buffer
     /// @param normals An array of vertex normals to add to the OpenGL buffer
     /// @param normalsSize How many elements are in the normals array
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addNormals(const float* normals, size_t normalsSize, const LoggingCallback& callback = nullptr);
+
+    /// Add vertex colors to the OpenGL buffer, can be called multiple times to append data to the colors buffer
+    /// @param colors An array of vertex colors to add to the OpenGL buffer
+    /// @param colorsSize How many elements are in the colors array
+    /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
+    GLRENDER_API Mesh* addColors(const float* colors, size_t colorsSize, const LoggingCallback& callback = nullptr);
 
     //TODO add vertex colors
 
@@ -67,33 +76,52 @@ namespace glr
     GLRENDER_API void use() const;
 
     GLRENDER_API bool isFinalized() const;
-    
+
     uint32_t vertexArrayHandle = INVALID_HANDLE;
-    uint32_t vertexBufferHandle = INVALID_HANDLE;
     
     size_t numVerts = 0;
 
     bool hasPositions = false;
     bool hasUVs = false;
     bool hasNormals = false;
+    bool hasColors = false;
 
-    GLDrawType type = GLDrawType::STATIC;
+    GLBufferType bufferType = GLBufferType::SEPARATE;
+    GLDrawType drawType = GLDrawType::STATIC;
     GLDrawMode drawMode = GLDrawMode::TRIS;
 
-    constexpr static int32_t POSITION_STRIDE = 3 * sizeof(float);
-    constexpr static int32_t NORMAL_STRIDE = 3 * sizeof(float);
-    constexpr static int32_t UV_STRIDE =     2 * sizeof(float);
+    int32_t positionElements = 3;
+    constexpr static int32_t NORMAL_ELEMENTS = 3;
+    constexpr static int32_t UV_ELEMENTS = 2;
+    constexpr static int32_t COLOR_ELEMENTS = 4;
+    
+    int32_t positionStride = positionElements * sizeof(float);
+    constexpr static int32_t NORMAL_STRIDE = NORMAL_ELEMENTS * sizeof(float);
+    constexpr static int32_t UV_STRIDE = UV_ELEMENTS * sizeof(float);
+    constexpr static int32_t COLOR_STRIDE = COLOR_ELEMENTS * sizeof(float);
     
     constexpr static int32_t POSITION_BINDING_POINT = 0;
     constexpr static int32_t NORMAL_BINDING_POINT = 1;
     constexpr static int32_t UV_BINDING_POINT = 2;
+    constexpr static int32_t COLOR_BINDING_POINT = 3;
     
     private:
     int getGLDrawType() const;
 
+    //Separate
+    uint32_t positionBufferHandle = INVALID_HANDLE;
+    uint32_t indexBufferHandle = INVALID_HANDLE;
+    uint32_t normalBufferHandle = INVALID_HANDLE;
+    uint32_t uvBufferHandle = INVALID_HANDLE;
+    uint32_t colorBufferHandle = INVALID_HANDLE;
+
+    //Interleaved
+    uint32_t vertexBufferHandle = INVALID_HANDLE;
+
     std::vector<float> positions{};
     std::vector<float> uvs{};
     std::vector<float> normals{};
+    std::vector<float> colors{};
 
     bool finalized = false;
   };

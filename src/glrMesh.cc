@@ -8,6 +8,10 @@ namespace glr
   {
     glDeleteVertexArrays(1, &this->vertexArrayHandle);
     glDeleteBuffers(1, &this->vertexBufferHandle);
+    glDeleteBuffers(1, &this->positionBufferHandle);
+    glDeleteBuffers(1, &this->normalBufferHandle);
+    glDeleteBuffers(1, &this->uvBufferHandle);
+    glDeleteBuffers(1, &this->colorBufferHandle);
   }
 
   Mesh::Mesh(Mesh&& moveFrom) noexcept
@@ -53,19 +57,37 @@ namespace glr
     return *this;
   }
 
+  void Mesh::setPositionElements(const GLDimensions dimensions)
+  {
+    switch(dimensions)
+    {
+      case GLDimensions::TWO_DIMENSIONAL:
+      {
+        this->positionElements = 2;
+        break;
+      }
+      case GLDimensions::THREE_DIMENSIONAL:
+      {
+        this->positionElements = 3;
+        break;
+      }
+    }
+    this->positionStride = this->positionElements * sizeof(float);
+  }
+
   Mesh* Mesh::addPositions(const float* positions, const size_t positionsSize, const LoggingCallback& callback)
   {
     if(this->finalized)
     {
       if(callback)
       {
-        callback(LogType::ERROR, "Mesh::addVerts(): Attempting to add verticies to a finalized Mesh\n");
+        callback(LogType::WARNING, "Mesh::addPositions(): Attempting to add positions to a finalized Mesh\n");
       }
       return this;
     }
     
     this->hasPositions = true;
-    this->numVerts = positionsSize / 3;
+    this->numVerts = positionsSize / this->positionElements;
     this->positions.insert(this->positions.end(), positions, positions + positionsSize);
     
     return this;
@@ -77,7 +99,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::ERROR, "Mesh::addUVs(): Attempting to add UVs to a finalized Mesh\n");
+        callback(LogType::WARNING, "Mesh::addUVs(): Attempting to add UVs to a finalized Mesh\n");
       }
       return this;
     }
@@ -94,20 +116,34 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::ERROR, "Mesh::addNormals(): Attempting to add normals to a finalized Mesh\n");
+        callback(LogType::WARNING, "Mesh::addNormals(): Attempting to add normals to a finalized Mesh\n");
       }
       return this;
     }
-    
     this->hasNormals = true;
     this->normals.insert(this->normals.end(), normals, normals + normalsSize);
-    
     return this;
   }
 
-  //TODO index the vertex positions
+  Mesh* Mesh::addColors(const float* colors, const size_t colorsSize, const LoggingCallback& callback)
+  {
+    if(this->finalized)
+    {
+      if(callback)
+      {
+        callback(LogType::WARNING, "Mesh::addColors(): Attempting to add colors to a finalized Mesh\n");
+      }
+      return this;
+    }
+    this->hasColors = true;
+    this->colors.insert(this->colors.end(), colors, colors + colorsSize);
+    return this;
+  }
+
+  //TODO generate indicies for the vertex positions
   void Mesh::finalize(const LoggingCallback& callback)
   {
+    //Sanity checks
     if(!this->hasPositions || this->positions.empty())
     {
       if(callback)
@@ -121,73 +157,161 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::finalize(): Can't finalize Mesh, Mesh has already been finalized\n");
+        callback(LogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, Mesh has already been finalized\n");
       }
       return;
     }
 
-    if(this->vertexArrayHandle == INVALID_HANDLE)
+    if(callback)
     {
-      //VAOs hold all the state for a VBO, reducing API call overhead
-      glCreateVertexArrays(1, &this->vertexArrayHandle);
+      if(!this->positions.empty() && this->positions.size() % this->positionElements != 0)
+      {
+        const std::string elements = std::to_string(this->positionElements);
+        callback(LogType::WARNING, "Mesh::finalize(): The number of position elements that have been added is not divisible by " + elements + ", this will cause unintended effects\n");
+      }
+      if(this->hasNormals && !this->normals.empty() && this->normals.size() % 3 != 0)
+      {
+        callback(LogType::WARNING, "Mesh::finalize(): The number of normal elements that have been added is not divisible by 3, this will cause unintended effects\n");
+      }
+      if(this->hasUVs && !this->uvs.empty() && this->uvs.size() % 2 != 0)
+      {
+        callback(LogType::WARNING, "Mesh::finalize(): The number of UV elements that have been added is not divisible by 2, this will cause unintended effects\n");
+      }
+      if(this->hasColors && !this->colors.empty() && this->colors.size() % Mesh::COLOR_ELEMENTS != 0)
+      {
+        callback(LogType::WARNING, "Mesh::finalize(): The number of color elements that have been added is not divisible by 4, this will cause unintended effects\n");
+      }
     }
 
-    //Interleave data: verts normals uvs
-    const size_t total = this->positions.size() + this->hasNormals ? this->normals.size() : 0 + this->hasUVs ? this->uvs.size() : 0;
-    std::vector<float> buffer{};
-    buffer.reserve(total);
-    for(size_t i = 0; i < this->positions.size(); i++)
+    //Create a vertex array to hold all of our state for this mesh, reducing API call overhead when switching meshes
+    glCreateVertexArrays(1, &this->vertexArrayHandle);
+    glEnableVertexArrayAttrib(this->vertexArrayHandle, 0);
+    glVertexArrayAttribBinding(this->vertexArrayHandle, 0, 0);
+
+    //TODO FIXME nothing renders with interleaved
+    if(this->bufferType == GLBufferType::INTERLEAVED)
     {
-      buffer.insert(buffer.end(), this->positions.begin() + i * 3, this->positions.begin() + i * 3 + 3);
+      //Create a buffer in the GPU's VRAM to hold our interleaved vertex data
+      glCreateBuffers(1, &this->vertexBufferHandle);
+      
+      //Calculate the total elements in the interleaved buffer
+      size_t total = this->positions.size();
       if(this->hasNormals)
       {
-        buffer.insert(buffer.end(), this->normals.begin() + i * 3, this->normals.begin() + i * 3 + 3);
+        total += this->normals.size();
       }
       if(this->hasUVs)
       {
-        buffer.insert(buffer.end(), this->uvs.begin() + i * 2, this->uvs.begin() + i * 2 + 2);
+        total += this->uvs.size();
+      }
+      if(this->hasColors)
+      {
+        total += this->colors.size();
+      }
+    
+      std::vector<float> buffer{};
+      buffer.reserve(total);
+
+      //Interleave our vertex data: position-normal-uv-color
+      for(int64_t i = 0; i < (int64_t)this->positions.size(); i++)
+      {
+        buffer.insert(buffer.end(), this->positions.begin() + i * this->positionElements, this->positions.begin() + i * this->positionElements + this->positionElements);
+        if(this->hasNormals)
+        {
+          buffer.insert(buffer.end(), this->normals.begin() + i * Mesh::NORMAL_ELEMENTS, this->normals.begin() + i * Mesh::NORMAL_ELEMENTS + Mesh::NORMAL_ELEMENTS);
+        }
+        if(this->hasUVs)
+        {
+          buffer.insert(buffer.end(), this->uvs.begin() + i * Mesh::UV_ELEMENTS, this->uvs.begin() + i * Mesh::UV_ELEMENTS + Mesh::UV_ELEMENTS);
+        }
+        if(this->hasColors)
+        {
+          buffer.insert(buffer.end(), this->colors.begin() + i * Mesh::COLOR_ELEMENTS, this->colors.begin() + i * Mesh::COLOR_ELEMENTS + Mesh::COLOR_ELEMENTS);
+        }
+      }
+
+      //Calculate the stride between the start of one vertex and the start of the next
+      int32_t stride = this->positionStride;
+      if(this->hasNormals)
+      {
+        stride += Mesh::NORMAL_STRIDE;
+      }
+      if(this->hasUVs)
+      {
+        stride += Mesh::UV_STRIDE;
+      }
+      if(this->hasColors)
+      {
+        stride += Mesh::COLOR_STRIDE;
+      }
+      
+      //Upload our vertex data to the buffer we created
+      glNamedBufferData(this->vertexBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
+    
+      //Bind a buffer to our vertex array and give it the stride information
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->vertexBufferHandle, 0, stride);
+    
+      //Set up attributes for our potentially interleaved data buffer so OpenGL knows how to read data out of it
+      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT);
+      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, this->vertexBufferHandle);
+      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
+    
+      if(this->hasNormals)
+      {
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->positionStride);
+      }
+      if(this->hasUVs)
+      {
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::UV_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->positionStride + Mesh::NORMAL_STRIDE);
+      }
+      if(this->hasColors)
+      {
+        glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT);
+        glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT, this->vertexBufferHandle);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::COLOR_BINDING_POINT, 4, GL_FLOAT, GL_FALSE, this->positionStride + Mesh::NORMAL_STRIDE + Mesh::UV_STRIDE);
       }
     }
+    else if(this->bufferType == GLBufferType::SEPARATE)
+    {
+      //Create a buffer in the GPU's VRAM to hold our vertex position data
+      glCreateBuffers(1, &this->positionBufferHandle);
+      
+      //Upload our position data to the buffer we created
+      glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
 
-    //Create a buffer to hold our interleaved vertex data
-    glCreateBuffers(1, &this->vertexBufferHandle);
+      //Bind a buffer to our vertex array and give it the stride information
+      glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->positionBufferHandle, 0, this->positionStride);
+      
+      //Set up attributes for our data buffer so OpenGL knows how to read data out of it
+      glVertexArrayAttribFormat(this->vertexArrayHandle, 0, this->positionElements, GL_FLOAT, GL_FALSE, 0);
 
-    //Upload our buffer to the GPU's VRAM
-    glNamedBufferData(this->vertexBufferHandle, (GLsizeiptr)(buffer.size() * sizeof(float)), buffer.data(), this->getGLDrawType());
-
-    //Calculate the stride between the start of one vertex and the start of the next
-    int32_t stride = Mesh::POSITION_STRIDE;
-    if(this->hasNormals)
-    {
-      stride += Mesh::NORMAL_STRIDE;
+      //Repeat for any other vertex data
+      if(this->hasNormals)
+      {
+        glCreateBuffers(1, &this->normalBufferHandle);
+        glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->normalBufferHandle, 0, Mesh::NORMAL_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::NORMAL_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+      }
+      if(this->hasUVs)
+      {
+        glCreateBuffers(1, &this->uvBufferHandle);
+        glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->uvBufferHandle, 0, Mesh::UV_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::UV_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+      }
+      if(this->hasColors)
+      {
+        glCreateBuffers(1, &this->colorBufferHandle);
+        glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
+        glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->colorBufferHandle, 0, Mesh::COLOR_STRIDE);
+        glVertexArrayAttribFormat(this->vertexArrayHandle, 0, Mesh::COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
+      }
     }
-    if(this->hasUVs)
-    {
-      stride += Mesh::UV_STRIDE;
-    }
-    
-    //Bind a buffer to our vertex array and give it the stride information
-    glVertexArrayVertexBuffer(this->vertexArrayHandle, 0, this->vertexBufferHandle, 0, stride);
-    
-    //Set up attributes for our interleaved data buffer so OpenGL knows how to read data out of it
-    glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT);
-    glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, Mesh::POSITION_BINDING_POINT);
-    glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::POSITION_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, 0);
-    
-    if(this->hasNormals)
-    {
-      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT);
-      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, Mesh::NORMAL_BINDING_POINT);
-      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::NORMAL_BINDING_POINT, 3, GL_FLOAT, GL_FALSE, this->POSITION_STRIDE);
-    }
-    
-    if(this->hasUVs)
-    {
-      glEnableVertexArrayAttrib(this->vertexArrayHandle, Mesh::UV_BINDING_POINT);
-      glVertexArrayAttribBinding(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, Mesh::UV_BINDING_POINT);
-      glVertexArrayAttribFormat(this->vertexArrayHandle, Mesh::UV_BINDING_POINT, 2, GL_FLOAT, GL_FALSE, this->POSITION_STRIDE + this->NORMAL_STRIDE);
-    }
-    
     this->finalized = true;
   }
   
@@ -206,7 +330,7 @@ namespace glr
 
   int Mesh::getGLDrawType() const
   {
-    switch(this->type)
+    switch(this->drawType)
     {
       case GLDrawType::STATIC:
       {

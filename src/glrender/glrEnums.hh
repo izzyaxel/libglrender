@@ -39,3 +39,13 @@ enum struct GLDrawType
 {
   STATIC, STREAM, DYNAMIC,
 };
+
+enum struct GLBufferType
+{
+  INTERLEAVED, SEPARATE,
+};
+
+enum struct GLDimensions
+{
+  TWO_DIMENSIONAL, THREE_DIMENSIONAL,
+};
