@@ -57,7 +57,7 @@ namespace glr
     return *this;
   }
 
-  void Mesh::setPositionElements(const GLDimensions dimensions)
+  void Mesh::setPositionDimensions(const GLDimensions dimensions)
   {
     switch(dimensions)
     {

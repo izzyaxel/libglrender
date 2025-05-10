@@ -25,6 +25,7 @@ namespace glr
   };
 
   //TODO indexed rendering of interleaved data
+  //TODO dynamic changing of buffer data
   struct Mesh
   {
     GLRENDER_API Mesh() = default;
@@ -36,11 +37,7 @@ namespace glr
     GLRENDER_API Mesh& operator=(Mesh&& moveFrom) noexcept;
     
     /// @param dimensions Set positions to 2D or 3D (2 or 3 coordinates per vertex, xy or xyz)
-    GLRENDER_API void setPositionElements(GLDimensions dimensions);
-    
-    //It's the user's responsibility to keep these buffers lined up with each other
-    //IE all UVs and/or normals must correspond to the positions you've added
-    //If this isn't done, odd effects may occur
+    GLRENDER_API void setPositionDimensions(GLDimensions dimensions);
 
     /// Add vertex positions to the OpenGL buffer, can be called multiple times to append data to the positions buffer
     /// @param positions An array of vertex positions to add to the OpenGL buffer
@@ -66,8 +63,6 @@ namespace glr
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addColors(const float* colors, size_t colorsSize, const LoggingCallback& callback = nullptr);
 
-    //TODO add vertex colors
-
     /// Interleave all the vertex data upload it to the GPU, and lock the Mesh
     /// @param callback The error/warning/info handling callback, this is given information about what occured when something goes wrong
     GLRENDER_API void finalize(const LoggingCallback& callback = nullptr);
@@ -77,36 +72,16 @@ namespace glr
 
     GLRENDER_API bool isFinalized() const;
 
-    uint32_t vertexArrayHandle = INVALID_HANDLE;
-    
-    size_t numVerts = 0;
-
-    bool hasPositions = false;
-    bool hasUVs = false;
-    bool hasNormals = false;
-    bool hasColors = false;
-
     GLBufferType bufferType = GLBufferType::SEPARATE;
     GLDrawType drawType = GLDrawType::STATIC;
     GLDrawMode drawMode = GLDrawMode::TRIS;
 
-    int32_t positionElements = 3;
-    constexpr static int32_t NORMAL_ELEMENTS = 3;
-    constexpr static int32_t UV_ELEMENTS = 2;
-    constexpr static int32_t COLOR_ELEMENTS = 4;
-    
-    int32_t positionStride = positionElements * sizeof(float);
-    constexpr static int32_t NORMAL_STRIDE = NORMAL_ELEMENTS * sizeof(float);
-    constexpr static int32_t UV_STRIDE = UV_ELEMENTS * sizeof(float);
-    constexpr static int32_t COLOR_STRIDE = COLOR_ELEMENTS * sizeof(float);
-    
-    constexpr static int32_t POSITION_BINDING_POINT = 0;
-    constexpr static int32_t NORMAL_BINDING_POINT = 1;
-    constexpr static int32_t UV_BINDING_POINT = 2;
-    constexpr static int32_t COLOR_BINDING_POINT = 3;
+    size_t numVerts = 0;
     
     private:
     int getGLDrawType() const;
+
+    uint32_t vertexArrayHandle = INVALID_HANDLE;
 
     //Separate
     uint32_t positionBufferHandle = INVALID_HANDLE;
@@ -124,5 +99,25 @@ namespace glr
     std::vector<float> colors{};
 
     bool finalized = false;
+
+    bool hasPositions = false;
+    bool hasUVs = false;
+    bool hasNormals = false;
+    bool hasColors = false;
+    
+    int32_t positionElements = 3;
+    constexpr static int32_t NORMAL_ELEMENTS = 3;
+    constexpr static int32_t UV_ELEMENTS = 2;
+    constexpr static int32_t COLOR_ELEMENTS = 4;
+    
+    int32_t positionStride = positionElements * sizeof(float);
+    constexpr static int32_t NORMAL_STRIDE = NORMAL_ELEMENTS * sizeof(float);
+    constexpr static int32_t UV_STRIDE = UV_ELEMENTS * sizeof(float);
+    constexpr static int32_t COLOR_STRIDE = COLOR_ELEMENTS * sizeof(float);
+    
+    constexpr static int32_t POSITION_BINDING_POINT = 0;
+    constexpr static int32_t NORMAL_BINDING_POINT = 1;
+    constexpr static int32_t UV_BINDING_POINT = 2;
+    constexpr static int32_t COLOR_BINDING_POINT = 3;
   };
 }
