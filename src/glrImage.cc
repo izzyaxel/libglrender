@@ -1,4 +1,4 @@
-#include "GLRender/glrImage.hh"
+#include "glrender/glrImage.hh"
 
 namespace glr
 {

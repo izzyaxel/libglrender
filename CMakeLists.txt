@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.29 FATAL_ERROR)
 set(ARCH "x86_64")
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 
 include(FetchContent)
 
@@ -46,26 +46,26 @@ include_directories("${CMAKE_BINARY_DIR}/modules/libcommons/src/")
 
 set(SRC
     src/gl.cc
-    src/GLRender/export.hh
-    src/GLRender/glrEnums.hh
-    src/GLRender/glrLogging.hh
+    src/glrender/export.hh
+    src/glrender/glrEnums.hh
+    src/glrender/glrLogging.hh
     
-    src/glrUtil.cc src/GLRender/glrUtil.hh
-    src/glrRenderer.cc src/GLRender/glrRenderer.hh
-    src/glrFramebuffer.cc src/GLRender/glrFramebuffer.hh
-    src/glrPostProcessing.cc src/GLRender/glrPostProcessing.hh
-    src/glrTexture.cc src/GLRender/glrTexture.hh
-    src/glrShader.cc src/GLRender/glrShader.hh
-    src/glrAtlas.cc src/GLRender/glrAtlas.hh
-    src/glrImage.cc src/GLRender/glrImage.hh
-    src/glrColor.cc src/GLRender/glrColor.hh
-    src/glrMesh.cc src/GLRender/glrMesh.hh
-    src/glrExternal.cc src/GLRender/glrExternal.hh
-    src/glrRenderable.cc src/GLRender/glrRenderable.hh
-    src/glrRenderList.cc src/GLRender/glrRenderList.hh
-    src/glrShaderPipeline.cc src/GLRender/glrShaderPipeline.hh)
+    src/glrUtil.cc src/glrender/glrUtil.hh
+    src/glrRenderer.cc src/glrender/glrRenderer.hh
+    src/glrFramebuffer.cc src/glrender/glrFramebuffer.hh
+    src/glrPostProcessing.cc src/glrender/glrPostProcessing.hh
+    src/glrTexture.cc src/glrender/glrTexture.hh
+    src/glrShader.cc src/glrender/glrShader.hh
+    src/glrAtlas.cc src/glrender/glrAtlas.hh
+    src/glrImage.cc src/glrender/glrImage.hh
+    src/glrColor.cc src/glrender/glrColor.hh
+    src/glrMesh.cc src/glrender/glrMesh.hh
+    src/glrExternal.cc src/glrender/glrExternal.hh
+    src/glrRenderable.cc src/glrender/glrRenderable.hh
+    src/glrRenderList.cc src/glrender/glrRenderList.hh
+    src/glrShaderPipeline.cc src/glrender/glrShaderPipeline.hh)
 
-project(GLRender)
+project(glrender)
 include_directories(include)
 add_library(${PROJECT_NAME} SHARED ${SRC})
 

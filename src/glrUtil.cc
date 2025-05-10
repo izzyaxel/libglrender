@@ -1,4 +1,4 @@
-#include "GLRender/glrUtil.hh"
+#include "glrender/glrUtil.hh"
 
 #include <numeric>
 

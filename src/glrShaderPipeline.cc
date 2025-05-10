@@ -1,4 +1,4 @@
-#include "GLRender/glrShaderPipeline.hh"
+#include "glrender/glrShaderPipeline.hh"
 
 #include "glad/gl.hh"
 

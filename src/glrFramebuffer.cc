@@ -1,4 +1,4 @@
-#include "GLRender/glrFramebuffer.hh"
+#include "glrender/glrFramebuffer.hh"
 
 #include <algorithm>
 #include <glad/gl.hh>

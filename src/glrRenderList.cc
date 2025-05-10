@@ -1,4 +1,4 @@
-#include "GLRender/glrRenderList.hh"
+#include "glrender/glrRenderList.hh"
 
 namespace glr
 {

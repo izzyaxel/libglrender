@@ -1,4 +1,4 @@
-#include "GLRender/glrMesh.hh"
+#include "glrender/glrMesh.hh"
 
 #include <glad/gl.hh>
 

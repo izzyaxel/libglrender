@@ -1,4 +1,4 @@
-#include "GLRender/glrColor.hh"
+#include "glrender/glrColor.hh"
 
 #include <commons/misc.hh>
 #include <numeric>

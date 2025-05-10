@@ -1,4 +1,4 @@
-#include "GLRender/glrRenderer.hh"
+#include "glrender/glrRenderer.hh"
 
 #include <glad/gl.hh>
 

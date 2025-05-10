@@ -1,4 +1,4 @@
-#include "GLRender/glrTexture.hh"
+#include "glrender/glrTexture.hh"
 
 #include <glad/gl.hh>
 
