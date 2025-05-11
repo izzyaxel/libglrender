@@ -82,6 +82,9 @@ namespace glr
     int32_t normalBindingPoint = 2;
     int32_t uvBindingPoint = 1;
     int32_t colorBindingPoint = 3;
+
+    //Whether to clear the buffer data from RAM after the Mesh is finalized
+    bool retainBufferData = false;
     
     private:
     int getGLDrawType() const;

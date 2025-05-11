@@ -322,7 +322,7 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
     }
-    if(this->drawType == GLDrawType::STATIC)
+    if(!this->retainBufferData)
     {
       this->indices.clear();
       this->positions.clear();
