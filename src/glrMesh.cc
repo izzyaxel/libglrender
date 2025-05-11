@@ -273,7 +273,7 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
-    else if(this->bufferType == GLBufferType::SEPARATE)
+    else if(this->bufferType == GLBufferType::SEPARATE) //TODO FIXME nothing renders
     {
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
@@ -331,11 +331,6 @@ namespace glr
       this->colors.clear();
     }
     this->finalized = true;
-    
-    if(callback)
-    {
-      callback(LogType::DBG, "Mesh::finalize(): Success");
-    }
   }
   
   void Mesh::use() const
