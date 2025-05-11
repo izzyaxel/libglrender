@@ -189,11 +189,6 @@ namespace glr
     //TODO FIXME nothing renders with interleaved
     if(this->bufferType == GLBufferType::INTERLEAVED)
     {
-      if(callback)
-      {
-        callback(LogType::DBG, "Mesh::finalize(): Creating an interleaved buffer VAO");
-      }
-      
       //Create a buffer in the GPU's VRAM to hold our interleaved vertex data
       glCreateBuffers(1, &this->vertexBufferHandle);
       
@@ -280,11 +275,6 @@ namespace glr
     }
     else if(this->bufferType == GLBufferType::SEPARATE)
     {
-      if(callback)
-      {
-        callback(LogType::DBG, "Mesh::finalize(): Creating a separate buffers VAO");
-      }
-      
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
       
@@ -302,7 +292,7 @@ namespace glr
 
       //Define the format of the buffer so OpenGL knows how to read data out of it
       glVertexArrayAttribFormat(this->vertexArrayHandle, this->positionBindingPoint, this->positionElements, GL_FLOAT, GL_FALSE, 0);
-
+      
       //Repeat for any other vertex data
       if(this->hasNormals)
       {
@@ -315,6 +305,11 @@ namespace glr
       }
       if(this->hasUVs)
       {
+        if(callback)
+        {
+          callback(LogType::DBG, "" + std::to_string(this->positions.size() * sizeof(float)) + " " + std::to_string(this->uvs.size() * sizeof(float)));
+        }
+        
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->uvBindingPoint);
