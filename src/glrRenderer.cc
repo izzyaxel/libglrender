@@ -178,7 +178,7 @@ void main()
     this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE}, "Pong");
     this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLAttachment::COLOR_TEXTURE}, "Scratch");
     this->fullscreenQuad = std::make_unique<Mesh>();
-    this->fullscreenQuad->addPositions(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
+    this->fullscreenQuad->addPositions(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size())->finalize();
     this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -311,6 +311,11 @@ void main()
   void Renderer::draw(const GLDrawMode mode, const size_t numElements) const
   {
     glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
+  }
+
+  void Renderer::drawIndexed(const GLDrawMode mode, const size_t numElements) const
+  {
+    glDrawElements((GLenum)mode, (GLsizei)numElements, GL_UNSIGNED_INT, static_cast<void*>(0));
   }
   
   void Renderer::pingPong()
@@ -541,13 +546,20 @@ void main()
   {
     if(isTemplate(entry, OBJECT_RENDERABLE_TEMPLATE) && entry.meshComp->mesh && entry.fragVertShaderComp->shader) //Standard object rendered with a frag/vert shader
     {
-        this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
-        this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-        entry.fragVertShaderComp->shader->use();
-        entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
-        entry.fragVertShaderComp->shader->sendUniforms();
-        entry.meshComp->mesh->use();
-        this->draw(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numVerts);
+      this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
+      this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+      entry.fragVertShaderComp->shader->use();
+      entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
+      entry.fragVertShaderComp->shader->sendUniforms();
+      entry.meshComp->mesh->use();
+      if(entry.meshComp->mesh->isIndexed())
+      {
+        this->drawIndexed(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numVerts);
+      }
+      else
+      {
+        this->draw(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numVerts); //TODO FIXME crashes with interleaved data
+      }
     }
     else if(isTemplate(entry, COMPUTE_RENDERABLE_TEMPLATE)) //Compute image generation
     {

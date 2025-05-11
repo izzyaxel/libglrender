@@ -106,7 +106,6 @@ namespace glr
     
     this->hasUVs = true;
     this->uvs.insert(this->uvs.end(), uvs, uvs + uvsSize);
-    
     return this;
   }
 
@@ -182,12 +181,12 @@ namespace glr
         callback(LogType::WARNING, "Mesh::finalize(): The number of color elements that have been added is not divisible by 4, this will cause unintended effects\n");
       }
     }
-
+    
     //Create a vertex array to hold all of our state for this mesh, reducing API call overhead when switching meshes
     glCreateVertexArrays(1, &this->vertexArrayHandle);
-
-    //TODO FIXME nothing renders with interleaved
-    if(this->bufferType == GLBufferType::INTERLEAVED)
+    
+    //TODO FIXME interleaved buffer segfaults
+    /*if(this->bufferType == GLBufferType::INTERLEAVED)
     {
       //Create a buffer in the GPU's VRAM to hold our interleaved vertex data
       glCreateBuffers(1, &this->vertexBufferHandle);
@@ -210,24 +209,24 @@ namespace glr
       std::vector<float> buffer{};
       buffer.reserve(total);
 
-      //Interleave our vertex data: position-normal-uv-color
-      for(int64_t i = 0; i < (int64_t)this->positions.size(); i++)
+      //Interleave our vertex data: position-uv-normal-color
+      for(int64_t i = 0; i < (int64_t)this->numVerts; i++)
       {
         buffer.insert(buffer.end(), this->positions.begin() + i * this->positionElements, this->positions.begin() + i * this->positionElements + this->positionElements);
-        if(this->hasNormals)
-        {
-          buffer.insert(buffer.end(), this->normals.begin() + i * NORMAL_ELEMENTS, this->normals.begin() + i * NORMAL_ELEMENTS + NORMAL_ELEMENTS);
-        }
         if(this->hasUVs)
         {
           buffer.insert(buffer.end(), this->uvs.begin() + i * UV_ELEMENTS, this->uvs.begin() + i * UV_ELEMENTS + UV_ELEMENTS);
+        }
+        if(this->hasNormals)
+        {
+          buffer.insert(buffer.end(), this->normals.begin() + i * NORMAL_ELEMENTS, this->normals.begin() + i * NORMAL_ELEMENTS + NORMAL_ELEMENTS);
         }
         if(this->hasColors)
         {
           buffer.insert(buffer.end(), this->colors.begin() + i * COLOR_ELEMENTS, this->colors.begin() + i * COLOR_ELEMENTS + COLOR_ELEMENTS);
         }
       }
-
+      
       //Calculate the stride between the start of one vertex and the start of the next
       int32_t stride = this->positionStride;
       if(this->hasNormals)
@@ -273,7 +272,7 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
-    else if(this->bufferType == GLBufferType::SEPARATE) //TODO FIXME nothing renders, no geometry shows in RenderDoc
+    else*/ if(this->bufferType == GLBufferType::SEPARATE)
     {
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
@@ -337,13 +336,18 @@ namespace glr
   {
     if(this->finalized)
     {
-      glBindVertexArray(this->vertexBufferHandle);
+      glBindVertexArray(this->vertexArrayHandle);
     }
   }
 
   bool Mesh::isFinalized() const
   {
     return this->finalized;
+  }
+
+  bool Mesh::isIndexed() const
+  {
+    return false;
   }
 
   int Mesh::getGLDrawType() const

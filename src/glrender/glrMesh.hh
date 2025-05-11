@@ -71,6 +71,7 @@ namespace glr
     GLRENDER_API void use() const;
 
     GLRENDER_API bool isFinalized() const;
+    GLRENDER_API bool isIndexed() const;
 
     GLBufferType bufferType = GLBufferType::SEPARATE;
     GLDrawType drawType = GLDrawType::STATIC;

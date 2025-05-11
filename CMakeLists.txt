@@ -68,6 +68,12 @@ set(SRC
 project(glrender)
 include_directories(include)
 add_library(${PROJECT_NAME} SHARED ${SRC})
-
 add_dependencies(${PROJECT_NAME} commons)
 target_link_libraries(${PROJECT_NAME} commons)
+
+project (gltest)
+include_directories(include)
+include_directories(src)
+add_executable(${PROJECT_NAME} test/main.cc)
+add_dependencies(${PROJECT_NAME} glrender)
+target_link_libraries(${PROJECT_NAME} glrender SDL2)
