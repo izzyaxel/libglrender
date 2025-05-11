@@ -305,11 +305,6 @@ namespace glr
       }
       if(this->hasUVs)
       {
-        if(callback)
-        {
-          callback(LogType::DBG, "" + std::to_string(this->positions.size() * sizeof(float)) + " " + std::to_string(this->uvs.size() * sizeof(float)));
-        }
-        
         glCreateBuffers(1, &this->uvBufferHandle);
         glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->uvBindingPoint);
@@ -327,10 +322,6 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, COLOR_ELEMENTS, GL_FLOAT, GL_FALSE, 0);
       }
     }
-    if(callback)
-    {
-      callback(LogType::DBG, "Mesh::finalize(): Success");
-    }
     if(this->drawType == GLDrawType::STATIC)
     {
       this->indices.clear();
@@ -340,6 +331,11 @@ namespace glr
       this->colors.clear();
     }
     this->finalized = true;
+    
+    if(callback)
+    {
+      callback(LogType::DBG, "Mesh::finalize(): Success");
+    }
   }
   
   void Mesh::use() const
