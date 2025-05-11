@@ -273,7 +273,7 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
-    else if(this->bufferType == GLBufferType::SEPARATE) //TODO FIXME nothing renders
+    else if(this->bufferType == GLBufferType::SEPARATE) //TODO FIXME nothing renders, no geometry shows in RenderDoc
     {
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
