@@ -11,9 +11,9 @@ namespace glr
 {
   typedef enum
   {
-    RGB,
-    RGBA,
-    GREY,
+    RGB = 3,
+    RGBA = 4,
+    GREY = 1,
   } ColorFormat;
   
   typedef enum

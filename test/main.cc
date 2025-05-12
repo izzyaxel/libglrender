@@ -1,8 +1,11 @@
+#include "pngFormat.hh"
+
 #include <glrender/glrMesh.hh>
 #include <glrender/glrShader.hh>
 #include <glrender/glrRenderer.hh>
 #define SDL_MAIN_HANDLED
 #include <chrono>
+#include <filesystem>
 #include <SDL2/SDL.h>
 #include <string>
 
@@ -19,7 +22,6 @@ inline std::vector quadPositions{-0.5f, -0.5f, 0.f,   0.5f, -0.5f, 0.f,   0.5f, 
 std::string frag = R"(#version 450
 
 in vec2 uv;
-in vec4 pos;
 layout(binding = 0) uniform sampler2D tex;
 out vec4 fragColor;
 
@@ -44,7 +46,9 @@ vec3 smoothRainbow (float x)
 
 void main()
 {
-  fragColor = vec4(rainbow(floor(uv.x * 6.0)), 1.0);
+  //fragColor = vec4(rainbow(floor(uv.x * 6.0)), 1.0);
+  fragColor = vec4(smoothRainbow(uv.x), 1.0);
+  //fragColor = mix(texture(tex, uv), vec4(rainbow(floor(uv.x * 6.0)), 1.0), 0.5);
 })";
 
 std::string vert = R"(#version 450
@@ -54,13 +58,11 @@ layout(location = 1) in vec2 uv_in;
 layout(location = 2) in vec3 normal_in;
 layout(location = 3) in vec3 color_in;
 out vec2 uv;
-out vec4 pos;
 uniform mat4 mvp;
 
 void main()
 {
   uv = uv_in;
-  pos = mvp * vec4(pos_in, 0);
   gl_Position = mvp * vec4(pos_in, 1.0);
 })";
 
@@ -124,32 +126,30 @@ void cleanup()
 struct Camera
 {
   quat<float> rotation{};
-  vec3<float> position{0.0f, 0.0f, -100.0f};
+  vec3<float> position{0.0f, 0.0f, 1.0f};
 
   mat4x4<float> view = viewMatrix(rotation, position);
-  //mat4x4<float> projection = orthoProjectionMatrix(width / -2.0f, width / 2.0f, height / 2.0f, height / -2.0f, 0.01f, 1000.0f);
-  mat4x4<float> projection = perspectiveProjectionMatrix(45.0f, 0.01f, 1000.0f, width, height);
+  mat4x4<float> projection = orthoProjectionMatrix(width / -2.0f, width / 2.0f, height / 2.0f, height / -2.0f, 0.01f, 1.0f);
+  //mat4x4<float> projection = perspectiveProjectionMatrix(45.0f, 0.01f, 1000.0f, width, height);
 };
 
 int main()
 {
   setup();
-
-  float angle = 0.0f;
-  Camera camera{};
-  camera.view = viewMatrix(camera.rotation, camera.position);
   
+  Camera camera{};
+  PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png"); //Good
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
   renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", vert, frag);
+  renderable.textureComp->texture = std::make_shared<glr::Texture>("test", png.data.data(), png.width, png.height, (glr::ColorFormat)png.channels); //TODO FIXME rendering black
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->bufferType = GLBufferType::SEPARATE;
   //renderable.meshComp->mesh->addPositions(triPositions.data(), triPositions.size())->addUVs(triUVs.data(), triUVs.size())->finalize();
   renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->finalize();
-  renderable.transformComp->pos =  vec3{0.0f, 0.0f, -0.5f};
-  renderable.transformComp->scale = vec3{80.0f, 50.0f, 1.0f};
+  renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
+  renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
   glr::RenderList renderList;
   renderList.add(renderable);
-  renderer->setCullFace(false);
 
   auto prevLoop = std::chrono::steady_clock::now();
   auto prevFrame = std::chrono::steady_clock::now();
@@ -166,9 +166,6 @@ int main()
       deltaTime = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - prevFrame).count();
       accumulator -= target - 0.00001f;
       prevFrame = now;
-
-      angle += 1.f;
-      renderable.transformComp->rotation.fromAxial(rand() % 2, rand() % 2, rand() % 2, angle); //The gays are aggressive
      
       eventPump();
       renderer->clearCurrentFramebuffer();

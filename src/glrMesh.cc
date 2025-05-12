@@ -138,7 +138,7 @@ namespace glr
     this->colors.insert(this->colors.end(), colors, colors + colorsSize);
     return this;
   }
-
+  
   //TODO generate indicies for the vertex positions
   void Mesh::finalize(const LoggingCallback& callback)
   {
