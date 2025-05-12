@@ -36,7 +36,7 @@ namespace glr
   {
     Texture() = default;
     
-    /// Allocate VRAM for a texture without assigning data to it
+    /// Allocate VRAM for a texture without assigning data to it, used with subImage()
     GLRENDER_API Texture(const std::string& name, uint32_t width, uint32_t height, ColorFormat colorFormat, FilterMode min = NEAREST, FilterMode mag = NEAREST, bool sRGB = false);
     
     /// Create a texture from a flat array

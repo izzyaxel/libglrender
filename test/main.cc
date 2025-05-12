@@ -16,8 +16,8 @@ inline std::vector triUVs{0.f, 0.f,   1.f, 0.f,   1.f, 1.f};
 inline std::vector triPositions{-0.5f, -0.5f, 0.0f,   0.5f, -0.5f, 0.0f,   0.0f, 0.5f, 0.0f};
 
 inline std::vector quadIndices{0, 1, 2, 2, 3, 1};
-inline std::vector quadUVs{0.f, 0.f,   1.f, 0.f,   1.f, 1.f,   1.f, 1.f,   0.f, 1.f,   0.f, 0.f};
-inline std::vector quadPositions{-0.5f, -0.5f, 0.f,   0.5f, -0.5f, 0.f,   0.5f, 0.5f, 0.f,   0.5f, 0.5f, 0.f,   -0.5f, 0.5f, 0.f,   -0.5f, -0.5f, 0.f};
+inline std::vector quadUVs{0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 1.0f};
+inline std::vector quadPositions{-0.5f, -0.5f,   0.5f, -0.5f,   0.5f, 0.5f,   0.5f, 0.5f,   -0.5f, 0.5f,   -0.5f, -0.5f};
 
 std::string frag = R"(#version 450
 
@@ -33,7 +33,7 @@ vec3 rainbow(float level)
   return vec3(r, g, b);
 }
 
-vec3 smoothRainbow (float x)
+vec3 smoothRainbow(float x)
 {
   float level1 = floor(x * 6.0);
   float level2 = min(6.0, floor(x * 6.0) + 1.0);
@@ -47,16 +47,14 @@ vec3 smoothRainbow (float x)
 void main()
 {
   //fragColor = vec4(rainbow(floor(uv.x * 6.0)), 1.0);
-  fragColor = vec4(smoothRainbow(uv.x), 1.0);
-  //fragColor = mix(texture(tex, uv), vec4(rainbow(floor(uv.x * 6.0)), 1.0), 0.5);
+  //fragColor = vec4(smoothRainbow(uv.x), 1.0);
+  fragColor = texture(tex, uv);
 })";
 
 std::string vert = R"(#version 450
 
 layout(location = 0) in vec3 pos_in;
 layout(location = 1) in vec2 uv_in;
-layout(location = 2) in vec3 normal_in;
-layout(location = 3) in vec3 color_in;
 out vec2 uv;
 uniform mat4 mvp;
 
@@ -140,14 +138,26 @@ int main()
   Camera camera{};
   PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png"); //Good
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
+  
   renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", vert, frag);
-  renderable.textureComp->texture = std::make_shared<glr::Texture>("test", png.data.data(), png.width, png.height, (glr::ColorFormat)png.channels); //TODO FIXME rendering black
+  
+  renderable.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, (glr::ColorFormat)png.channels);
+  
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->bufferType = GLBufferType::SEPARATE;
-  //renderable.meshComp->mesh->addPositions(triPositions.data(), triPositions.size())->addUVs(triUVs.data(), triUVs.size())->finalize();
+  renderable.meshComp->mesh->drawMode = GLDrawMode::TRIS;
+  renderable.meshComp->mesh->drawType = GLDrawType::STATIC;
+  renderable.meshComp->mesh->retainBufferData = false;
+  renderable.meshComp->mesh->positionBindingPoint = 0;
+  renderable.meshComp->mesh->uvBindingPoint = 1;
+  renderable.meshComp->mesh->normalBindingPoint = 2;
+  renderable.meshComp->mesh->colorBindingPoint = 3;
+  renderable.meshComp->mesh->setPositionDimensions(GLDimensions::TWO_DIMENSIONAL);
   renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->finalize();
+  
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
+  
   glr::RenderList renderList;
   renderList.add(renderable);
 
