@@ -304,19 +304,19 @@ namespace glr
     return {false, 0};
   }
   
-  void Mesh::generateIndices(const LoggingCallback& callback)
+  Mesh* Mesh::generateIndices(const LoggingCallback& callback)
   {
     if(callback)
     {
       if(!this->hasPositions)
       {
         callback(GLRLogType::ERROR, "Mesh::generateIndices(): Attempting to generate indices for a finalized Mesh\n");
-        return;
+        return this;
       }
       if(this->hasIndices)
       {
         callback(GLRLogType::ERROR, "Mesh::generateIndices(): Attempting to generate indices for a Mesh that already has indices\n");
-        return;
+        return this;
       }
     }
     
@@ -338,7 +338,6 @@ namespace glr
           {
             this->indices.push_back(index);
           }
-          this->indices.push_back(index);
         }
         break;
       }
@@ -363,6 +362,9 @@ namespace glr
       }
       default: break;
     }
+    this->numIndices = this->indices.size();
+    this->hasIndices = true;
+    return this;
   }
   
   void Mesh::finalize(const LoggingCallback& callback)

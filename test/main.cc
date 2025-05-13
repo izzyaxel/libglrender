@@ -14,9 +14,9 @@
 constexpr int32_t width = 800;
 constexpr int32_t height = 600;
 
-inline std::vector quadIndices{0u, 1u, 2u, 2u, 3u, 0u};
-inline std::vector quadUVs{0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 1.0f};
-inline std::vector quadPositions{-0.5f, -0.5f,   0.5f, -0.5f,   0.5f, 0.5f,   0.5f, 0.5f,   -0.5f, 0.5f,   -0.5f, -0.5f};
+inline std::vector<uint32_t> quadIndices{0, 1, 2, 2, 3, 0};
+inline std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  0.5f, 0.5f,  -0.5f, 0.5f,  -0.5f, -0.5f};
+inline std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,  0.0f, 0.0f,   0.0f, 1.0f};
 
 std::string frag = R"(#version 450
 
@@ -46,8 +46,8 @@ vec3 smoothRainbow(float x)
 void main()
 {
   //fragColor = vec4(rainbow(floor(uv.x * 6.0)), 1.0);
-  //fragColor = vec4(smoothRainbow(uv.x), 1.0);
-  fragColor = texture(tex, uv);
+  fragColor = vec4(smoothRainbow(uv.x), 1.0);
+  //fragColor = texture(tex, uv);
 })";
 
 std::string vert = R"(#version 450
@@ -133,7 +133,6 @@ struct Camera
 int main()
 {
   setup();
-  
   Camera camera{};
   PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png");
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
@@ -145,6 +144,7 @@ int main()
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
   renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
+  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->generateIndices()->finalize();
   
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};

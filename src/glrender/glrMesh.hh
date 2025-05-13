@@ -69,8 +69,8 @@ namespace glr
     /// @param colorsSize How many elements are in the colors array
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addColors(const float* colors, size_t colorsSize, const LoggingCallback& callback = nullptr);
-
-    GLRENDER_API void generateIndices(const LoggingCallback& callback = nullptr);
+    
+    GLRENDER_API Mesh* generateIndices(const LoggingCallback& callback = nullptr);
 
     /// Interleave all the vertex data upload it to the GPU, and lock the Mesh
     /// @param callback The error/warning/info handling callback, this is given information about what occured when something goes wrong
@@ -107,7 +107,7 @@ namespace glr
     uint32_t uvBufferHandle = INVALID_HANDLE;
     uint32_t colorBufferHandle = INVALID_HANDLE;
 
-    std::vector<float> indices{};
+    std::vector<uint32_t> indices{};
     std::vector<float> positions{};
     std::vector<float> uvs{};
     std::vector<float> normals{};
