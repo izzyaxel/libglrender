@@ -7,7 +7,6 @@ namespace glr
   Mesh::~Mesh()
   {
     glDeleteVertexArrays(1, &this->vertexArrayHandle);
-    glDeleteBuffers(1, &this->vertexBufferHandle);
     glDeleteBuffers(1, &this->positionBufferHandle);
     glDeleteBuffers(1, &this->normalBufferHandle);
     glDeleteBuffers(1, &this->uvBufferHandle);
@@ -16,11 +15,62 @@ namespace glr
 
   Mesh::Mesh(Mesh&& moveFrom) noexcept
   {
-    this->vertexBufferHandle = moveFrom.vertexBufferHandle;
-    moveFrom.vertexBufferHandle = INVALID_HANDLE;
-    
+    this->bufferType = moveFrom.bufferType;
+    this->drawMode = moveFrom.drawMode;
+    this->drawType = moveFrom.drawType;
+
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
+
+    this->positionBindingPoint = moveFrom.positionBindingPoint;
+    this->normalBindingPoint = moveFrom.normalBindingPoint;
+    this->uvBindingPoint = moveFrom.uvBindingPoint;
+    this->colorBindingPoint = moveFrom.colorBindingPoint;
+    
+    this->retainBufferData = moveFrom.retainBufferData;
+    moveFrom.retainBufferData = false;
+
+
+    this->vertexArrayHandle = moveFrom.vertexArrayHandle;
+    moveFrom.vertexArrayHandle = INVALID_HANDLE;
+
+    this->positionBufferHandle = moveFrom.positionBufferHandle;
+    moveFrom.positionBufferHandle = INVALID_HANDLE;
+
+    this->indexBufferHandle = moveFrom.indexBufferHandle;
+    moveFrom.indexBufferHandle = INVALID_HANDLE;
+
+    this->normalBufferHandle = moveFrom.normalBufferHandle;
+    moveFrom.normalBufferHandle = INVALID_HANDLE;
+
+    this->uvBufferHandle = moveFrom.uvBufferHandle;
+    moveFrom.uvBufferHandle = INVALID_HANDLE;
+
+    this->colorBufferHandle = moveFrom.colorBufferHandle;
+    moveFrom.colorBufferHandle = INVALID_HANDLE;
+
+
+    this->indices = moveFrom.indices;
+    moveFrom.indices.clear();
+
+    this->positions = moveFrom.positions;
+    moveFrom.positions.clear();
+
+    this->normals = moveFrom.normals;
+    moveFrom.normals.clear();
+
+    this->uvs = moveFrom.uvs;
+    moveFrom.uvs.clear();
+    
+    this->colors = moveFrom.colors;
+    moveFrom.colors.clear();
+
+
+    this->finalized = moveFrom.finalized;
+    moveFrom.finalized = false;
+    
+    this->hasIndices = moveFrom.hasIndices;
+    moveFrom.hasIndices = false;
     
     this->hasPositions = moveFrom.hasPositions;
     moveFrom.hasPositions = false;
@@ -30,6 +80,16 @@ namespace glr
     
     this->hasNormals = moveFrom.hasNormals;
     moveFrom.hasNormals = false;
+
+    this->hasColors = moveFrom.hasColors;
+    moveFrom.hasColors = false;
+
+
+    this->positionElements = moveFrom.positionElements;
+    moveFrom.positionElements = 3;
+
+    this->positionStride = moveFrom.positionStride;
+    moveFrom.positionStride = moveFrom.positionElements * sizeof(float);
   }
   
   Mesh& Mesh::operator=(Mesh&& moveFrom) noexcept
@@ -38,12 +98,63 @@ namespace glr
     {
       return *this;
     }
-
-    this->vertexBufferHandle = moveFrom.vertexBufferHandle;
-    moveFrom.vertexBufferHandle = INVALID_HANDLE;
     
+    this->bufferType = moveFrom.bufferType;
+    this->drawMode = moveFrom.drawMode;
+    this->drawType = moveFrom.drawType;
+
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
+
+    this->positionBindingPoint = moveFrom.positionBindingPoint;
+    this->normalBindingPoint = moveFrom.normalBindingPoint;
+    this->uvBindingPoint = moveFrom.uvBindingPoint;
+    this->colorBindingPoint = moveFrom.colorBindingPoint;
+    
+    this->retainBufferData = moveFrom.retainBufferData;
+    moveFrom.retainBufferData = false;
+
+
+    this->vertexArrayHandle = moveFrom.vertexArrayHandle;
+    moveFrom.vertexArrayHandle = INVALID_HANDLE;
+
+    this->positionBufferHandle = moveFrom.positionBufferHandle;
+    moveFrom.positionBufferHandle = INVALID_HANDLE;
+
+    this->indexBufferHandle = moveFrom.indexBufferHandle;
+    moveFrom.indexBufferHandle = INVALID_HANDLE;
+
+    this->normalBufferHandle = moveFrom.normalBufferHandle;
+    moveFrom.normalBufferHandle = INVALID_HANDLE;
+
+    this->uvBufferHandle = moveFrom.uvBufferHandle;
+    moveFrom.uvBufferHandle = INVALID_HANDLE;
+
+    this->colorBufferHandle = moveFrom.colorBufferHandle;
+    moveFrom.colorBufferHandle = INVALID_HANDLE;
+
+
+    this->indices = moveFrom.indices;
+    moveFrom.indices.clear();
+
+    this->positions = moveFrom.positions;
+    moveFrom.positions.clear();
+
+    this->normals = moveFrom.normals;
+    moveFrom.normals.clear();
+
+    this->uvs = moveFrom.uvs;
+    moveFrom.uvs.clear();
+    
+    this->colors = moveFrom.colors;
+    moveFrom.colors.clear();
+
+
+    this->finalized = moveFrom.finalized;
+    moveFrom.finalized = false;
+    
+    this->hasIndices = moveFrom.hasIndices;
+    moveFrom.hasIndices = false;
     
     this->hasPositions = moveFrom.hasPositions;
     moveFrom.hasPositions = false;
@@ -53,6 +164,16 @@ namespace glr
     
     this->hasNormals = moveFrom.hasNormals;
     moveFrom.hasNormals = false;
+
+    this->hasColors = moveFrom.hasColors;
+    moveFrom.hasColors = false;
+
+
+    this->positionElements = moveFrom.positionElements;
+    moveFrom.positionElements = 3;
+
+    this->positionStride = moveFrom.positionStride;
+    moveFrom.positionStride = moveFrom.positionElements * sizeof(float);
     
     return *this;
   }
@@ -73,6 +194,22 @@ namespace glr
       }
     }
     this->positionStride = this->positionElements * sizeof(float);
+  }
+
+  Mesh* Mesh::addIndices(const uint32_t* indices, size_t indicesSize, const LoggingCallback& callback)
+  {
+    if(this->finalized)
+    {
+      if(callback)
+      {
+        callback(LogType::WARNING, "Mesh::addIndices(): Attempting to add indices to a finalized Mesh\n");
+      }
+      return this;
+    }
+    
+    this->hasIndices = true;
+    this->indices.insert(this->indices.end(), indices, indices + indicesSize);
+    return this;
   }
 
   Mesh* Mesh::addPositions(const float* positions, const size_t positionsSize, const LoggingCallback& callback)
@@ -347,7 +484,7 @@ namespace glr
 
   bool Mesh::isIndexed() const
   {
-    return false;
+    return this->hasIndices;
   }
 
   int Mesh::getGLDrawType() const

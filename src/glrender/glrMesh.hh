@@ -45,6 +45,12 @@ namespace glr
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addPositions(const float* positions, size_t positionsSize, const LoggingCallback& callback = nullptr);
 
+    /// Add indices into the OpenGL buffer, can be called multiple times to append data to the indices buffer
+    /// @param indices An array of indices into the OpenGL vertex buffer
+    /// @param indicesSize How many elements are in the indices array
+    /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
+    GLRENDER_API Mesh* addIndices(const uint32_t* indices, size_t indicesSize, const LoggingCallback& callback = nullptr);
+
     /// Add vertex uv coordinates to the OpenGL buffer, can be called multiple times to append data to the uv coordinates buffer
     /// @param uvs An array of vertex uv coordinates to add to the OpenGL buffer
     /// @param uvsSize How many elements are in the uvs array
@@ -92,15 +98,10 @@ namespace glr
 
     uint32_t vertexArrayHandle = INVALID_HANDLE;
     uint32_t indexBufferHandle = INVALID_HANDLE;
-    
-    //Separate buffers
     uint32_t positionBufferHandle = INVALID_HANDLE;
     uint32_t normalBufferHandle = INVALID_HANDLE;
     uint32_t uvBufferHandle = INVALID_HANDLE;
     uint32_t colorBufferHandle = INVALID_HANDLE;
-
-    //Interleaved buffer
-    uint32_t vertexBufferHandle = INVALID_HANDLE;
 
     std::vector<float> indices{};
     std::vector<float> positions{};
@@ -109,7 +110,7 @@ namespace glr
     std::vector<float> colors{};
 
     bool finalized = false;
-
+    bool hasIndices = false;
     bool hasPositions = false;
     bool hasUVs = false;
     bool hasNormals = false;
