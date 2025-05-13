@@ -70,6 +70,8 @@ namespace glr
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addColors(const float* colors, size_t colorsSize, const LoggingCallback& callback = nullptr);
 
+    GLRENDER_API void generateIndices(const LoggingCallback& callback = nullptr);
+
     /// Interleave all the vertex data upload it to the GPU, and lock the Mesh
     /// @param callback The error/warning/info handling callback, this is given information about what occured when something goes wrong
     GLRENDER_API void finalize(const LoggingCallback& callback = nullptr);

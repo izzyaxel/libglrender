@@ -1,6 +1,7 @@
 #include "glrender/glrMesh.hh"
 
 #include <glad/gl.hh>
+#include <commons/math/vec3.hh>
 
 namespace glr
 {
@@ -282,6 +283,86 @@ namespace glr
     this->hasColors = true;
     this->colors.insert(this->colors.end(), colors, colors + colorsSize);
     return this;
+  }
+
+  struct Result
+  {
+    bool success = false;
+    uint32_t index = 0;
+  };
+
+  template<typename T> Result getIndexOf(const std::vector<T>& indexmapping, T& current)
+  {
+    for(uint32_t i = 0; i < indexmapping.size(); i++)
+    {
+      const auto& val = indexmapping[i];
+      if(val == current)
+      {
+        return {true, i};
+      }
+    }
+    return {false, 0};
+  }
+  
+  void Mesh::generateIndices(const LoggingCallback& callback)
+  {
+    if(callback)
+    {
+      if(!this->hasPositions)
+      {
+        callback(GLRLogType::ERROR, "Mesh::generateIndices(): Attempting to generate indices for a finalized Mesh\n");
+        return;
+      }
+      if(this->hasIndices)
+      {
+        callback(GLRLogType::ERROR, "Mesh::generateIndices(): Attempting to generate indices for a Mesh that already has indices\n");
+        return;
+      }
+    }
+    
+    switch(this->positionElements)
+    {
+      case 2:
+      {
+        std::vector<vec2<float>> indexmapping{};
+        for(size_t i = 0; i < this->numVerts; i++)
+        {
+          vec2 current{this->positions[i * 2], this->positions[i * 2 + 1]};
+          const auto [success, index] = getIndexOf(indexmapping, current);
+          if(!success)
+          {
+            indexmapping.push_back(current);
+            this->indices.push_back(indexmapping.size() - 1);
+          }
+          else
+          {
+            this->indices.push_back(index);
+          }
+          this->indices.push_back(index);
+        }
+        break;
+      }
+      case 3:
+      {
+        std::vector<vec3<float>> indexmapping{};
+        for(size_t i = 0; i < this->numVerts; i++)
+        {
+          vec3 current{this->positions[i * 3], this->positions[i * 3 + 1], this->positions[i * 3 + 2]};
+          const auto [success, index] = getIndexOf(indexmapping, current);
+          if(!success)
+          {
+            indexmapping.push_back(current);
+            this->indices.push_back(indexmapping.size() - 1);
+          }
+          else
+          {
+            this->indices.push_back(index);
+          }
+        }
+        break;
+      }
+      default: break;
+    }
   }
   
   void Mesh::finalize(const LoggingCallback& callback)

@@ -3,11 +3,13 @@
 #include <glrender/glrMesh.hh>
 #include <glrender/glrShader.hh>
 #include <glrender/glrRenderer.hh>
+
 #define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
+#include <string>
 #include <chrono>
 #include <filesystem>
-#include <SDL2/SDL.h>
-#include <string>
 
 constexpr int32_t width = 800;
 constexpr int32_t height = 600;
