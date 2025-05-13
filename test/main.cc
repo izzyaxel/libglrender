@@ -15,8 +15,8 @@ constexpr int32_t width = 800;
 constexpr int32_t height = 600;
 
 inline std::vector<uint32_t> quadIndices{0, 1, 2, 2, 3, 0};
-inline std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  0.5f, 0.5f,  -0.5f, 0.5f,  -0.5f, -0.5f};
-inline std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,  0.0f, 0.0f,   0.0f, 1.0f};
+inline std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  -0.5f, 0.5f};
+inline std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  0.0f, 0.0f};
 
 std::string frag = R"(#version 450
 
@@ -143,8 +143,9 @@ int main()
   
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
-  renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
-  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->generateIndices()->finalize();
+  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
+  
+  renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->generateIndices()->finalize();
   
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};

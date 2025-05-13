@@ -303,7 +303,8 @@ namespace glr
     }
     return {false, 0};
   }
-  
+
+  //TODO FIXME how to generate closing index?
   Mesh* Mesh::generateIndices(const LoggingCallback& callback)
   {
     if(callback)
@@ -333,10 +334,18 @@ namespace glr
           {
             indexmapping.push_back(current);
             this->indices.push_back(indexmapping.size() - 1);
+            if((i + 1) % 3 == 0)
+            {
+              this->indices.push_back(indexmapping.size() - 1);
+            }
           }
           else
           {
             this->indices.push_back(index);
+            if((i + 1) % 3 == 0)
+            {
+              this->indices.push_back(index);
+            }
           }
         }
         break;
@@ -352,10 +361,18 @@ namespace glr
           {
             indexmapping.push_back(current);
             this->indices.push_back(indexmapping.size() - 1);
+            if(i + 1 % 3 == 0)
+            {
+              this->indices.push_back(indexmapping.size() - 1);
+            }
           }
           else
           {
             this->indices.push_back(index);
+            if((i + 1) % 3 == 0)
+            {
+              this->indices.push_back(index);
+            }
           }
         }
         break;
@@ -364,6 +381,11 @@ namespace glr
     }
     this->numIndices = this->indices.size();
     this->hasIndices = true;
+    for(const auto& val : this->indices)
+    {
+      printf("%u ", val);
+    }
+    printf("\n");
     return this;
   }
   
