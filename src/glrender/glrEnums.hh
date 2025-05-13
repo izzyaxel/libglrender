@@ -1,17 +1,29 @@
 #pragma once
 
-enum struct LogType
+enum struct GLRLogType
 {
   INFO, WARNING, ERROR, DBG
 };
 
-enum struct GLAttachment
+enum struct GLRIOMode
+{
+  READ = 0x88B8, WRITE = 0x88B9, READWRITE = 0x88BA
+};
+
+enum struct GLRFilterMode
+{
+  NEAREST,
+  BILINEAR,
+  TRILINEAR
+};
+
+enum struct GLRAttachment
 {
   COLOR_TEXTURE, ALPHA_TEXTURE, DEPTH_TEXTURE, STENCIL_TEXTURE,
   COLOR_RENDERBUFFER, ALPHA_RENDERBUFFER, DEPTH_RENDERBUFFER, STENCIL_RENDERBUFFER,
 };
 
-enum struct GLDrawMode
+enum struct GLRDrawMode
 {
   TRIS = 0x0004,
   TRISTRIPS = 0x0005,
@@ -22,7 +34,7 @@ enum struct GLDrawMode
   POINTS = 0x0000,
 };
 
-enum struct GLColorFormat
+enum struct GLRColorFormat
 {
   R32F = 0x822E,
   RGB8 = 0x8051,
@@ -40,17 +52,17 @@ enum struct GLColorFormat
   DEPTH32F = 0x8CAC,
 };
 
-enum struct GLDrawType
+enum struct GLRDrawType
 {
   STATIC, STREAM, DYNAMIC,
 };
 
-enum struct GLBufferType
+enum struct GLRBufferType
 {
   INTERLEAVED, SEPARATE,
 };
 
-enum struct GLDimensions
+enum struct GLRDimensions
 {
   TWO_DIMENSIONAL, THREE_DIMENSIONAL,
 };

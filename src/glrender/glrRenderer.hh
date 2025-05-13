@@ -67,12 +67,12 @@ namespace glr
     GLRENDER_API void setBlending(bool val) const;
     GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst) const;
     GLRENDER_API void setCullFace(bool val) const;
-    GLRENDER_API void setFilterMode(FilterMode min, FilterMode mag);
-    GLRENDER_API void draw(GLDrawMode mode, size_t numElements) const;
-    GLRENDER_API void drawIndexed(GLDrawMode mode, size_t numElements) const;
+    GLRENDER_API void setFilterMode(GLRFilterMode min, GLRFilterMode mag);
+    GLRENDER_API void draw(GLRDrawMode mode, size_t numElements) const;
+    GLRENDER_API void drawIndexed(GLRDrawMode mode, size_t numElements) const;
     
     /// Bind an image for use in a compute shader
-    GLRENDER_API void bindImage(uint32_t target, uint32_t handle, IOMode mode, GLColorFormat format) const;
+    GLRENDER_API void bindImage(uint32_t target, uint32_t handle, GLRIOMode mode, GLRColorFormat format) const;
     
     /// Run the currently bound compute shader
     GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORK_SIZE_X, WORK_SIZE_Y}) const;
@@ -95,8 +95,8 @@ namespace glr
 
     vec2<uint32_t> contextSize{};
     
-    FilterMode filterModeMin{};
-    FilterMode filterModeMag{};
+    GLRFilterMode filterModeMin{};
+    GLRFilterMode filterModeMag{};
     
     std::shared_ptr<PostStack> globalPostStack = nullptr;
     std::unordered_map<uint64_t, std::shared_ptr<PostStack>> layerPostStack{};

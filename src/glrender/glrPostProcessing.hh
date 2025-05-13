@@ -22,8 +22,8 @@ namespace glr
   struct PostStack
   {
     GLRENDER_API void add(PostPass pass);
-    [[nodiscard]] GLRENDER_API std::vector<PostPass> getPasses();
-    [[nodiscard]] GLRENDER_API bool isEmpty() const;
+    GLRENDER_API std::vector<PostPass> getPasses();
+    GLRENDER_API bool isEmpty() const;
     GLRENDER_API void clear();
     
     private:

@@ -5,7 +5,7 @@
 
 namespace glr
 {
-  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, std::initializer_list<GLAttachment> options, const std::string& name)
+  Framebuffer::Framebuffer(const uint32_t width, const uint32_t height, std::initializer_list<GLRAttachment> options, const std::string& name)
   {
     this->width = width;
     this->height = height;
@@ -13,37 +13,37 @@ namespace glr
     {
       switch(option)
       {
-        case GLAttachment::COLOR_TEXTURE:
+        case GLRAttachment::COLOR_TEXTURE:
         {
           this->hasColorTex = true;
           break;
         }
-        case GLAttachment::ALPHA_TEXTURE:
+        case GLRAttachment::ALPHA_TEXTURE:
         {
           this->hasAlpha = true;
           break;
         }
-        case GLAttachment::DEPTH_TEXTURE:
+        case GLRAttachment::DEPTH_TEXTURE:
         {
           this->hasDepthTex = true;
           break;
         }
-        case GLAttachment::STENCIL_TEXTURE:
+        case GLRAttachment::STENCIL_TEXTURE:
         {
           this->hasStencilTex = true;
           break;
         }
-        case GLAttachment::COLOR_RENDERBUFFER:
+        case GLRAttachment::COLOR_RENDERBUFFER:
         {
           this->hasColorRB = true;
           break;
         }
-        case GLAttachment::DEPTH_RENDERBUFFER:
+        case GLRAttachment::DEPTH_RENDERBUFFER:
         {
           this->hasDepthRB = true;
           break;
         }
-        case GLAttachment::STENCIL_RENDERBUFFER:
+        case GLRAttachment::STENCIL_RENDERBUFFER:
         {
           this->hasStencilRB = true;
           break;
@@ -181,36 +181,36 @@ namespace glr
     glBindFramebuffer(GL_FRAMEBUFFER, this->handle);
   }
   
-  void Framebuffer::bind(const GLAttachment type, const uint32_t target) const
+  void Framebuffer::bind(const GLRAttachment type, const uint32_t target) const
   {
     switch(type)
     {
-      case GLAttachment::COLOR_TEXTURE:
+      case GLRAttachment::COLOR_TEXTURE:
       {
         glBindTextureUnit(target, this->colorHandle);
         break;
       }
-      case GLAttachment::DEPTH_TEXTURE:
+      case GLRAttachment::DEPTH_TEXTURE:
       {
         glBindTextureUnit(target, this->depthHandle);
         break;
       }
-      case GLAttachment::STENCIL_TEXTURE:
+      case GLRAttachment::STENCIL_TEXTURE:
       {
         glBindTextureUnit(target, this->stencilHandle);
         break;
       }
-      case GLAttachment::COLOR_RENDERBUFFER:
+      case GLRAttachment::COLOR_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->colorHandle);
         break;
       }
-      case GLAttachment::DEPTH_RENDERBUFFER:
+      case GLRAttachment::DEPTH_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->depthHandle);
         break;
       }
-      case GLAttachment::STENCIL_RENDERBUFFER:
+      case GLRAttachment::STENCIL_RENDERBUFFER:
       {
         glBindRenderbuffer(target, this->stencilHandle);
         break;
@@ -300,7 +300,7 @@ namespace glr
     this->pool.resize(alloc);
     for(size_t i = 0; i < alloc; i++)
     {
-      this->pool[i] = Framebuffer(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(i));
+      this->pool[i] = Framebuffer(width, height, std::initializer_list{GLRAttachment::COLOR_TEXTURE, GLRAttachment::ALPHA_TEXTURE, GLRAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(i));
     }
     this->init = true;
   }
@@ -350,14 +350,14 @@ namespace glr
       {
         if(fbo.width != width || fbo.height != height)
         {
-          fbo = Framebuffer(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
+          fbo = Framebuffer(width, height, std::initializer_list{GLRAttachment::COLOR_TEXTURE, GLRAttachment::ALPHA_TEXTURE, GLRAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
         }
         fbo.use();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return fbo;
       }
     }
-    this->pool.emplace_back(width, height, std::initializer_list{GLAttachment::COLOR_TEXTURE, GLAttachment::ALPHA_TEXTURE, GLAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
+    this->pool.emplace_back(width, height, std::initializer_list{GLRAttachment::COLOR_TEXTURE, GLRAttachment::ALPHA_TEXTURE, GLRAttachment::DEPTH_TEXTURE}, "Pool " + std::to_string(this->pool.size() + 1));
     this->pool.back().use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return this->pool.back();

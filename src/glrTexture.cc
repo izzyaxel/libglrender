@@ -4,25 +4,25 @@
 
 namespace glr
 {
-  Texture::Texture(const std::string& name, const uint32_t width, const uint32_t height, const ColorFormat colorFormat, const FilterMode min, const FilterMode mag, const bool sRGB)
+  Texture::Texture(const std::string& name, const uint32_t width, const uint32_t height, const uint8_t channels, const GLRFilterMode min, const GLRFilterMode mag, const bool sRGB)
   {
     this->name = name;
-    this->fmt = colorFormat;
+    this->channels = channels;
     this->width = width;
     this->height = height;
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
     int32_t f = 0;
-    if(colorFormat == RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
+    if(channels == 3) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
       if(sRGB) f = GL_SRGB8;
       else f = GL_RGB8;
     }
-    else if(colorFormat == RGBA)
+    else if(channels == 4)
     {
       if(sRGB) f = GL_SRGB8_ALPHA8;
       else f = GL_RGBA8;
     }
-    else if(colorFormat == GREY)
+    else if(channels == 1)
     {
       f = GL_R8;
     }
@@ -34,15 +34,15 @@ namespace glr
     this->init = true;
   }
   
-  Texture::Texture(const std::string& name, const uint8_t* data, const uint32_t width, const uint32_t height, const ColorFormat colorFormat, const FilterMode min, const FilterMode mag, const bool sRGB)
+  Texture::Texture(const std::string& name, const uint8_t* data, const uint32_t width, const uint32_t height, const uint8_t channels, const GLRFilterMode min, const GLRFilterMode mag, const bool sRGB)
   {
     this->name = name;
-    this->fmt = colorFormat;
+    this->channels = channels;
     this->width = width;
     this->height = height;
     int32_t internalFormat = 0;
     int32_t colorFormatEx = 0;
-    if(colorFormat == RGB) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
+    if(channels == 3) //TODO It's more efficient to use an extra 8 bits of VRAM per pixel
     {
       if(sRGB)
       {
@@ -54,7 +54,7 @@ namespace glr
       }
       colorFormatEx = GL_RGB;
     }
-    else if(colorFormat == RGBA)
+    else if(channels == 4)
     {
       if(sRGB)
       {
@@ -66,7 +66,7 @@ namespace glr
       }
       colorFormatEx = GL_RGBA;
     }
-    else if(colorFormat == GREY)
+    else if(channels == 1)
     {
       internalFormat = GL_R8;
       colorFormatEx = GL_RED;
@@ -82,7 +82,7 @@ namespace glr
   Texture::Texture(const std::string& name, const uint8_t red, const uint8_t green, const uint8_t blue, const uint8_t alpha, const bool sRGB)
   {
     this->name = name;
-    this->fmt = RGBA;
+    this->channels = 4;
     this->width = 1;
     this->height = 1;
     uint8_t **data = new uint8_t *;
@@ -94,7 +94,7 @@ namespace glr
     glCreateTextures(GL_TEXTURE_2D, 1, &this->handle);
     glTextureStorage2D(this->handle, 1, sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8, (int32_t)this->width, (int32_t)this->height);
     glTextureSubImage2D(this->handle, 0, 0, 0, (int32_t)this->width, 1, GL_RGBA, GL_UNSIGNED_BYTE, data[0]);
-    this->setFilterMode(BILINEAR, BILINEAR);
+    this->setFilterMode(GLRFilterMode::BILINEAR, GLRFilterMode::BILINEAR);
     this->setAnisotropyLevel(1);
     this->init = true;
   }
@@ -115,8 +115,8 @@ namespace glr
     this->height = moveFrom.height;
     moveFrom.height = 0;
     
-    this->fmt = moveFrom.fmt;
-    moveFrom.fmt = {};
+    this->channels = moveFrom.channels;
+    moveFrom.channels = {};
     
     this->name = moveFrom.name;
     moveFrom.name = "";
@@ -144,8 +144,8 @@ namespace glr
     this->height = moveFrom.height;
     moveFrom.height = 0;
     
-    this->fmt = moveFrom.fmt;
-    moveFrom.fmt = {};
+    this->channels = moveFrom.channels;
+    moveFrom.channels = {};
     
     this->name = moveFrom.name;
     moveFrom.name = "";
@@ -175,7 +175,7 @@ namespace glr
     this->handle = INVALID_HANDLE;
     this->width = 0;
     this->height = 0;
-    this->fmt = {};
+    this->channels = {};
     this->name = "";
     this->path = "";
     this->init = false;
@@ -191,37 +191,47 @@ namespace glr
     }
   }
   
-  void Texture::setFilterMode(const FilterMode min, const FilterMode mag) const
+  void Texture::setFilterMode(const GLRFilterMode min, const GLRFilterMode mag) const
   {
     GLenum glMin = GL_NEAREST, glMag = GL_NEAREST;
     switch(min)
     {
-      case NEAREST:
+      case GLRFilterMode::NEAREST:
+      {
         glMin = GL_NEAREST;
         break;
-      case BILINEAR:
+      }
+      case GLRFilterMode::BILINEAR:
+      {
         glMin = GL_LINEAR;
         break;
-      case TRILINEAR:
+      }
+      case GLRFilterMode::TRILINEAR:
+      {
         glMin = GL_LINEAR_MIPMAP_LINEAR;
         break;
-      default:
-        break;
+      }
+      default: break;
     }
     
     switch(mag)
     {
-      case NEAREST:
+      case GLRFilterMode::NEAREST:
+      {
         glMag = GL_NEAREST;
         break;
-      case BILINEAR:
+      }
+      case GLRFilterMode::BILINEAR:
+      {
         glMag = GL_LINEAR;
         break;
-      case TRILINEAR:
+      }
+      case GLRFilterMode::TRILINEAR:
+      {
         glMag = GL_LINEAR_MIPMAP_LINEAR;
         break;
-      default:
-        break;
+      }
+      default: break;
     }
     glTextureParameteri(this->handle, GL_TEXTURE_MIN_FILTER, (GLint) glMin);
     glTextureParameteri(this->handle, GL_TEXTURE_MAG_FILTER, (GLint) glMag);
@@ -232,20 +242,27 @@ namespace glr
     glTextureParameterf(this->handle, GL_TEXTURE_MAX_ANISOTROPY, (GLfloat) level);
   }
   
-  void Texture::subImage(const uint8_t* data, const uint32_t w, const uint32_t h, const uint32_t xPos, const uint32_t yPos, const ColorFormat format) const
+  void Texture::subImage(const uint8_t* data, const uint32_t w, const uint32_t h, const uint32_t xPos, const uint32_t yPos, const uint8_t channels) const
   {
     int32_t f = 0;
-    switch(format)
+    switch(channels)
     {
-      case RGB:
+      case 3:
+      {
         f = GL_RGB;
         break;
-      case RGBA:
+      }
+      case 4:
+      {
         f = GL_RGBA;
         break;
-      case GREY:
+      }
+      case 1:
+      {
         f = GL_RED;
         break;
+      }
+      default: break;
     }
     glTextureSubImage2D(this->handle, 0, (GLint) xPos, (GLint) yPos, (GLint) w, (GLint) h, f, GL_UNSIGNED_BYTE, data);
   }
@@ -253,44 +270,56 @@ namespace glr
   void Texture::clear() const
   {
     int32_t f = 0;
-    switch(this->fmt)
+    switch(this->channels)
     {
-      case RGB:
+      case 3:
+      {
         f = GL_RGB;
         break;
-      case RGBA:
+      }
+      case 4:
+      {
         f = GL_RGBA;
         break;
-      case GREY:
+      }
+      case 1:
+      {
         f = GL_RED;
         break;
+      }
+      default: break;
     }
     glClearTexImage(this->handle, 0, f, GL_UNSIGNED_BYTE, "\0\0\0\0");
   }
   
-  DownloadedImageData Texture::downloadTexture(const ColorFormat colorFormat) const
+  DownloadedImageData Texture::downloadTexture(const uint8_t channels) const
   {
     DownloadedImageData out;
     out.textureName = this->name;
     int32_t curTex = 0;
     int32_t cf = 0;
     int32_t cpp = 0;
-    switch(colorFormat)
+    switch(channels)
     {
-      case RGB:
+      case 3:
+      {
         cf = GL_RGB;
         cpp = 3;
         break;
-      case RGBA:
+      }
+      case 4:
+      {
         cf = GL_RGBA;
         cpp = 4;
         break;
-      case GREY:
+      }
+      case 1:
+      {
         cf = GL_RED;
         cpp = 1;
         break;
-      default:
-        break;
+      }
+      default: break;
     }
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
     glBindTextureUnit(0, this->handle);

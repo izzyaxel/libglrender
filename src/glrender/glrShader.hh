@@ -15,11 +15,6 @@
 
 namespace glr
 {
-  typedef enum
-  {
-    READ = 0x88B8, WRITE = 0x88B9, READWRITE = 0x88BA
-  } IOMode;
-  
   /// An OpenGL frag/vert, or compute shader
   struct Shader
   {

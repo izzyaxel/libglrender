@@ -7,5 +7,5 @@
 
 namespace glr
 {
-  using LoggingCallback = std::function<void(LogType, const std::string&)>;
+  using LoggingCallback = std::function<void(GLRLogType, const std::string&)>;
 }

@@ -56,8 +56,8 @@ namespace glr
   {
     std::unordered_map<int32_t, Texture*> imageBindings{};
     std::shared_ptr<Shader> shader = nullptr;
-    IOMode ioMode{};
-    GLColorFormat glColorFormat{};
+    GLRIOMode ioMode{};
+    GLRColorFormat glColorFormat{};
   };
 
   struct TextComp

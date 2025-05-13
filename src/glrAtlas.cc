@@ -181,7 +181,7 @@ namespace glr
     return *this;
   }
   
-  void Atlas::addTile(const std::string& name, const std::vector<uint8_t>& tileData, const ColorFormat format, const uint32_t width, const uint32_t height)
+  void Atlas::addTile(const std::string& name, const std::vector<uint8_t>& tileData, const uint8_t channels, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -198,11 +198,11 @@ namespace glr
       printf("Atlas error: Tile data is empty\n");
       return;
     }
-    this->atlas.emplace_back(name, tileData, format, vec2<uint32_t>{0, 0}, width, height);
+    this->atlas.emplace_back(name, tileData, channels, vec2<uint32_t>{0, 0}, width, height);
     this->init = true;
   }
   
-  void Atlas::addTile(const std::string& name, const ColorFormat fmt, std::vector<uint8_t>&& tileData, const uint32_t width, const uint32_t height)
+  void Atlas::addTile(const std::string& name, const uint8_t channels, std::vector<uint8_t>&& tileData, const uint32_t width, const uint32_t height)
   {
     if(this->contains(name))
     {
@@ -219,7 +219,7 @@ namespace glr
       printf("Atlas error: Tile data is empty\n");
       return;
     }
-    this->atlas.emplace_back(name, std::move(tileData), fmt, vec2<uint32_t>{0, 0}, width, height);
+    this->atlas.emplace_back(name, std::move(tileData), channels, vec2<uint32_t>{0, 0}, width, height);
     this->init = true;
   }
   
@@ -289,7 +289,7 @@ namespace glr
     return false;
   }
   
-  void Atlas::finalize(const std::string& name, Texture& atlasTexture, const ColorFormat fmt)
+  void Atlas::finalize(const std::string& name, Texture& atlasTexture, const uint8_t channels)
   {
     if(this->finalized)
     {
@@ -321,13 +321,13 @@ namespace glr
     atlasTexture.name = name;
     atlasTexture.height = layout.height();
     atlasTexture.width = layout.width();
-    atlasTexture.fmt = fmt;
-    atlasTexture.setFilterMode(NEAREST, NEAREST);
+    atlasTexture.channels = channels;
+    atlasTexture.setFilterMode(GLRFilterMode::NEAREST, GLRFilterMode::NEAREST);
     
-    atlasTexture = Texture(name, layout.width(), layout.height(), fmt, NEAREST);
+    atlasTexture = Texture(name, layout.width(), layout.height(), channels, GLRFilterMode::NEAREST);
     for(auto& tile: this->atlas)
     {
-      atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.fmt);
+      atlasTexture.subImage(tile.data.data(), tile.width, tile.height, tile.location.x(), tile.location.y(), tile.channels);
     }
     this->atlasDims = {(float)layout.width(), (float)layout.height()};
     this->finalized = true;

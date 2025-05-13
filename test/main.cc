@@ -12,10 +12,7 @@
 constexpr int32_t width = 800;
 constexpr int32_t height = 600;
 
-inline std::vector triUVs{0.f, 0.f,   1.f, 0.f,   1.f, 1.f};
-inline std::vector triPositions{-0.5f, -0.5f, 0.0f,   0.5f, -0.5f, 0.0f,   0.0f, 0.5f, 0.0f};
-
-inline std::vector quadIndices{0, 1, 2, 2, 3, 1};
+inline std::vector quadIndices{0u, 1u, 2u, 2u, 3u, 0u};
 inline std::vector quadUVs{0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 1.0f};
 inline std::vector quadPositions{-0.5f, -0.5f,   0.5f, -0.5f,   0.5f, 0.5f,   0.5f, 0.5f,   -0.5f, 0.5f,   -0.5f, -0.5f};
 
@@ -66,13 +63,13 @@ void main()
 
 bool exiting = false;
 
-SDL_Event event;
 SDL_Window* window = nullptr;
 SDL_GLContext context = nullptr;
 glr::Renderer* renderer = nullptr;
 
 void eventPump()
 {
+  SDL_Event event;
   while(SDL_PollEvent(&event) != 0)
   {
     switch(event.type)
@@ -136,24 +133,16 @@ int main()
   setup();
   
   Camera camera{};
-  PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png"); //Good
+  PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png");
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
   
   renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", vert, frag);
   
-  renderable.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, (glr::ColorFormat)png.channels);
+  renderable.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
   
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
-  renderable.meshComp->mesh->bufferType = GLBufferType::SEPARATE;
-  renderable.meshComp->mesh->drawMode = GLDrawMode::TRIS;
-  renderable.meshComp->mesh->drawType = GLDrawType::STATIC;
-  renderable.meshComp->mesh->retainBufferData = false;
-  renderable.meshComp->mesh->positionBindingPoint = 0;
-  renderable.meshComp->mesh->uvBindingPoint = 1;
-  renderable.meshComp->mesh->normalBindingPoint = 2;
-  renderable.meshComp->mesh->colorBindingPoint = 3;
-  renderable.meshComp->mesh->setPositionDimensions(GLDimensions::TWO_DIMENSIONAL);
-  renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->finalize();
+  renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
+  renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
   
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};

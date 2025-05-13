@@ -7,6 +7,7 @@ namespace glr
   Mesh::~Mesh()
   {
     glDeleteVertexArrays(1, &this->vertexArrayHandle);
+    glDeleteBuffers(1, &this->indexBufferHandle);
     glDeleteBuffers(1, &this->positionBufferHandle);
     glDeleteBuffers(1, &this->normalBufferHandle);
     glDeleteBuffers(1, &this->uvBufferHandle);
@@ -21,6 +22,9 @@ namespace glr
 
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
+
+    this->numIndices = moveFrom.numIndices;
+    moveFrom.numIndices = 0;
 
     this->positionBindingPoint = moveFrom.positionBindingPoint;
     this->normalBindingPoint = moveFrom.normalBindingPoint;
@@ -106,6 +110,9 @@ namespace glr
     this->numVerts = moveFrom.numVerts;
     moveFrom.numVerts = 0;
 
+    this->numIndices = moveFrom.numIndices;
+    moveFrom.numIndices = 0;
+
     this->positionBindingPoint = moveFrom.positionBindingPoint;
     this->normalBindingPoint = moveFrom.normalBindingPoint;
     this->uvBindingPoint = moveFrom.uvBindingPoint;
@@ -178,16 +185,16 @@ namespace glr
     return *this;
   }
 
-  void Mesh::setPositionDimensions(const GLDimensions dimensions)
+  void Mesh::setPositionDimensions(const GLRDimensions dimensions)
   {
     switch(dimensions)
     {
-      case GLDimensions::TWO_DIMENSIONAL:
+      case GLRDimensions::TWO_DIMENSIONAL:
       {
         this->positionElements = 2;
         break;
       }
-      case GLDimensions::THREE_DIMENSIONAL:
+      case GLRDimensions::THREE_DIMENSIONAL:
       {
         this->positionElements = 3;
         break;
@@ -196,18 +203,19 @@ namespace glr
     this->positionStride = this->positionElements * sizeof(float);
   }
 
-  Mesh* Mesh::addIndices(const uint32_t* indices, size_t indicesSize, const LoggingCallback& callback)
+  Mesh* Mesh::addIndices(const uint32_t* indices, const size_t indicesSize, const LoggingCallback& callback)
   {
     if(this->finalized)
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::addIndices(): Attempting to add indices to a finalized Mesh\n");
+        callback(GLRLogType::WARNING, "Mesh::addIndices(): Attempting to add indices to a finalized Mesh\n");
       }
       return this;
     }
     
     this->hasIndices = true;
+    this->numIndices = indicesSize;
     this->indices.insert(this->indices.end(), indices, indices + indicesSize);
     return this;
   }
@@ -218,7 +226,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::addPositions(): Attempting to add positions to a finalized Mesh\n");
+        callback(GLRLogType::WARNING, "Mesh::addPositions(): Attempting to add positions to a finalized Mesh\n");
       }
       return this;
     }
@@ -236,7 +244,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::addUVs(): Attempting to add UVs to a finalized Mesh\n");
+        callback(GLRLogType::WARNING, "Mesh::addUVs(): Attempting to add UVs to a finalized Mesh\n");
       }
       return this;
     }
@@ -252,7 +260,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::addNormals(): Attempting to add normals to a finalized Mesh\n");
+        callback(GLRLogType::WARNING, "Mesh::addNormals(): Attempting to add normals to a finalized Mesh\n");
       }
       return this;
     }
@@ -267,7 +275,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::WARNING, "Mesh::addColors(): Attempting to add colors to a finalized Mesh\n");
+        callback(GLRLogType::WARNING, "Mesh::addColors(): Attempting to add colors to a finalized Mesh\n");
       }
       return this;
     }
@@ -276,7 +284,6 @@ namespace glr
     return this;
   }
   
-  //TODO generate indicies for the vertex positions
   void Mesh::finalize(const LoggingCallback& callback)
   {
     //Sanity checks
@@ -284,7 +291,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, no verticies have been added\n");
+        callback(GLRLogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, no verticies have been added\n");
       }
       return;
     }
@@ -293,7 +300,7 @@ namespace glr
     {
       if(callback)
       {
-        callback(LogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, Mesh has already been finalized\n");
+        callback(GLRLogType::ERROR, "Mesh::finalize(): Can't finalize Mesh, Mesh has already been finalized\n");
       }
       return;
     }
@@ -303,19 +310,19 @@ namespace glr
       if(!this->positions.empty() && this->positions.size() % this->positionElements != 0)
       {
         const std::string elements = std::to_string(this->positionElements);
-        callback(LogType::WARNING, "Mesh::finalize(): The number of position elements that have been added is not divisible by " + elements + ", this will cause unintended effects\n");
+        callback(GLRLogType::WARNING, "Mesh::finalize(): The number of position elements that have been added is not divisible by " + elements + ", this will cause unintended effects\n");
       }
       if(this->hasNormals && !this->normals.empty() && this->normals.size() % NORMAL_ELEMENTS != 0)
       {
-        callback(LogType::WARNING, "Mesh::finalize(): The number of normal elements that have been added is not divisible by 3, this will cause unintended effects\n");
+        callback(GLRLogType::WARNING, "Mesh::finalize(): The number of normal elements that have been added is not divisible by 3, this will cause unintended effects\n");
       }
       if(this->hasUVs && !this->uvs.empty() && this->uvs.size() % UV_ELEMENTS != 0)
       {
-        callback(LogType::WARNING, "Mesh::finalize(): The number of UV elements that have been added is not divisible by 2, this will cause unintended effects\n");
+        callback(GLRLogType::WARNING, "Mesh::finalize(): The number of UV elements that have been added is not divisible by 2, this will cause unintended effects\n");
       }
       if(this->hasColors && !this->colors.empty() && this->colors.size() % COLOR_ELEMENTS != 0)
       {
-        callback(LogType::WARNING, "Mesh::finalize(): The number of color elements that have been added is not divisible by 4, this will cause unintended effects\n");
+        callback(GLRLogType::WARNING, "Mesh::finalize(): The number of color elements that have been added is not divisible by 4, this will cause unintended effects\n");
       }
     }
     
@@ -409,7 +416,7 @@ namespace glr
         glVertexArrayAttribFormat(this->vertexArrayHandle, this->colorBindingPoint, 4, GL_FLOAT, GL_FALSE, this->positionStride + NORMAL_STRIDE + UV_STRIDE);
       }
     }
-    else*/ if(this->bufferType == GLBufferType::SEPARATE)
+    else*/ if(this->bufferType == GLRBufferType::SEPARATE)
     {
       //Create a buffer in the GPU's VRAM to hold our vertex position data
       glCreateBuffers(1, &this->positionBufferHandle);
@@ -430,6 +437,12 @@ namespace glr
       glVertexArrayAttribFormat(this->vertexArrayHandle, this->positionBindingPoint, this->positionElements, GL_FLOAT, GL_FALSE, 0);
       
       //Repeat for any other vertex data
+      if(this->hasIndices)
+      {
+        glCreateBuffers(1, &this->indexBufferHandle);
+        glNamedBufferData(this->indexBufferHandle, (GLsizeiptr)(this->indices.size() * sizeof(uint32_t)), this->indices.data(), this->getGLDrawType());
+        glVertexArrayElementBuffer(this->vertexArrayHandle, this->indexBufferHandle);
+      }
       if(this->hasNormals)
       {
         glCreateBuffers(1, &this->normalBufferHandle);
@@ -491,15 +504,15 @@ namespace glr
   {
     switch(this->drawType)
     {
-      case GLDrawType::STATIC:
+      case GLRDrawType::STATIC:
       {
         return GL_STATIC_DRAW;
       }
-      case GLDrawType::STREAM:
+      case GLRDrawType::STREAM:
       {
         return GL_STREAM_DRAW;
       }
-      case GLDrawType::DYNAMIC:
+      case GLRDrawType::DYNAMIC:
       {
         return GL_DYNAMIC_DRAW;
       }

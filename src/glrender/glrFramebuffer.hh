@@ -16,7 +16,7 @@ namespace glr
   struct Framebuffer
   {
     Framebuffer() = default;
-    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<GLAttachment> options, const std::string& name);
+    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<GLRAttachment> options, const std::string& name);
     GLRENDER_API ~Framebuffer();
     
     Framebuffer(Framebuffer& other) = delete;
@@ -28,7 +28,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
-    GLRENDER_API void bind(GLAttachment type, uint32_t target) const;
+    GLRENDER_API void bind(GLRAttachment type, uint32_t target) const;
     GLRENDER_API void regenerate(uint32_t width, uint32_t height);
     
     uint32_t handle = INVALID_HANDLE;

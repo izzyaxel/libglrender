@@ -24,7 +24,8 @@ namespace glr
     vec2<float> lowerRight = {};
   };
 
-  //TODO indexed rendering of interleaved data
+  //TODO instanced rendering?
+  //TODO interleaved buffer option
   //TODO dynamic changing of buffer data
   struct Mesh
   {
@@ -37,7 +38,7 @@ namespace glr
     GLRENDER_API Mesh& operator=(Mesh&& moveFrom) noexcept;
     
     /// @param dimensions Set positions to 2D or 3D (2 or 3 coordinates per vertex, xy or xyz)
-    GLRENDER_API void setPositionDimensions(GLDimensions dimensions);
+    GLRENDER_API void setPositionDimensions(GLRDimensions dimensions);
 
     /// Add vertex positions to the OpenGL buffer, can be called multiple times to append data to the positions buffer
     /// @param positions An array of vertex positions to add to the OpenGL buffer
@@ -79,15 +80,16 @@ namespace glr
     GLRENDER_API bool isFinalized() const;
     GLRENDER_API bool isIndexed() const;
 
-    GLBufferType bufferType = GLBufferType::SEPARATE;
-    GLDrawType drawType = GLDrawType::STATIC;
-    GLDrawMode drawMode = GLDrawMode::TRIS;
+    GLRBufferType bufferType = GLRBufferType::SEPARATE;
+    GLRDrawType drawType = GLRDrawType::STATIC;
+    GLRDrawMode drawMode = GLRDrawMode::TRIS;
 
     size_t numVerts = 0;
+    size_t numIndices = 0;
 
     int32_t positionBindingPoint = 0;
-    int32_t normalBindingPoint = 2;
     int32_t uvBindingPoint = 1;
+    int32_t normalBindingPoint = 2;
     int32_t colorBindingPoint = 3;
 
     //Whether to clear the buffer data from RAM after the Mesh is finalized
