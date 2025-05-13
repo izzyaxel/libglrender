@@ -505,7 +505,7 @@ namespace glr
       glCreateBuffers(1, &this->positionBufferHandle);
       
       //Upload our position data to the buffer we created
-      glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), this->getGLDrawType());
+      glNamedBufferData(this->positionBufferHandle, (GLsizeiptr)(this->positions.size() * sizeof(float)), this->positions.data(), (int)this->drawType);
 
       //Bind the attribute to an index in the shaders
       glVertexArrayAttribBinding(this->vertexArrayHandle, this->positionBindingPoint, this->positionBindingPoint);
@@ -523,13 +523,13 @@ namespace glr
       if(this->hasIndices)
       {
         glCreateBuffers(1, &this->indexBufferHandle);
-        glNamedBufferData(this->indexBufferHandle, (GLsizeiptr)(this->indices.size() * sizeof(uint32_t)), this->indices.data(), this->getGLDrawType());
+        glNamedBufferData(this->indexBufferHandle, (GLsizeiptr)(this->indices.size() * sizeof(uint32_t)), this->indices.data(), (int)this->drawType);
         glVertexArrayElementBuffer(this->vertexArrayHandle, this->indexBufferHandle);
       }
       if(this->hasNormals)
       {
         glCreateBuffers(1, &this->normalBufferHandle);
-        glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), this->getGLDrawType());
+        glNamedBufferData(this->normalBufferHandle, (GLsizeiptr)(this->normals.size() * sizeof(float)), this->normals.data(), (int)this->drawType);
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->normalBindingPoint, this->normalBindingPoint);
         glVertexArrayVertexBuffer(this->vertexArrayHandle, this->normalBindingPoint, this->normalBufferHandle, 0, NORMAL_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, this->normalBindingPoint);
@@ -538,7 +538,7 @@ namespace glr
       if(this->hasUVs)
       {
         glCreateBuffers(1, &this->uvBufferHandle);
-        glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), this->getGLDrawType());
+        glNamedBufferData(this->uvBufferHandle, (GLsizeiptr)(this->uvs.size() * sizeof(float)), this->uvs.data(), (int)this->drawType);
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->uvBindingPoint, this->uvBindingPoint);
         glVertexArrayVertexBuffer(this->vertexArrayHandle, this->uvBindingPoint, this->uvBufferHandle, 0, UV_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, this->uvBindingPoint);
@@ -547,7 +547,7 @@ namespace glr
       if(this->hasColors)
       {
         glCreateBuffers(1, &this->colorBufferHandle);
-        glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), this->getGLDrawType());
+        glNamedBufferData(this->colorBufferHandle, (GLsizeiptr)(this->colors.size() * sizeof(float)), this->colors.data(), (int)this->drawType);
         glVertexArrayAttribBinding(this->vertexArrayHandle, this->colorBindingPoint, this->colorBindingPoint);
         glVertexArrayVertexBuffer(this->vertexArrayHandle, this->colorBindingPoint, this->colorBufferHandle, 0, COLOR_STRIDE);
         glEnableVertexArrayAttrib(this->vertexArrayHandle, this->colorBindingPoint);
@@ -581,28 +581,5 @@ namespace glr
   bool Mesh::isIndexed() const
   {
     return this->hasIndices;
-  }
-
-  int Mesh::getGLDrawType() const
-  {
-    switch(this->drawType)
-    {
-      case GLRDrawType::STATIC:
-      {
-        return GL_STATIC_DRAW;
-      }
-      case GLRDrawType::STREAM:
-      {
-        return GL_STREAM_DRAW;
-      }
-      case GLRDrawType::DYNAMIC:
-      {
-        return GL_DYNAMIC_DRAW;
-      }
-      default:
-      {
-        return GL_STATIC_DRAW;
-      }
-    }
   }
 }

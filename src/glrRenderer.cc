@@ -308,14 +308,14 @@ void main()
     }
   }
   
-  void Renderer::draw(const GLRDrawMode mode, const size_t numElements) const
+  void Renderer::draw(const GLRDrawMode mode, const size_t numVerticies) const
   {
-    glDrawArrays((GLenum)mode, 0, (GLsizei)numElements);
+    glDrawArrays((GLenum)mode, 0, (GLsizei)numVerticies);
   }
 
-  void Renderer::drawIndexed(const GLRDrawMode mode, const size_t numElements) const
+  void Renderer::drawIndexed(const GLRDrawMode mode, const size_t numIndices) const
   {
-    glDrawElements((GLenum)mode, (GLsizei)numElements, GL_UNSIGNED_INT, nullptr);
+    glDrawElements((GLenum)mode, (GLsizei)numIndices, GL_UNSIGNED_INT, nullptr);
   }
   
   void Renderer::pingPong()
@@ -582,7 +582,7 @@ void main()
       Mesh textMesh;
       textMesh.setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
       textMesh.bufferType = GLRBufferType::SEPARATE;
-      textMesh.drawType = GLRDrawType::STATIC;
+      textMesh.drawType = GLRDrawType::STATIC_DRAW;
       textMesh.drawMode = GLRDrawMode::TRIS;
       for(const auto& charInfo : entry.textComp->characterInfo)
       {

@@ -83,7 +83,7 @@ namespace glr
     GLRENDER_API bool isIndexed() const;
 
     GLRBufferType bufferType = GLRBufferType::SEPARATE;
-    GLRDrawType drawType = GLRDrawType::STATIC;
+    GLRDrawType drawType = GLRDrawType::STATIC_DRAW;
     GLRDrawMode drawMode = GLRDrawMode::TRIS;
 
     size_t numVerts = 0;
@@ -98,8 +98,6 @@ namespace glr
     bool retainBufferData = false;
     
     private:
-    int getGLDrawType() const;
-
     uint32_t vertexArrayHandle = INVALID_HANDLE;
     uint32_t indexBufferHandle = INVALID_HANDLE;
     uint32_t positionBufferHandle = INVALID_HANDLE;

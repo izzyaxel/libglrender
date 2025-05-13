@@ -68,8 +68,8 @@ namespace glr
     GLRENDER_API void setBlendMode(uint32_t src, uint32_t dst) const;
     GLRENDER_API void setCullFace(bool val) const;
     GLRENDER_API void setFilterMode(GLRFilterMode min, GLRFilterMode mag);
-    GLRENDER_API void draw(GLRDrawMode mode, size_t numElements) const;
-    GLRENDER_API void drawIndexed(GLRDrawMode mode, size_t numElements) const;
+    GLRENDER_API void draw(GLRDrawMode mode, size_t numVerticies) const;
+    GLRENDER_API void drawIndexed(GLRDrawMode mode, size_t numIndices) const;
     
     /// Bind an image for use in a compute shader
     GLRENDER_API void bindImage(uint32_t target, uint32_t handle, GLRIOMode mode, GLRColorFormat format) const;
