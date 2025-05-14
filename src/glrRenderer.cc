@@ -4,11 +4,7 @@
 
 namespace glr
 {
-  uint32_t Renderer::WORK_SIZE_X = 40;
-  uint32_t Renderer::WORK_SIZE_Y = 20;
-
-/// ===Data===========================================================================///
-  
+//===Data===========================================================================
   std::string transferFrag =
 R"(#version 460 core
 
@@ -37,8 +33,9 @@ void main()
   std::array fullscreenQuadVerts{1.0f, -1.0f,  1.0f, 1.0f,  -1.0f, -1.0f,  -1.0f, 1.0f};
   std::array fullscreenQuadUVs{1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 0.0f,  0.0f, 1.0f};
 
+  //===Debug===========================================================================
   //TODO find a way to pass this to the user through a LoggingCallback
-  void glDebug(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei messageLength, const GLchar* message, const void* userParam)
+  void glDebug(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei messageLength, const GLchar* message, const void* userData)
   {
     std::string severityStr;
     std::string typeStr;
@@ -156,8 +153,7 @@ void main()
     printf("An OpenGL error occured: [%s] %s, ID: %u, %s, Message: %s\n", sourceStr.c_str(), severityStr.c_str(), id, typeStr.c_str(), message);
   }
 
-/// ===Renderer========================================================================================================================================///
-  
+  //===Renderer===========================================================================
   bool Alternator::swap()
   {
     alt = !alt;
@@ -203,7 +199,8 @@ void main()
     this->globalPostStack.reset();
     this->layerPostStack.clear();
   }
-  
+
+  //===Renderer Configuration===========================================================================
   void Renderer::onContextResize(const uint32_t width, const uint32_t height)
   {
     this->contextSize = {width, height};
@@ -220,7 +217,8 @@ void main()
   {
     this->layerPostStack[layer] = std::move(stack);
   }
-  
+
+  //===OpenGL Wrappers===========================================================================
   void Renderer::useBackBuffer() const
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -320,12 +318,6 @@ void main()
     glDrawElements((GLenum)mode, (GLsizei)numIndices, GL_UNSIGNED_INT, nullptr);
   }
   
-  void Renderer::pingPong()
-  {
-    this->curFBO.swap() ? this->fboA.use() : this->fboB.use();
-    this->clearCurrentFramebuffer();
-  }
-  
   void Renderer::bindImage(const uint32_t target, const uint32_t handle, const GLRIOMode mode, const GLRColorFormat format) const
   {
     glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
@@ -335,7 +327,24 @@ void main()
   {
     glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
   }
-
+  
+  //===Rendering===========================================================================
+  void Renderer::drawToBackBuffer() const
+  {
+    this->fullscreenQuad->use();
+    this->useBackBuffer();
+    this->clearCurrentFramebuffer();
+    this->shaderTransfer->use();
+    if(this->curFBO.get())
+    {
+      this->fboA.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
+    }
+    else
+    {
+      this->fboB.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
+    }
+    this->draw(GLRDrawMode::TRI_STRIPS, this->fullscreenQuad->numVerts);
+  }
 
   void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
   {
@@ -352,15 +361,17 @@ void main()
     if(rl.front().textureComp && rl.front().textureComp->texture)
     {
       currentTexture = rl.front().textureComp->texture;
-      currentTexture->use(rl.front().textureComp->texture->bindingIndex);
+      currentTexture->use(currentTexture->bindingIndex);
     }
 
-    bool postprocessing = !this->layerPostStack.empty() || (this->globalPostStack && !this->globalPostStack->isEmpty());
+    const bool doPostprocessing = !this->layerPostStack.empty() || (this->globalPostStack && !this->globalPostStack->isEmpty());
 
-    if(!postprocessing)
+    if(!doPostprocessing) //TODO FIXME can't render directly to the back buffer, why? get "no defined base level" warnings on textures, most likely the FBO attachments?
     {
+      //TODO ideally, draw directly to the backbuffer
+      this->pingPong();
       this->renderWithoutLayerPost(rl, currentTexture);
-      this->drawToBackBuffer(); //TODO FIXME this being absent is a cause of the texture not drawing, why?
+      this->drawToBackBuffer();
     }
     else
     {
@@ -378,8 +389,6 @@ void main()
 
   void Renderer::renderWithoutLayerPost(const RenderList& rl, std::shared_ptr<Texture>& currentTexture)
   {
-    this->pingPong(); //TODO FIXME this being absent is a cause of the texture not drawing, why?
-    
     for(const auto& entry : rl.list)
     {
       if(!currentTexture)
@@ -387,7 +396,7 @@ void main()
         if(entry.textureComp && entry.textureComp->texture)
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use(0);
+          currentTexture->use(currentTexture->bindingIndex);
         }
       }
       else
@@ -395,7 +404,7 @@ void main()
         if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use(0);
+          currentTexture->use(currentTexture->bindingIndex);
         }
       }
       this->drawRenderable(entry);
@@ -573,16 +582,6 @@ void main()
       this->setFilterMode(prevMin, prevMag);
     }
   }
-
-  void Renderer::drawToBackBuffer() const
-  {
-    this->fullscreenQuad->use();
-    this->useBackBuffer();
-    this->clearCurrentFramebuffer();
-    this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0) : this->fboB.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
-    this->draw(GLRDrawMode::TRI_STRIPS, this->fullscreenQuad->numVerts);
-  }
   
   void Renderer::drawToScratch() const
   {
@@ -624,5 +623,11 @@ void main()
         stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
       }
     }
+  }
+
+  void Renderer::pingPong()
+  {
+    this->curFBO.swap() ? this->fboA.use() : this->fboB.use();
+    this->clearCurrentFramebuffer();
   }
 }

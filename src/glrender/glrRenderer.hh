@@ -76,8 +76,8 @@ namespace glr
     /// Run the currently bound compute shader
     GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORK_SIZE_X, WORK_SIZE_Y}) const;
     
-    GLRENDER_API static uint32_t WORK_SIZE_X;
-    GLRENDER_API static uint32_t WORK_SIZE_Y;
+    GLRENDER_API inline static uint32_t WORK_SIZE_X = 40;
+    GLRENDER_API inline static uint32_t WORK_SIZE_Y = 20;
     
     private:
     void pingPong();
