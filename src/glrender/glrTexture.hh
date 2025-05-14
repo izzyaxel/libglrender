@@ -54,6 +54,7 @@ namespace glr
     uint32_t width = 0;
     uint32_t height = 0;
     uint8_t channels = 4;
+    uint8_t bindingIndex = 0;
     std::string name;
     std::string path;
     

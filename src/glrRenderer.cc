@@ -10,7 +10,7 @@ namespace glr
 /// ===Data===========================================================================///
   
   std::string transferFrag =
-R"(#version 450
+R"(#version 460 core
 
 in vec2 uv;
 layout(binding = 0) uniform sampler2D tex;
@@ -22,20 +22,20 @@ void main()
 })";
   
   std::string transferVert =
-R"(#version 450
+R"(#version 460 core
 
-layout(location = 0) in vec3 pos;
+layout(location = 0) in vec3 pos_in;
 layout(location = 1) in vec2 uv_in;
 out vec2 uv;
 
 void main()
 {
   uv = uv_in;
-  gl_Position = vec4(pos, 1.0);
+  gl_Position = vec4(pos_in, 1.0);
 })";
   
-  std::array fullscreenQuadVerts{1.f, -1.f, 0.f, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, -1.f, 1.f, 0.f};
-  std::array fullscreenQuadUVs{1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+  std::array fullscreenQuadVerts{1.0f, -1.0f,  1.0f, 1.0f,  -1.0f, -1.0f,  -1.0f, 1.0f};
+  std::array fullscreenQuadUVs{1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 0.0f,  0.0f, 1.0f};
 
   //TODO find a way to pass this to the user through a LoggingCallback
   void glDebug(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei messageLength, const GLchar* message, const void* userParam)
@@ -173,17 +173,20 @@ void main()
   {
     gladLoadGL(loadFunc);
     this->contextSize = {contextWidth, contextHeight};
-    this->fboPool = FramebufferPool(2, contextWidth, contextHeight);
-    this->fboA = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLRAttachment::COLOR_TEXTURE, GLRAttachment::ALPHA_TEXTURE}, "Ping");
-    this->fboB = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLRAttachment::COLOR_TEXTURE, GLRAttachment::ALPHA_TEXTURE}, "Pong");
-    this->scratch = Framebuffer(contextWidth, contextHeight, std::initializer_list{GLRAttachment::COLOR_TEXTURE}, "Scratch");
+    
+    this->fboA.setDimensions(contextWidth, contextHeight)->addColorAttachment(GLRAttachmentType::TEXTURE, 4)->finalize();
+    this->fboB.setDimensions(contextWidth, contextHeight)->addColorAttachment(GLRAttachmentType::TEXTURE, 4)->finalize();
+    this->scratch.setDimensions(contextWidth, contextHeight)->addColorAttachment(GLRAttachmentType::TEXTURE, 3)->finalize();
+    
     this->fullscreenQuad = std::make_unique<Mesh>();
+    this->fullscreenQuad->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
     this->fullscreenQuad->addPositions(fullscreenQuadVerts.data(), fullscreenQuadVerts.size())->addUVs(fullscreenQuadUVs.data(), fullscreenQuadUVs.size())->finalize();
     this->shaderTransfer = std::make_unique<Shader>("Transfer Shader", transferVert, transferFrag);
     
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
@@ -193,9 +196,9 @@ void main()
   
   Renderer::~Renderer()
   {
-    this->fboA.reset();
-    this->fboB.reset();
-    this->scratch.reset();
+    this->fboA.clear();
+    this->fboB.clear();
+    this->scratch.clear();
     this->shaderTransfer.reset();
     this->globalPostStack.reset();
     this->layerPostStack.clear();
@@ -206,7 +209,6 @@ void main()
     this->contextSize = {width, height};
     this->useBackBuffer();
     glViewport(0, 0, (int32_t)width, (int32_t)height);
-    this->fboPool.onResize(width, height);
   }
   
   void Renderer::setGlobalPostStack(std::shared_ptr<PostStack> stack)
@@ -324,34 +326,6 @@ void main()
     this->clearCurrentFramebuffer();
   }
   
-  void Renderer::drawToBackBuffer() const
-  {
-    this->fullscreenQuad->use();
-    this->useBackBuffer();
-    this->clearCurrentFramebuffer();
-    this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA.bind(GLRAttachment::COLOR_TEXTURE, 0) : this->fboB.bind(GLRAttachment::COLOR_TEXTURE, 0);
-    this->draw(GLRDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
-  }
-  
-  void Renderer::drawToScratch() const
-  {
-    this->fullscreenQuad->use();
-    this->scratch.use();
-    this->shaderTransfer->use();
-    this->curFBO.get() ? this->fboA.bind(GLRAttachment::COLOR_TEXTURE, 0) : this->fboB.bind(GLRAttachment::COLOR_TEXTURE, 0);
-    this->draw(GLRDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
-  }
-  
-  void Renderer::scratchToPingPong()
-  {
-    this->fullscreenQuad->use();
-    this->pingPong();
-    this->shaderTransfer->use();
-    this->scratch.bind(GLRAttachment::COLOR_TEXTURE, 0);
-    this->draw(GLRDrawMode::TRISTRIPS, this->fullscreenQuad->numVerts);
-  }
-  
   void Renderer::bindImage(const uint32_t target, const uint32_t handle, const GLRIOMode mode, const GLRColorFormat format) const
   {
     glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
@@ -361,8 +335,8 @@ void main()
   {
     glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
   }
-  
-  //==Rendering==================================================================================================================================================================================================
+
+
   void Renderer::render(RenderList renderList, const mat4x4<float>& viewMat, const mat4x4<float>& projectionMat)
   {
     RenderList rl = std::move(renderList);
@@ -371,78 +345,64 @@ void main()
       return;
     }
     
+    std::shared_ptr<Texture> currentTexture = nullptr;
     this->view = viewMat;
     this->projection = projectionMat;
-
-    std::shared_ptr<Texture> curTexture = nullptr;
+    
     if(rl.front().textureComp && rl.front().textureComp->texture)
     {
-      curTexture = rl.front().textureComp->texture;
-      curTexture->use(0);
+      currentTexture = rl.front().textureComp->texture;
+      currentTexture->use(rl.front().textureComp->texture->bindingIndex);
     }
-    
-    this->layerPostStack.empty() ? this->renderWithoutPost(rl, curTexture) : this->renderWithPost(rl, curTexture);
-    
-    if(this->globalPostStack && !this->globalPostStack->isEmpty())
-    {
-      this->postProcessGlobal();
-    }
-    
-    this->drawToBackBuffer();
-  }
 
-  void Renderer::postProcessLayer(const uint64_t layer)
-  {
-    for(const auto& stage: this->layerPostStack[layer]->getPasses())
+    bool postprocessing = !this->layerPostStack.empty() || (this->globalPostStack && !this->globalPostStack->isEmpty());
+
+    if(!postprocessing)
     {
-      if(stage.enabled)
-      {
-        this->pingPong();
-        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
-      }
+      this->renderWithoutLayerPost(rl, currentTexture);
+      this->drawToBackBuffer(); //TODO FIXME this being absent is a cause of the texture not drawing, why?
     }
-  }
-  
-  void Renderer::postProcessGlobal()
-  {
-    for(const auto& stage: this->globalPostStack->getPasses())
+    else
     {
-      if(stage.enabled)
+      if(!this->layerPostStack.empty())
       {
-        this->pingPong();
-        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
+        this->renderWithLayerPost(rl, currentTexture);
       }
+      if(this->globalPostStack && !this->globalPostStack->isEmpty())
+      {
+        this->postProcessGlobal();
+      }
+      this->drawToBackBuffer();
     }
   }
 
-  void Renderer::renderWithoutPost(const RenderList& renderList, std::shared_ptr<Texture>& curTexture)
+  void Renderer::renderWithoutLayerPost(const RenderList& rl, std::shared_ptr<Texture>& currentTexture)
   {
-    this->pingPong();
+    this->pingPong(); //TODO FIXME this being absent is a cause of the texture not drawing, why?
     
-    for(const auto& entry : renderList.list)
+    for(const auto& entry : rl.list)
     {
-      if(!curTexture)
+      if(!currentTexture)
       {
         if(entry.textureComp && entry.textureComp->texture)
         {
-          curTexture = entry.textureComp->texture;
-          curTexture->use(0);
+          currentTexture = entry.textureComp->texture;
+          currentTexture->use(0);
         }
       }
       else
       {
-        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != curTexture->handle)
+        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
         {
-          curTexture = entry.textureComp->texture;
-          curTexture->use(0);
+          currentTexture = entry.textureComp->texture;
+          currentTexture->use(0);
         }
       }
-      
       this->drawRenderable(entry);
     }
   }
   
-  void Renderer::renderWithPost(RenderList& renderList, std::shared_ptr<Texture>& curTexture)
+  void Renderer::renderWithLayerPost(RenderList& rl, std::shared_ptr<Texture>& currentTexture)
   {
     this->scratch.use();
     this->clearCurrentFramebuffer();
@@ -450,57 +410,57 @@ void main()
     bool bind = false;
     size_t prevLayer = 0;
 
-    if(renderList.front().layerComp)
+    if(rl.front().layerComp)
     {
-      prevLayer = renderList.front().layerComp->layer;
+      prevLayer = rl.front().layerComp->layer;
     }
     
-    for(size_t i = 0; i < renderList.size(); i++)
+    for(size_t i = 0; i < rl.size(); i++)
     {
-      auto& entry = renderList[i];
+      auto& entry = rl[i];
 
-      if(!curTexture)
+      if(!currentTexture)
       {
         if(entry.textureComp && entry.textureComp->texture)
         {
           bind = true;
-          curTexture = entry.textureComp->texture;
+         currentTexture = entry.textureComp->texture;
         }
       }
       else
       {
-        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != curTexture->handle)
+        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
         {
           bind = true;
-          curTexture = entry.textureComp->texture;
+          currentTexture = entry.textureComp->texture;
         }
       }
       
       if(i == 0)
       {
-        if(bind && curTexture)
+        if(bind && currentTexture)
         {
-          curTexture->use(0);
+          currentTexture->use(0);
         }
         
         this->drawRenderable(entry);
       }
-      else if(i == renderList.size() - 1)
+      else if(i == rl.size() - 1)
       {
         if(entry.layerComp && entry.layerComp->layer != prevLayer)
         {
           this->postProcessLayer(prevLayer);
           this->drawToScratch();
           this->pingPong();
-          if(curTexture)
+          if(currentTexture)
           {
-            curTexture->use(0);
+            currentTexture->use(0);
           }
         }
         
-        if(bind && curTexture)
+        if(bind && currentTexture)
         {
-          curTexture->use(0);
+          currentTexture->use(0);
         }
         
         this->drawRenderable(entry);
@@ -517,15 +477,15 @@ void main()
           this->postProcessLayer(prevLayer);
           this->drawToScratch();
           this->pingPong();
-          if(curTexture)
+          if(currentTexture)
           {
-            curTexture->use(0);
+            currentTexture->use(0);
           }
-      }
+        }
         
-        if(bind && curTexture)
+        if(bind && currentTexture)
         {
-          curTexture->use(0);
+          currentTexture->use(0);
         }
         
         this->drawRenderable(entry);
@@ -611,6 +571,58 @@ void main()
         this->draw(textMesh.drawMode, textMesh.numVerts);
       }
       this->setFilterMode(prevMin, prevMag);
+    }
+  }
+
+  void Renderer::drawToBackBuffer() const
+  {
+    this->fullscreenQuad->use();
+    this->useBackBuffer();
+    this->clearCurrentFramebuffer();
+    this->shaderTransfer->use();
+    this->curFBO.get() ? this->fboA.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0) : this->fboB.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
+    this->draw(GLRDrawMode::TRI_STRIPS, this->fullscreenQuad->numVerts);
+  }
+  
+  void Renderer::drawToScratch() const
+  {
+    this->fullscreenQuad->use();
+    this->scratch.use();
+    this->shaderTransfer->use();
+    this->curFBO.get() ? this->fboA.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0) : this->fboB.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
+    this->draw(GLRDrawMode::TRI_STRIPS, this->fullscreenQuad->numVerts);
+  }
+  
+  void Renderer::scratchToPingPong()
+  {
+    this->fullscreenQuad->use();
+    this->pingPong();
+    this->shaderTransfer->use();
+    this->scratch.bindAttachment(GLRAttachment::COLOR, GLRAttachmentType::TEXTURE, 0);
+    this->draw(GLRDrawMode::TRI_STRIPS, this->fullscreenQuad->numVerts);
+  }
+
+  void Renderer::postProcessLayer(const uint64_t layer)
+  {
+    for(const auto& stage: this->layerPostStack[layer]->getPasses())
+    {
+      if(stage.enabled)
+      {
+        this->pingPong();
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
+      }
+    }
+  }
+  
+  void Renderer::postProcessGlobal()
+  {
+    for(const auto& stage: this->globalPostStack->getPasses())
+    {
+      if(stage.enabled)
+      {
+        this->pingPong();
+        stage.process(this->curFBO.get() ? this->fboA : this->fboB, this->curFBO.get() ? this->fboB : this->fboA, stage.userData);
+      }
     }
   }
 }

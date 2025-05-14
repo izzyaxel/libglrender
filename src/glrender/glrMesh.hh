@@ -10,20 +10,6 @@
 
 namespace glr
 {
-  struct QuadUVs //Used for atlas UVs
-  {
-    bool operator==(const QuadUVs& other) const
-    {
-      return this->upperLeft == other.upperLeft && this->lowerLeft == other.lowerLeft &&
-      this->upperRight == other.upperRight && this->lowerRight == other.lowerRight;
-    }
-    
-    vec2<float> upperLeft = {};
-    vec2<float> lowerLeft = {};
-    vec2<float> upperRight = {};
-    vec2<float> lowerRight = {};
-  };
-
   //TODO instanced rendering?
   //TODO interleaved buffer option
   //TODO dynamic changing of buffer data
@@ -69,8 +55,6 @@ namespace glr
     /// @param colorsSize How many elements are in the colors array
     /// @param callback The error/warning/info handling callback, this called when something goes wrong.  Nullable.
     GLRENDER_API Mesh* addColors(const float* colors, size_t colorsSize, const LoggingCallback& callback = nullptr);
-    
-    GLRENDER_API Mesh* generateIndices(const LoggingCallback& callback = nullptr);
 
     /// Interleave all the vertex data upload it to the GPU, and lock the Mesh
     /// @param callback The error/warning/info handling callback, this is given information about what occured when something goes wrong

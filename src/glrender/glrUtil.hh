@@ -1,10 +1,12 @@
 #pragma once
 
-#include <cstdint>
-
 #include "export.hh"
+
+#include <cstdint>
+#include <limits>
+#include <string>
 
 namespace glr
 {
-  GLRENDER_API extern uint32_t INVALID_HANDLE;
+  GLRENDER_API inline uint32_t INVALID_HANDLE = std::numeric_limits<uint32_t>::max();
 }

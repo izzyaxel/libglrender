@@ -15,46 +15,31 @@ constexpr int32_t width = 800;
 constexpr int32_t height = 600;
 
 inline std::vector<uint32_t> quadIndices{0, 1, 2, 2, 3, 0};
-inline std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  -0.5f, 0.5f};
-inline std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  0.0f, 0.0f};
+inline std::vector quadPositionsIndexed{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  -0.5f, 0.5f};
+inline std::vector quadUVsIndexed{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  0.0f, 0.0f};
 
-std::string frag = R"(#version 450
+inline std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  0.5f, 0.5f,  -0.5f, 0.5f,  -0.5f, -0.5f};
+inline std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 1.0f};
+
+std::string frag = R"(#version 460 core
 
 in vec2 uv;
-layout(binding = 0) uniform sampler2D tex;
 out vec4 fragColor;
 
-vec3 rainbow(float level)
-{
-  float r = float(level <= 2.0) + float(level > 4.0) * 0.5;
-  float g = max(1.0 - abs(level - 2.0) * 0.5, 0.0);
-  float b = (1.0 - (level - 4.0) * 0.5) * float(level >= 4.0);
-  return vec3(r, g, b);
-}
-
-vec3 smoothRainbow(float x)
-{
-  float level1 = floor(x * 6.0);
-  float level2 = min(6.0, floor(x * 6.0) + 1.0);
-  
-  vec3 a = rainbow(level1);
-  vec3 b = rainbow(level2);
-  
-  return mix(a, b, fract(x * 6.0));
-}
+layout(binding = 0) uniform sampler2D tex;
 
 void main()
 {
-  //fragColor = vec4(rainbow(floor(uv.x * 6.0)), 1.0);
-  fragColor = vec4(smoothRainbow(uv.x), 1.0);
-  //fragColor = texture(tex, uv);
+  fragColor = texture(tex, uv);
 })";
 
-std::string vert = R"(#version 450
+std::string vert = R"(#version 460 core
 
 layout(location = 0) in vec3 pos_in;
 layout(location = 1) in vec2 uv_in;
+
 out vec2 uv;
+
 uniform mat4 mvp;
 
 void main()
@@ -67,7 +52,7 @@ bool exiting = false;
 
 SDL_Window* window = nullptr;
 SDL_GLContext context = nullptr;
-glr::Renderer* renderer = nullptr;
+std::unique_ptr<glr::Renderer> renderer = nullptr;
 
 void eventPump()
 {
@@ -109,12 +94,12 @@ void setup()
   }
   SDL_GL_SetSwapInterval(1);
   
-  renderer = new glr::Renderer(reinterpret_cast<glr::GLLoadFunc>(SDL_GL_GetProcAddress), width, height);
+  renderer = std::make_unique<glr::Renderer>(reinterpret_cast<glr::GLLoadFunc>(SDL_GL_GetProcAddress), width, height);
 }
 
 void cleanup()
 {
-  delete renderer;
+  renderer.reset();
   SDL_GL_DeleteContext(context);
   SDL_DestroyWindow(window);
   SDL_Quit();
@@ -124,12 +109,16 @@ struct Camera
 {
   quat<float> rotation{};
   vec3<float> position{0.0f, 0.0f, 1.0f};
+  float fov = 45.0f;
+  float near = 0.01f;
+  float far = 100.0f;
 
   mat4x4<float> view = viewMatrix(rotation, position);
-  mat4x4<float> projection = orthoProjectionMatrix(width / -2.0f, width / 2.0f, height / 2.0f, height / -2.0f, 0.01f, 1.0f);
-  //mat4x4<float> projection = perspectiveProjectionMatrix(45.0f, 0.01f, 1000.0f, width, height);
+  mat4x4<float> orthoProjection = orthoProjectionMatrix(width / -2.0f, width / 2.0f, height / 2.0f, height / -2.0f, near, far);
+  mat4x4<float> perspectiveProjection = perspectiveProjectionMatrix(fov, near, far, width, height);
 };
 
+//TODO FIXME The Framebuffer changes broke texture rendering
 int main()
 {
   setup();
@@ -143,9 +132,12 @@ int main()
   
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
-  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
-  
-  renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->generateIndices()->finalize();
+
+  //Indexed testing
+  renderable.meshComp->mesh->addPositions(quadPositionsIndexed.data(), quadPositionsIndexed.size())->addUVs(quadUVsIndexed.data(), quadUVsIndexed.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
+
+  //Non-indexed testing
+  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->finalize();
   
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
@@ -157,7 +149,9 @@ int main()
   auto prevFrame = std::chrono::steady_clock::now();
   float accumulator = 0.0f;
   float deltaTime = 0.0f;
-  constexpr float target = 1.0f / 60.0f;
+  constexpr float fps = 60.0f;
+  constexpr float target = 1.0f / fps;
+  uint64_t frames = 0;
   while(!exiting)
   {
     auto now = std::chrono::steady_clock::now();
@@ -170,10 +164,14 @@ int main()
       prevFrame = now;
      
       eventPump();
-      renderer->clearCurrentFramebuffer();
-      renderer->render(renderList, camera.view, camera.projection);
+      renderer->render(renderList, camera.view, camera.orthoProjection);
       SDL_GL_SwapWindow(window);
-      printf("%.4f ms (%.1f FPS)  \r", deltaTime * 1000.0f, 1.0f / deltaTime);
+      
+      if(frames % (uint64_t)fps == 0)
+      {
+        printf("%.4f ms (%.1f FPS)  \r", deltaTime * 1000.0f, 1.0f / deltaTime);
+      }
+      frames++;
     }
   }
   

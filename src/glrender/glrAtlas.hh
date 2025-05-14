@@ -2,7 +2,6 @@
 
 #include "export.hh"
 #include "glrTexture.hh"
-#include "glrMesh.hh"
 
 #include <commons/math/vec2.hh>
 #include <vector>
@@ -11,6 +10,20 @@
 
 namespace glr
 {
+  struct QuadUVs //Used for atlas UVs
+  {
+    bool operator==(const QuadUVs& other) const
+    {
+      return this->upperLeft == other.upperLeft && this->lowerLeft == other.lowerLeft &&
+      this->upperRight == other.upperRight && this->lowerRight == other.lowerRight;
+    }
+    
+    vec2<float> upperLeft = {};
+    vec2<float> lowerLeft = {};
+    vec2<float> upperRight = {};
+    vec2<float> lowerRight = {};
+  };
+  
   /// An on-VRAM atlas of stitched together images as one OpenGL texture
   struct Atlas
   {

@@ -4,53 +4,52 @@
 #include "glrEnums.hh"
 #include "glrUtil.hh"
 
-#include <string>
 #include <vector>
 #include <memory>
 
 namespace glr
 {
   //TODO implement RenderBuffer attachments for fast FBO transfers/double buffering
-  //TODO modular implementation like Mesh
   /// An OpenGL framebuffer
   struct Framebuffer
   {
     Framebuffer() = default;
-    GLRENDER_API Framebuffer(uint32_t width, uint32_t height, std::initializer_list<GLRAttachment> options, const std::string& name);
     GLRENDER_API ~Framebuffer();
     
     Framebuffer(Framebuffer& other) = delete;
     Framebuffer& operator =(const Framebuffer& other) = delete;
     GLRENDER_API Framebuffer(Framebuffer&& other) noexcept;
     GLRENDER_API Framebuffer &operator =(Framebuffer&& other) noexcept;
-    
-    [[nodiscard]] GLRENDER_API bool isValid() const;
-    [[nodiscard]] GLRENDER_API bool exists() const;
-    GLRENDER_API void reset();
+
+    GLRENDER_API Framebuffer* setDimensions(uint32_t width, uint32_t height);
+    GLRENDER_API Framebuffer* addColorAttachment(GLRAttachmentType attachmentType, uint8_t channels);
+    GLRENDER_API Framebuffer* addDepthAttachment(GLRAttachmentType attachmentType);
+    GLRENDER_API Framebuffer* addStencilAttachment(GLRAttachmentType attachmentType);
+    GLRENDER_API void finalize();
+
     GLRENDER_API void use() const;
-    GLRENDER_API void bind(GLRAttachment type, uint32_t target) const;
-    GLRENDER_API void regenerate(uint32_t width, uint32_t height);
+    GLRENDER_API void bindAttachment(GLRAttachment attachment, GLRAttachmentType type, uint32_t target) const;
+    GLRENDER_API void resize(uint32_t width, uint32_t height);
+    GLRENDER_API void clear();
+
+    uint32_t width = 0;
+    uint32_t height = 0;
     
-    uint32_t handle = INVALID_HANDLE;
+    uint32_t framebufferHandle = INVALID_HANDLE;
     uint32_t colorHandle = INVALID_HANDLE;
     uint32_t depthHandle = INVALID_HANDLE;
     uint32_t stencilHandle = INVALID_HANDLE;
+
+    uint8_t colorChannels = 4;
     
-    uint32_t width = 0;
-    uint32_t height = 0;
-    bool hasColorTex = false;
-    bool hasDepthTex = false;
-    bool hasAlpha = false;
-    bool hasStencilTex = false;
-    bool hasColorRB = false;
-    bool hasDepthRB = false;
-    bool hasStencilRB = false;
-    std::string name;
+    bool hasColor = false;
+    bool hasDepth = false;
+    bool hasStencil = false;
+    bool finalized = false;
     
-    private:
-    void createFBO();
-    void clearFBO() const;
-    bool init = false;
+    GLRAttachmentType colorType = GLRAttachmentType::TEXTURE;
+    GLRAttachmentType depthType = GLRAttachmentType::TEXTURE;
+    GLRAttachmentType stencilType = GLRAttachmentType::TEXTURE;
   };
   
   struct FramebufferPool
@@ -63,9 +62,9 @@ namespace glr
     GLRENDER_API FramebufferPool(FramebufferPool&& moveFrom) noexcept;
     GLRENDER_API FramebufferPool& operator=(FramebufferPool&& moveFrom) noexcept;
     
-    [[nodiscard]] GLRENDER_API bool exists() const;
+    GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
-    [[nodiscard]] GLRENDER_API Framebuffer& getNextAvailableFBO(uint32_t width, uint32_t height);
+    GLRENDER_API Framebuffer& getNextAvailableFBO(uint32_t width, uint32_t height);
     GLRENDER_API void onResize(uint32_t width, uint32_t height);
     
     private:

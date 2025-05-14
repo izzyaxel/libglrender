@@ -7,7 +7,7 @@ enum struct GLRLogType
 
 enum struct GLRIOMode
 {
-  READ = 0x88B8, WRITE = 0x88B9, READWRITE = 0x88BA
+  READ = 0x88B8, WRITE = 0x88B9, READ_WRITE = 0x88BA
 };
 
 enum struct GLRFilterMode
@@ -17,20 +17,14 @@ enum struct GLRFilterMode
   TRILINEAR
 };
 
-enum struct GLRAttachment
-{
-  COLOR_TEXTURE, ALPHA_TEXTURE, DEPTH_TEXTURE, STENCIL_TEXTURE,
-  COLOR_RENDERBUFFER, ALPHA_RENDERBUFFER, DEPTH_RENDERBUFFER, STENCIL_RENDERBUFFER,
-};
-
 enum struct GLRDrawMode
 {
   TRIS = 0x0004,
-  TRISTRIPS = 0x0005,
-  TRIFANS = 0x0006,
+  TRI_STRIPS = 0x0005,
+  TRI_FANS = 0x0006,
   LINES = 0x0001,
-  LINESTRIPS = 0x0003,
-  LINELOOPS = 0x0002,
+  LINE_STRIPS = 0x0003,
+  LINE_LOOPS = 0x0002,
   POINTS = 0x0000,
 };
 
@@ -67,4 +61,14 @@ enum struct GLRBufferType
 enum struct GLRDimensions
 {
   TWO_DIMENSIONAL, THREE_DIMENSIONAL,
+};
+
+enum struct GLRAttachment
+{
+  COLOR, DEPTH, STENCIL,
+};
+
+enum struct GLRAttachmentType
+{
+  TEXTURE, RENDER_BUFFER
 };

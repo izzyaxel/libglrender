@@ -6,6 +6,7 @@
 #include "glrMesh.hh"
 #include "glrColor.hh"
 #include "glrEnums.hh"
+#include "glrAtlas.hh"
 
 #include <commons/math/quaternion.hh>
 #include <memory>

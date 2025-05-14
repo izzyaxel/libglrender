@@ -1,6 +1,5 @@
 #pragma once
 
-#if !defined(GLR_NO_RENDERER)
 #include "glrPostProcessing.hh"
 #include "glrColor.hh"
 #include "glrMesh.hh"
@@ -80,12 +79,10 @@ namespace glr
     GLRENDER_API static uint32_t WORK_SIZE_X;
     GLRENDER_API static uint32_t WORK_SIZE_Y;
     
-    FramebufferPool fboPool{};
-    
     private:
     void pingPong();
-    void renderWithoutPost(const RenderList& renderList, std::shared_ptr<Texture>& curTexture);
-    void renderWithPost(RenderList& renderList, std::shared_ptr<Texture>& curTexture);
+    void renderWithoutLayerPost(const RenderList& rl, std::shared_ptr<Texture>& currentTexture);
+    void renderWithLayerPost(RenderList& rl, std::shared_ptr<Texture>& currentTexture);
     void postProcessGlobal();
     void postProcessLayer(uint64_t layer);
     void drawToScratch() const;
@@ -113,6 +110,8 @@ namespace glr
     
     std::unique_ptr<Mesh> fullscreenQuad{};
     std::unique_ptr<Shader> shaderTransfer{};
+
+    //std::shared_ptr<Texture> currentTexture{};
+    //RenderList currentRenderList{};
   };
 }
-#endif

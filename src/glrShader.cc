@@ -9,11 +9,13 @@ namespace glr
     const uint32_t vertHandle = glCreateShader(GL_VERTEX_SHADER);
     const uint32_t fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
     this->handle = glCreateProgram();
+    
     const char* vertSource = vertShader.data();
     const char* fragSource = fragShader.data();
     glShaderSource(vertHandle, 1, &vertSource, nullptr);
     glShaderSource(fragHandle, 1, &fragSource, nullptr);
     glCompileShader(vertHandle);
+    
     int32_t success = 0;
     glGetShaderiv(vertHandle, GL_COMPILE_STATUS, &success);
     if(!success)
@@ -25,6 +27,7 @@ namespace glr
         printf("Vert/Frag shader error: %s failed to compile", name.c_str());
         return;
       }
+      
       char* error = new char[maxLen];
       glGetShaderInfoLog(vertHandle, maxLen, nullptr, error);
       printf("Vert/Frag shader error: %s failed to compile, error: %s\n", name.c_str(), error);
@@ -43,6 +46,7 @@ namespace glr
         printf("Vert/Frag shader error: %s failed to compile\n", name.c_str());
         return;
       }
+      
       char* error = new char[maxLen];
       glGetShaderInfoLog(fragHandle, maxLen, nullptr, error);
       printf("Vert/Frag shader error: %s failed to compile, error: %s\n", name.c_str(), error);

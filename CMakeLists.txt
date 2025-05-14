@@ -77,3 +77,5 @@ include_directories(src)
 add_executable(${PROJECT_NAME} test/main.cc test/pngFormat.cc test/pngFormat.hh test/stb_image.h test/stb_image_write.h)
 add_dependencies(${PROJECT_NAME} glrender)
 target_link_libraries(${PROJECT_NAME} glrender SDL2)
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/bin/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
