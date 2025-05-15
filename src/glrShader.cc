@@ -78,7 +78,7 @@ namespace glr
     glDeleteShader(vertHandle);
     glDeleteShader(fragHandle);
     this->init = true;
-    this->type = FRAGVERT;
+    this->type = GLRShaderType::FRAG_VERT;
   }
   
   Shader::Shader(const std::string& name, const std::string& compShader)
@@ -128,7 +128,7 @@ namespace glr
     glDetachShader(this->handle, compHandle);
     glDeleteShader(compHandle);
     this->init = true;
-    this->type = COMP;
+    this->type = GLRShaderType::COMPUTE;
   }
   
   Shader::~Shader()
@@ -142,7 +142,7 @@ namespace glr
     moveFrom.handle = INVALID_HANDLE;
     
     this->type = moveFrom.type;
-    moveFrom.type = INVALID;
+    moveFrom.type = GLRShaderType::INVALID;
     
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};
@@ -162,7 +162,7 @@ namespace glr
     moveFrom.handle = INVALID_HANDLE;
     
     this->type = moveFrom.type;
-    moveFrom.type = INVALID;
+    moveFrom.type = GLRShaderType::INVALID;
     
     this->uniforms = std::move(moveFrom.uniforms);
     moveFrom.uniforms = {};

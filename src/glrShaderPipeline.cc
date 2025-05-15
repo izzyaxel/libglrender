@@ -78,17 +78,21 @@ namespace glr
   
   void ShaderPipeline::append(Shader *shader)
   {
-    if(shader->type == Shader::FRAGVERT)
+    if(shader->type == GLRShaderType::FRAG_VERT)
     {
       glUseProgramStages(GL_VERTEX_SHADER_BIT | GL_FRAGMENT_SHADER_BIT, 1, shader->handle);
     }
-    else if(shader->type == Shader::COMP)
+    else if(shader->type == GLRShaderType::COMPUTE)
     {
       glUseProgramStages(GL_COMPUTE_SHADER_BIT, 1, shader->handle);
     }
-    else if(shader->type == Shader::GEOMFRAG)
+    else if(shader->type == GLRShaderType::GEOMETRY_FRAG)
     {
       glUseProgramStages(GL_GEOMETRY_SHADER_BIT | GL_FRAGMENT_SHADER_BIT, 1, shader->handle);
+    }
+    else if(shader->type == GLRShaderType::TESSELLATION)
+    {
+      glUseProgramStages(GL_GEOMETRY_SHADER_BIT | GL_TESS_CONTROL_SHADER_BIT, 1, shader->handle);
     }
     this->shaders.emplace_back(shader);
   }

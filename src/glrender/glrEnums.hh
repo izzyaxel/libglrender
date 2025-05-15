@@ -75,5 +75,5 @@ enum struct GLRAttachmentType
 
 enum struct GLRShaderType
 {
-  FRAG_VERT, COMPUTE,
+  INVALID, FRAG_VERT, COMPUTE, GEOMETRY_FRAG, TESSELLATION,
 };

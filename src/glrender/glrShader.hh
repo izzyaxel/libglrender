@@ -13,21 +13,14 @@
 #include <string>
 #include <unordered_map>
 
+#include "glrEnums.hh"
+
 namespace glr
 {
   /// An OpenGL frag/vert, or compute shader
   struct Shader
   {
     typedef std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> UniformValue;
-    
-    enum Type
-    {
-      INVALID = 0,
-      FRAGVERT,
-      COMP,
-      GEOMFRAG,
-      TESSELLATION
-    };
     
     struct Uniform
     {
@@ -55,7 +48,7 @@ namespace glr
     
     uint32_t handle = INVALID_HANDLE;
     
-    Type type = INVALID;
+    GLRShaderType type = GLRShaderType::INVALID;
     
     private:
     std::unordered_map<std::string, Uniform> uniforms = {};
