@@ -54,7 +54,7 @@ namespace glr
     uint32_t width = 0;
     uint32_t height = 0;
     uint8_t channels = 4;
-    uint8_t bindingIndex = 0;
+    uint8_t bindingIndex = 0; //TODO a way to determine if this should be bound as a frag/vert texture or compute image
     std::string name;
     std::string path;
     
