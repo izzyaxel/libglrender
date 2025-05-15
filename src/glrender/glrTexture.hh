@@ -42,19 +42,24 @@ namespace glr
     GLRENDER_API bool isValid() const;
     GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
-    GLRENDER_API void use(uint32_t target) const;
+    GLRENDER_API void use() const;
     GLRENDER_API void setFilterMode(GLRFilterMode min, GLRFilterMode mag) const;
     GLRENDER_API void setAnisotropyLevel(uint32_t level) const;
     GLRENDER_API void subImage(const uint8_t* data, uint32_t w, uint32_t h, uint32_t xPos, uint32_t yPos, uint8_t channels) const;
     GLRENDER_API void clear() const;
     
     [[nodiscard]] GLRENDER_API DownloadedImageData downloadTexture(uint8_t channels) const;
+
+    //Instructions for how to bind this texture
+    GLRShaderType bindingType = GLRShaderType::FRAG_VERT;
+    GLRIOMode bindingIOMode = GLRIOMode::WRITE; //Compute only
+    GLRColorFormat bindingColorFormat = GLRColorFormat::RGBA32F; //Compute only
+    uint8_t bindingIndex = 0;
     
     uint32_t handle = INVALID_HANDLE;
     uint32_t width = 0;
     uint32_t height = 0;
     uint8_t channels = 4;
-    uint8_t bindingIndex = 0; //TODO a way to determine if this should be bound as a frag/vert texture or compute image
     std::string name;
     std::string path;
     

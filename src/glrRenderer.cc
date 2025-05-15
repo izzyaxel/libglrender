@@ -182,7 +182,8 @@ void main()
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebug, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    
+
+    glHint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_NICEST);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
@@ -361,7 +362,7 @@ void main()
     if(rl.front().textureComp && rl.front().textureComp->texture)
     {
       currentTexture = rl.front().textureComp->texture;
-      currentTexture->use(currentTexture->bindingIndex);
+      currentTexture->use();
     }
 
     const bool doPostprocessing = !this->layerPostStack.empty() || (this->globalPostStack && !this->globalPostStack->isEmpty());
@@ -396,7 +397,7 @@ void main()
         if(entry.textureComp && entry.textureComp->texture)
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use(currentTexture->bindingIndex);
+          currentTexture->use();
         }
       }
       else
@@ -404,7 +405,7 @@ void main()
         if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use(currentTexture->bindingIndex);
+          currentTexture->use();
         }
       }
       this->drawRenderable(entry);
@@ -449,7 +450,7 @@ void main()
       {
         if(bind && currentTexture)
         {
-          currentTexture->use(0);
+          currentTexture->use();
         }
         
         this->drawRenderable(entry);
@@ -463,13 +464,13 @@ void main()
           this->pingPong();
           if(currentTexture)
           {
-            currentTexture->use(0);
+            currentTexture->use();
           }
         }
         
         if(bind && currentTexture)
         {
-          currentTexture->use(0);
+          currentTexture->use();
         }
         
         this->drawRenderable(entry);
@@ -488,13 +489,13 @@ void main()
           this->pingPong();
           if(currentTexture)
           {
-            currentTexture->use(0);
+            currentTexture->use();
           }
         }
         
         if(bind && currentTexture)
         {
-          currentTexture->use(0);
+          currentTexture->use();
         }
         
         this->drawRenderable(entry);

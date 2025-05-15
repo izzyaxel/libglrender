@@ -265,7 +265,7 @@ namespace glr
     return vec2{0.0f, 0.0f};
   }
   
-  void Atlas::use(const Texture& atlasTexture, const uint32_t target) const
+  void Atlas::use(const Texture& atlasTexture) const
   {
     if(!this->finalized)
     {
@@ -273,7 +273,7 @@ namespace glr
     }
     else
     {
-      atlasTexture.use(target);
+      atlasTexture.use();
     }
   }
   

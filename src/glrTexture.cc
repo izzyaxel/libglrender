@@ -222,13 +222,27 @@ namespace glr
     this->init = false;
   }
   
-  void Texture::use(const uint32_t target) const
+  void Texture::use() const
   {
     int32_t curTex;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
-    if(curTex != (int32_t)target)
+    if(curTex != (int32_t)this->bindingIndex)
     {
-      glBindTextureUnit(target, this->handle);
+      switch(this->bindingType)
+      {
+        case GLRShaderType::FRAG_VERT:
+        {
+          glBindTextureUnit(this->bindingIndex, this->handle);
+          break;
+        }
+        case GLRShaderType::COMPUTE:
+        {
+          glBindImageTexture(this->bindingIndex, this->handle, 0, GL_FALSE, 0, (uint32_t)this->bindingIOMode, (uint32_t)this->bindingColorFormat);
+          break;
+        }
+        default: break;
+      }
+      
     }
   }
   

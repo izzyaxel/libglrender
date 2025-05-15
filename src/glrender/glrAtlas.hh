@@ -51,7 +51,7 @@ namespace glr
     [[nodiscard]] GLRENDER_API vec2<float> getTileDimensions(std::string const &name);
     
     /// Bind this atlas for rendering use
-    GLRENDER_API void use(const Texture& atlasTexture, uint32_t target = 0) const;
+    GLRENDER_API void use(const Texture& atlasTexture) const;
     
     /// Check if this atlas contains a tile of the given name
     [[nodiscard]] GLRENDER_API bool contains(const std::string& tileName);

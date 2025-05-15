@@ -72,3 +72,8 @@ enum struct GLRAttachmentType
 {
   TEXTURE, RENDER_BUFFER
 };
+
+enum struct GLRShaderType
+{
+  FRAG_VERT, COMPUTE,
+};
