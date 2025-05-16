@@ -632,3 +632,96 @@ void main()
     this->clearCurrentFramebuffer();
   }
 }
+
+
+
+
+
+
+namespace glr
+{
+  void Pipeline::clearCurrentFramebuffer()
+  {
+    
+  }
+
+  void Pipeline::bindTexture(ID texture, uint32_t target)
+  {
+    
+  }
+
+  void Pipeline::bindImage(ID texture, uint32_t target, GLRIOMode ioMode, GLRColorFormat format)
+  {
+    
+  }
+  
+  void Pipeline::bindMesh(ID mesh)
+  {
+    
+  }
+
+  void Pipeline::bindShader(ID shader)
+  {
+    
+  }
+
+  void Pipeline::bindFramebuffer(ID framebuffer)
+  {
+    
+  }
+
+  void Pipeline::bindFramebufferAttachment(ID framebuffer, uint32_t target, GLRAttachment attachment, GLRAttachmentType type)
+  {
+    
+  }
+
+  void Pipeline::bindShaderPipeline(ID shaderPipeline)
+  {
+    
+  }
+
+  void Pipeline::setUniformFloat(ID shader, const std::string& name, float value)
+  {
+    
+  }
+  
+  void Pipeline::setUniformU32(ID shader, const std::string& name, uint32_t value)
+  {
+    
+  }
+
+  void Pipeline::setUniformI32(ID shader, const std::string& name, int32_t value)
+  {
+    
+  }
+  
+  void Pipeline::sendUniforms(ID shader)
+  {
+    
+  }
+
+
+
+
+  ID PipelineRenderer::addPipeline(const Pipeline& pipeline)
+  {
+    const ID out = this->lastPipeline;
+    this->lastPipeline++;
+    this->pipelines[out] = pipeline;
+    return out;
+  }
+
+  void PipelineRenderer::usePipeline(const ID pipeline)
+  {
+    if(!this->pipelines.contains(pipeline))
+    {
+      return;
+    }
+    this->currentPipeline = pipeline;
+  }
+
+  void PipelineRenderer::render()
+  {
+    
+  }
+}

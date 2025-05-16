@@ -10,6 +10,7 @@
 #include "glrEnums.hh"
 
 #include <commons/math/mat4.hh>
+#include <numeric>
 
 namespace glr
 {
@@ -26,7 +27,7 @@ namespace glr
     bool alt = true;
   };
 
-  //TODO support pipelines
+  //TODO support shader pipelines
   /// OpenGL 4.5+ rendering engine
   struct Renderer
   {
@@ -110,8 +111,98 @@ namespace glr
     
     std::unique_ptr<Mesh> fullscreenQuad{};
     std::unique_ptr<Shader> shaderTransfer{};
+  };
 
-    //std::shared_ptr<Texture> currentTexture{};
-    //RenderList currentRenderList{};
+
+
+
+
+
+
+
+  
+  using ID = uint64_t;
+  inline constexpr static ID INVALID_ID = std::numeric_limits<uint64_t>::max();
+  
+  /// A list of instructions to execute to render things
+  struct Pipeline
+  {
+    void clearCurrentFramebuffer();
+    
+    void bindTexture(ID texture, uint32_t target);
+    void bindImage(ID texture, uint32_t target, GLRIOMode ioMode, GLRColorFormat format);
+    void bindShader(ID shader);
+    void bindMesh(ID mesh);
+    void bindFramebuffer(ID framebuffer);
+    void bindFramebufferAttachment(ID framebuffer, uint32_t target, GLRAttachment attachment, GLRAttachmentType type);
+    void bindShaderPipeline(ID shaderPipeline);
+
+    void setUniformFloat(ID shader, const std::string& name, float value);
+    void setUniformU32(ID shader, const std::string& name, uint32_t value);
+    void setUniformI32(ID shader, const std::string& name, int32_t value);
+    template <typename T> void setUniformVec2(ID shader, const std::string& name, vec2<T> value)
+    {
+      
+    }
+    template <typename T> void setUniformVec3(ID shader, const std::string& name, vec3<T> value)
+    {
+      
+    }
+    template <typename T> void setUniformVec4(ID shader, const std::string& name, vec4<T> value)
+    {
+      
+    }
+    template <typename T> void setUniformMat3(ID shader, const std::string& name, mat3x3<T> value)
+    {
+      
+    }
+    template <typename T> void setUniformMat4(ID shader, const std::string& name, mat4x4<T> value)
+    {
+      
+    }
+    
+    void sendUniforms(ID shader);
+
+    private:
+    typedef enum : uint32_t
+    {
+      INVALID = 0,
+      CLEAR = 1,
+      BIND_TEX = 2, BIND_IMG = 3, BIND_SHADER = 4, BIND_MESH = 5, BIND_FBO = 6, BIND_ATTACH = 7, BIND_PIPELINE = 8,
+      SET_UNI_F = 10, SET_UNI_U32 = 11, SET_UNI_I32 = 12, SET_UNI_VEC2 = 13, SET_UNI_VEC3 = 14, SET_UNI_VEC4 = 15, SET_UNI_MAT2 = 16, SET_UNI_MAT3 = 17, SET_UNI_MAT4 = 18,
+      SEND_UNIS = 20,
+      
+    } OpCode;
+
+    //TODO mappings to tell the renderer what command to execute and where the data for that command is located in the buffers
+    struct Instruction
+    {
+      OpCode op = INVALID;
+      
+    };
+
+    std::vector<Instruction> instructions{};
+    
+    ID currentTexture = INVALID_ID;
+    ID currentShader = INVALID_ID;
+    ID currentMesh = INVALID_ID;
+    ID currentFramebuffer = INVALID_ID;
+    ID currentAttachment = INVALID_ID;
+    ID currentShaderPipeline = INVALID_ID;
+
+    //TODO data mappings
+  };
+
+  struct PipelineRenderer
+  {
+    ID addPipeline(const Pipeline& pipeline);
+    void usePipeline(ID pipeline);
+    void render();
+    
+    private:
+    ID currentPipeline = INVALID_ID;
+
+    ID lastPipeline = 0;
+    std::unordered_map<ID, Pipeline> pipelines{};
   };
 }
