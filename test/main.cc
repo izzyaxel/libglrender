@@ -48,6 +48,17 @@ void main()
   gl_Position = mvp * vec4(pos_in, 1.0);
 })";
 
+std::string comp = R"(#version 460 core
+
+layout(local_size_x = 40, local_size_y = 20) in;
+layout(rgba32f, binding = 0) uniform image2D imageOut;
+
+void main()
+{
+  ivec2 current = ivec2(gl_GlobalInvocationID.xy);
+  imageStore(imageOut, current, vec4(1.0));
+})";
+
 bool exiting = false;
 
 SDL_Window* window = nullptr;
@@ -118,33 +129,29 @@ struct Camera
   mat4x4<float> perspectiveProjection = perspectiveProjectionMatrix(fov, near, far, width, height);
 };
 
-//TODO FIXME The Framebuffer changes broke texture rendering
 int main()
 {
   setup();
-  Camera camera{};
+  const Camera camera{};
+  glr::RenderList renderList;
+
+  #if 0
   PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png");
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
-  
   renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", vert, frag);
-  
   renderable.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
-  
   renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
   renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
-
-  //Indexed testing
   renderable.meshComp->mesh->addPositions(quadPositionsIndexed.data(), quadPositionsIndexed.size())->addUVs(quadUVsIndexed.data(), quadUVsIndexed.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
-
-  //Non-indexed testing
-  //renderable.meshComp->mesh->addPositions(quadPositions.data(), quadPositions.size())->addUVs(quadUVs.data(), quadUVs.size())->finalize();
-  
   renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
-  
-  glr::RenderList renderList;
-  renderList.add(renderable);
+  #else //TODO FIXME compute shader isn't running, the framebuffers are interfering, or texture bindings arent properly configured
+  const glr::Renderable renderable = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
+  renderable.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
+  #endif
 
+  renderList.add(renderable);
+  
   auto prevLoop = std::chrono::steady_clock::now();
   auto prevFrame = std::chrono::steady_clock::now();
   float accumulator = 0.0f;
