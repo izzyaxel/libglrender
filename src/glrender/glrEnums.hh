@@ -5,7 +5,7 @@ enum struct GLRLogType
   INFO, WARNING, ERROR, DBG
 };
 
-enum struct GLRIOMode
+enum struct GLRIOMode : unsigned short
 {
   READ = 0x88B8, WRITE = 0x88B9, READ_WRITE = 0x88BA
 };
@@ -17,7 +17,7 @@ enum struct GLRFilterMode
   TRILINEAR
 };
 
-enum struct GLRDrawMode
+enum class GLRDrawMode : unsigned short
 {
   TRIS = 0x0004,
   TRI_STRIPS = 0x0005,
@@ -28,7 +28,7 @@ enum struct GLRDrawMode
   POINTS = 0x0000,
 };
 
-enum struct GLRColorFormat
+enum class GLRColorFormat : unsigned short
 {
   R32F = 0x822E,
   RGB8 = 0x8051,
@@ -46,7 +46,7 @@ enum struct GLRColorFormat
   DEPTH32F = 0x8CAC,
 };
 
-enum struct GLRDrawType
+enum class GLRDrawType : unsigned short
 {
   STREAM_COPY = 0x88E2, STREAM_DRAW = 0x88E0, STREAM_READ = 0x88E1,
   STATIC_COPY = 0x88E6, STATIC_DRAW = 0x88E4, STATIC_READ = 0x88E5,
@@ -76,4 +76,21 @@ enum struct GLRAttachmentType
 enum struct GLRShaderType
 {
   INVALID, FRAG_VERT, COMPUTE, GEOMETRY_FRAG, TESSELLATION,
+};
+
+enum struct GLRIndexBufferType : unsigned short
+{
+  UINT = 0x1405, INT = 0x1404,
+};
+
+enum struct GLRBlendMode : unsigned short
+{
+  ZERO = 0, ONE = 1, SRC_COLOR = 0x0300, ONE_MINUS_SRC_COLOR = 0x0301, DST_COLOR = 0x0306, ONE_MINUS_DST_COLOR = 0x0307,
+  SRC_ALPHA = 0x0302, ONE_MINUS_SRC_ALPHA = 0x0303, DST_ALPHA = 0x0304, ONE_MINUS_DST_ALPHA = 0x0305,
+  CONSTANT_COLOR = 0x8001, ONE_MINUS_CONSTANT_COLOR = 0x8002, CONSTANT_ALPHA = 0x8003, ONE_MINUS_CONSTANT_ALPHA = 0x8004,
+};
+
+enum struct GLRClearType : unsigned int
+{
+  COLOR = 0x00004000, DEPTH = 0x00000100, STENCIL = 0x00000400,
 };

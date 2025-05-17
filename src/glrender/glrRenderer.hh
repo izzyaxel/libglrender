@@ -75,10 +75,10 @@ namespace glr
     GLRENDER_API void bindImage(uint32_t target, uint32_t handle, GLRIOMode mode, GLRColorFormat format) const;
     
     /// Run the currently bound compute shader
-    GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize = {WORK_SIZE_X, WORK_SIZE_Y}) const;
+    GLRENDER_API void startComputeShader(const vec2<uint32_t>& contextSize) const;
     
-    GLRENDER_API inline static uint32_t WORK_SIZE_X = 40;
-    GLRENDER_API inline static uint32_t WORK_SIZE_Y = 20;
+    uint32_t workSizeX = 40;
+    uint32_t workSizeY = 20;
     
     private:
     void pingPong();
@@ -112,6 +112,7 @@ namespace glr
     std::unique_ptr<Mesh> fullscreenQuad{};
     std::unique_ptr<Shader> shaderTransfer{};
   };
+}
 
 
 
@@ -120,84 +121,158 @@ namespace glr
 
 
 
-  
+
+
+
+namespace glr
+{
+  struct PipelineRenderer;
+
   using ID = uint64_t;
   inline constexpr static ID INVALID_ID = std::numeric_limits<uint64_t>::max();
   
-  /// A list of instructions to execute to render things
+  /// A list of instructions to execute in order to render things
   struct Pipeline
   {
-    void clearCurrentFramebuffer();
+    friend PipelineRenderer;
     
-    void bindTexture(ID texture, uint32_t target);
-    void bindImage(ID texture, uint32_t target, GLRIOMode ioMode, GLRColorFormat format);
-    void bindShader(ID shader);
-    void bindMesh(ID mesh);
-    void bindFramebuffer(ID framebuffer);
-    void bindFramebufferAttachment(ID framebuffer, uint32_t target, GLRAttachment attachment, GLRAttachmentType type);
-    void bindShaderPipeline(ID shaderPipeline);
-
-    void setUniformFloat(ID shader, const std::string& name, float value);
-    void setUniformU32(ID shader, const std::string& name, uint32_t value);
-    void setUniformI32(ID shader, const std::string& name, int32_t value);
-    template <typename T> void setUniformVec2(ID shader, const std::string& name, vec2<T> value)
-    {
-      
-    }
-    template <typename T> void setUniformVec3(ID shader, const std::string& name, vec3<T> value)
-    {
-      
-    }
-    template <typename T> void setUniformVec4(ID shader, const std::string& name, vec4<T> value)
-    {
-      
-    }
-    template <typename T> void setUniformMat3(ID shader, const std::string& name, mat3x3<T> value)
-    {
-      
-    }
-    template <typename T> void setUniformMat4(ID shader, const std::string& name, mat4x4<T> value)
-    {
-      
-    }
+    GLRENDER_API Pipeline();
+    GLRENDER_API void setClearColor(const vec4<float>& color);
+    GLRENDER_API void setClearDepth(float value);
+    GLRENDER_API void setClearStencil(int32_t value);
+    GLRENDER_API void clearCurrentFramebuffer();
     
-    void sendUniforms(ID shader);
+    GLRENDER_API void bindTexture(ID texture, uint32_t target);
+    GLRENDER_API void bindImage(ID texture, uint32_t target, GLRIOMode a, GLRColorFormat b);
+    GLRENDER_API void bindShader(ID shader);
+    GLRENDER_API void bindMesh(ID mesh);
+    GLRENDER_API void bindFramebuffer(ID framebuffer);
+    GLRENDER_API void bindFramebufferAttachment(ID framebuffer, uint32_t target, GLRAttachment a, GLRAttachmentType b);
+    GLRENDER_API void bindShaderPipeline(ID shaderPipeline);
+    
+    GLRENDER_API void setUniformFloat(ID shader, const std::string& name, float value);
+    GLRENDER_API void setUniformU8(ID shader, const std::string& name, uint32_t value);
+    GLRENDER_API void setUniformI8(ID shader, const std::string& name, uint32_t value);
+    GLRENDER_API void setUniformU16(ID shader, const std::string& name, uint32_t value);
+    GLRENDER_API void setUniformI16(ID shader, const std::string& name, uint32_t value);
+    GLRENDER_API void setUniformU32(ID shader, const std::string& name, uint32_t value);
+    GLRENDER_API void setUniformI32(ID shader, const std::string& name, int32_t value);
+    GLRENDER_API void setUniformVec2u(ID shader, const std::string& name, const vec2<uint32_t>& value);
+    GLRENDER_API void setUniformVec2i(ID shader, const std::string& name, const vec2<int32_t>& value);
+    GLRENDER_API void setUniformVec2f(ID shader, const std::string& name, const vec2<float>& value);
+    GLRENDER_API void setUniformVec3u(ID shader, const std::string& name, const vec3<uint32_t>& value);
+    GLRENDER_API void setUniformVec3i(ID shader, const std::string& name, const vec3<int32_t>& value);
+    GLRENDER_API void setUniformVec3f(ID shader, const std::string& name, const vec3<float>& value);
+    GLRENDER_API void setUniformVec4u(ID shader, const std::string& name, const vec4<uint32_t>& value);
+    GLRENDER_API void setUniformVec4i(ID shader, const std::string& name, const vec4<int32_t>& value);
+    GLRENDER_API void setUniformVec4f(ID shader, const std::string& name, const vec4<float>& value);
+    GLRENDER_API void setUniformMat3u(ID shader, const std::string& name, const mat3x3<uint32_t>& value);
+    GLRENDER_API void setUniformMat3i(ID shader, const std::string& name, const mat3x3<int32_t>& value);
+    GLRENDER_API void setUniformMat3f(ID shader, const std::string& name, const mat3x3<float>& value);
+    GLRENDER_API void setUniformMat4u(ID shader, const std::string& name, const mat4x4<uint32_t>& value);
+    GLRENDER_API void setUniformMat4i(ID shader, const std::string& name, const mat4x4<int32_t>& value);
+    GLRENDER_API void setUniformMat4f(ID shader, const std::string& name, const mat4x4<float>& value);
+    GLRENDER_API void sendUniforms(ID shader);
+    
+    GLRENDER_API void setFilterMode(GLRFilterMode min, GLRFilterMode mag);
+    GLRENDER_API void setCullBackfaces(bool enabled);
+    GLRENDER_API void setBlend(bool enabled);
+    GLRENDER_API void setBlendMode(GLRBlendMode src, GLRBlendMode dst);
+    GLRENDER_API void setDepthTest(bool enabled);
+    GLRENDER_API void setScissorTest(bool enabled);
+    
+    GLRENDER_API void dispatchCompute();
+    GLRENDER_API void draw(GLRDrawMode a, uint64_t numVertices);
+    GLRENDER_API void drawIndexed(GLRDrawMode a, uint64_t numIndices, GLRIndexBufferType b);
 
+    //Settings
+    uint32_t workSizeX = 40;
+    uint32_t workSizeY = 20;
+    
     private:
-    typedef enum : uint32_t
+    enum struct OpCode : uint16_t
     {
       INVALID = 0,
-      CLEAR = 1,
-      BIND_TEX = 2, BIND_IMG = 3, BIND_SHADER = 4, BIND_MESH = 5, BIND_FBO = 6, BIND_ATTACH = 7, BIND_PIPELINE = 8,
-      SET_UNI_F = 10, SET_UNI_U32 = 11, SET_UNI_I32 = 12, SET_UNI_VEC2 = 13, SET_UNI_VEC3 = 14, SET_UNI_VEC4 = 15, SET_UNI_MAT2 = 16, SET_UNI_MAT3 = 17, SET_UNI_MAT4 = 18,
-      SEND_UNIS = 20,
+      SET_CLEAR_COLOR, SET_CLEAR_DEPTH, SET_CLEAR_STENCIL, CLEAR,
+      USE_TEX, USE_IMG, USE_SHADER, USE_MESH, USE_FBO, USE_ATTACH, USE_PIPELINE,
+      SET_UNI_F, SET_UNI_U8, SET_UNI_I8, SET_UNI_U16, SET_UNI_I16, SET_UNI_U32, SET_UNI_I32,
+      SET_UNI_VEC2U, SET_UNI_VEC2I, SET_UNI_VEC2F,
+      SET_UNI_VEC3U, SET_UNI_VEC3I, SET_UNI_VEC3F,
+      SET_UNI_VEC4U, SET_UNI_VEC4I, SET_UNI_VEC4F,
+      SET_UNI_MAT3U, SET_UNI_MAT3I, SET_UNI_MAT3F,
+      SET_UNI_MAT4U, SET_UNI_MAT4I, SET_UNI_MAT4F,
+      SEND_UNIFORMS,
+      DRAW, DRAW_INDEXED, DISPATCH_COMPUTE,
+      SET_FILTER_MODE, SET_CULL_BACKFACE, SET_BLEND, SET_BLEND_MODE, SET_DEPTH_TEST, SET_SCISSOR_TEST,
       
-    } OpCode;
-
-    //TODO mappings to tell the renderer what command to execute and where the data for that command is located in the buffers
+    };
+    
     struct Instruction
     {
-      OpCode op = INVALID;
+      OpCode op = OpCode::INVALID;
+      ID id = INVALID_ID;
+      uint32_t target = 0;
+      uint32_t enumA = 0;
+      uint32_t enumB = 0;
+      uint32_t enumC = 0;
+      std::string name;
       
+      union Data
+      {
+        bool varBool;
+        float varF;
+        uint8_t varU8;
+        int8_t varI8;
+        uint16_t varU16;
+        int16_t varI16;
+        uint32_t varU32;
+        int32_t varI32;
+        uint64_t varU64;
+        int64_t varI64;
+        
+        vec2<uint32_t> varVec2u;
+        vec2<int32_t> varVec2i;
+        vec2<float> varVec2f;
+        
+        vec3<uint32_t> varVec3u;
+        vec3<int32_t> varVec3i;
+        vec3<float> varVec3f;
+        
+        vec4<uint32_t> varVec4u;
+        vec4<int32_t> varVec4i;
+        vec4<float> varVec4f;
+
+        mat3x3<uint32_t> varMat3u;
+        mat3x3<int32_t> varMat3i;
+        mat3x3<float> varMat3f;
+        
+        mat4x4<uint32_t> varMat4u;
+        mat4x4<int32_t> varMat4i;
+        mat4x4<float> varMat4f;
+      } data;
     };
 
     std::vector<Instruction> instructions{};
     
-    ID currentTexture = INVALID_ID;
+    std::vector<ID> currentTexture{};
     ID currentShader = INVALID_ID;
     ID currentMesh = INVALID_ID;
     ID currentFramebuffer = INVALID_ID;
     ID currentAttachment = INVALID_ID;
     ID currentShaderPipeline = INVALID_ID;
-
-    //TODO data mappings
   };
 
   struct PipelineRenderer
   {
-    ID addPipeline(const Pipeline& pipeline);
-    void usePipeline(ID pipeline);
-    void render();
+    GLRENDER_API PipelineRenderer();
+    GLRENDER_API ID addPipeline(const Pipeline& pipeline);
+    GLRENDER_API void usePipeline(ID pipeline);
+    GLRENDER_API void render();
+
+    uint32_t contextSizeX = 800;
+    uint32_t contextSizeY = 600;
+    int32_t maxTextureUnitsPerStage = 0;
+    int32_t maxTextureUnits = 0;
     
     private:
     ID currentPipeline = INVALID_ID;

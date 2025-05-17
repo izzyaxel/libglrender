@@ -324,9 +324,9 @@ void main()
     glBindImageTexture(target, handle, 0, GL_FALSE, 0, (uint32_t)mode, (uint32_t)format);
   }
   
-  void Renderer::startComputeShader(const vec2<uint32_t>& contextSize, const vec2<uint32_t>& workSize) const
+  void Renderer::startComputeShader(const vec2<uint32_t>& contextSize) const
   {
-    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)workSize.x())), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)workSize.y())), 1);
+    glDispatchCompute((uint32_t)(std::ceil((float)(contextSize.x()) / (float)this->workSizeX)), (uint32_t)(std::ceil((float)(contextSize.y()) / (float)this->workSizeY)), 1);
   }
   
   //===Rendering===========================================================================
@@ -640,69 +640,271 @@ void main()
 
 namespace glr
 {
+  Pipeline::Pipeline()
+  {
+    int32_t maxTextures;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextures);
+    this->currentTexture.resize(maxTextures, INVALID_ID);
+  }
+  
+  void Pipeline::setClearColor(const vec4<float>& color)
+  {
+    this->instructions.emplace_back(OpCode::SET_CLEAR_COLOR);
+    this->instructions.back().data.varVec4f = color;
+  }
+
+  void Pipeline::setClearDepth(const float value)
+  {
+    this->instructions.emplace_back(OpCode::SET_CLEAR_DEPTH);
+    this->instructions.back().data.varF = value;
+  }
+
+  void Pipeline::setClearStencil(const int32_t value)
+  {
+    this->instructions.emplace_back(OpCode::SET_CLEAR_STENCIL);
+    this->instructions.back().data.varI32 = value;
+  }
+  
   void Pipeline::clearCurrentFramebuffer()
   {
-    
+    this->instructions.emplace_back(OpCode::CLEAR);
   }
 
-  void Pipeline::bindTexture(ID texture, uint32_t target)
+  void Pipeline::bindTexture(const ID texture, const uint32_t target)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_TEX, texture, target);
   }
 
-  void Pipeline::bindImage(ID texture, uint32_t target, GLRIOMode ioMode, GLRColorFormat format)
+  void Pipeline::bindImage(const ID texture, const uint32_t target, const GLRIOMode a, const GLRColorFormat b)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_IMG, texture, target, (uint16_t)a, (uint16_t)b);
   }
   
-  void Pipeline::bindMesh(ID mesh)
+  void Pipeline::bindMesh(const ID mesh)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_MESH, mesh);
   }
 
-  void Pipeline::bindShader(ID shader)
+  void Pipeline::bindShader(const ID shader)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_SHADER, shader);
   }
 
-  void Pipeline::bindFramebuffer(ID framebuffer)
+  void Pipeline::bindFramebuffer(const ID framebuffer)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_FBO, framebuffer);
   }
 
-  void Pipeline::bindFramebufferAttachment(ID framebuffer, uint32_t target, GLRAttachment attachment, GLRAttachmentType type)
+  void Pipeline::bindFramebufferAttachment(const ID framebuffer, const uint32_t target, const GLRAttachment a, const GLRAttachmentType b)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_ATTACH, framebuffer, target, (uint16_t)a, (uint16_t)b);
   }
 
-  void Pipeline::bindShaderPipeline(ID shaderPipeline)
+  void Pipeline::bindShaderPipeline(const ID shaderPipeline)
   {
-    
+    this->instructions.emplace_back(OpCode::USE_PIPELINE, shaderPipeline);
   }
 
-  void Pipeline::setUniformFloat(ID shader, const std::string& name, float value)
+  void Pipeline::setUniformFloat(const ID shader, const std::string& name, const float value)
   {
-    
-  }
-  
-  void Pipeline::setUniformU32(ID shader, const std::string& name, uint32_t value)
-  {
-    
+    this->instructions.emplace_back(OpCode::SET_UNI_F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varF = value;
   }
 
-  void Pipeline::setUniformI32(ID shader, const std::string& name, int32_t value)
+  void Pipeline::setUniformU8(const ID shader, const std::string& name, const uint32_t value)
   {
-    
+    this->instructions.emplace_back(OpCode::SET_UNI_U8, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varU8 = value;
   }
   
-  void Pipeline::sendUniforms(ID shader)
+  void Pipeline::setUniformI8(const ID shader, const std::string& name, const uint32_t value)
   {
-    
+    this->instructions.emplace_back(OpCode::SET_UNI_I8, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varI8 = value;
+  }
+  
+  void Pipeline::setUniformU16(const ID shader, const std::string& name, const uint32_t value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_U16, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varU16 = value;
+  }
+  
+  void Pipeline::setUniformI16(const ID shader, const std::string& name, const uint32_t value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_I16, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varI16 = value;
+  }
+  
+  void Pipeline::setUniformU32(const ID shader, const std::string& name, const uint32_t value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_U32, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varU32 = value;
+  }
+
+  void Pipeline::setUniformI32(const ID shader, const std::string& name, const int32_t value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_I32, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varI32 = value;
+  }
+
+  
+  void Pipeline::setUniformVec2u(ID shader, const std::string& name, const vec2<uint32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC2U, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec2u = value;
+  }
+  
+  void Pipeline::setUniformVec2i(ID shader, const std::string& name, const vec2<int32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC2I, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec2i = value;
+  }
+  
+  void Pipeline::setUniformVec2f(ID shader, const std::string& name, const vec2<float>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC2F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec2f = value;
   }
 
 
+  void Pipeline::setUniformVec3u(ID shader, const std::string& name, const vec3<uint32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC3U, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec3u = value;
+  }
+  
+  void Pipeline::setUniformVec3i(ID shader, const std::string& name, const vec3<int32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC3I, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec3i = value;
+  }
+  
+  void Pipeline::setUniformVec3f(ID shader, const std::string& name, const vec3<float>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC3F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec3f = value;
+  }
 
 
+  void Pipeline::setUniformVec4u(ID shader, const std::string& name, const vec4<uint32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC4U, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec4u = value;
+  }
+  
+  void Pipeline::setUniformVec4i(ID shader, const std::string& name, const vec4<int32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC4I, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec4i = value;
+  }
+  
+  void Pipeline::setUniformVec4f(ID shader, const std::string& name, const vec4<float>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_VEC4F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varVec4f = value;
+  }
+
+
+  void Pipeline::setUniformMat3u(ID shader, const std::string& name, const mat3x3<uint32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT3U, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat3u = std::move(value);
+  }
+  void Pipeline::setUniformMat3i(ID shader, const std::string& name, const mat3x3<int32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT3I, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat3i = value;
+  }
+  
+  void Pipeline::setUniformMat3f(ID shader, const std::string& name, const mat3x3<float>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT3F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat3f = value;
+  }
+
+
+  void Pipeline::setUniformMat4u(ID shader, const std::string& name, const mat4x4<uint32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT4U, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat4u = value;
+  }
+  
+  void Pipeline::setUniformMat4i(ID shader, const std::string& name, const mat4x4<int32_t>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT4I, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat4i = value;
+  }
+  
+  void Pipeline::setUniformMat4f(ID shader, const std::string& name, const mat4x4<float>& value)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MAT4F, shader, 0, 0, 0, 0, name);
+    this->instructions.back().data.varMat4f = value;
+  }
+
+  
+  void Pipeline::sendUniforms(const ID shader)
+  {
+    this->instructions.emplace_back(OpCode::SEND_UNIFORMS, shader);
+  }
+
+  void Pipeline::dispatchCompute()
+  {
+    this->instructions.emplace_back(OpCode::DISPATCH_COMPUTE);
+  }
+
+  void Pipeline::draw(const GLRDrawMode a, const uint64_t numVertices)
+  {
+    this->instructions.emplace_back(OpCode::DRAW, INVALID_ID, 0, (uint16_t)a);
+    this->instructions.back().data.varU64 = numVertices;
+  }
+
+  void Pipeline::drawIndexed(const GLRDrawMode a, const uint64_t numIndices, const GLRIndexBufferType b)
+  {
+    this->instructions.emplace_back(OpCode::DRAW_INDEXED, INVALID_ID, 0, (uint16_t)a, (uint16_t)b);
+    this->instructions.back().data.varU64 = numIndices;
+  }
+
+  void Pipeline::setFilterMode(const GLRFilterMode min, const GLRFilterMode mag)
+  {
+    this->instructions.emplace_back(OpCode::SET_FILTER_MODE, INVALID_ID, 0, (uint16_t)min, (uint16_t)mag);
+  }
+
+  void Pipeline::setBlend(const bool enabled)
+  {
+    this->instructions.emplace_back(OpCode::SET_BLEND);
+    this->instructions.back().data.varBool = enabled;
+  }
+
+  void Pipeline::setBlendMode(const GLRBlendMode src, const GLRBlendMode dst)
+  {
+    this->instructions.emplace_back(OpCode::SET_BLEND_MODE, INVALID_ID, 0, (uint16_t)src, (uint16_t)dst);
+  }
+
+  void Pipeline::setDepthTest(const bool enabled)
+  {
+    this->instructions.emplace_back(OpCode::SET_DEPTH_TEST);
+    this->instructions.back().data.varBool = enabled;
+  }
+  
+  void Pipeline::setScissorTest(const bool enabled)
+  {
+    this->instructions.emplace_back(OpCode::SET_SCISSOR_TEST);
+    this->instructions.back().data.varBool = enabled;
+  }
+
+  void Pipeline::setCullBackfaces(const bool enabled)
+  {
+    this->instructions.emplace_back(OpCode::SET_CULL_BACKFACE);
+    this->instructions.back().data.varBool = enabled;
+  }
+  
+
+  PipelineRenderer::PipelineRenderer()
+  {
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &this->maxTextureUnitsPerStage);
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &this->maxTextureUnits);
+  }
+  
   ID PipelineRenderer::addPipeline(const Pipeline& pipeline)
   {
     const ID out = this->lastPipeline;
@@ -722,6 +924,279 @@ namespace glr
 
   void PipelineRenderer::render()
   {
-    
+    auto& curPipeline = this->pipelines.at(this->currentPipeline);
+    for(const auto& instruction : curPipeline.instructions)
+    {
+      switch(instruction.op)
+      {
+        case Pipeline::OpCode::SET_CLEAR_COLOR:
+        {
+          const auto& c = instruction.data.varVec4f;
+          glClearColor(c.r(), c.g(), c.b(), c.a());
+          break;
+        }
+        case Pipeline::OpCode::SET_CLEAR_DEPTH:
+        {
+          glClearDepth(instruction.data.varF);
+          break;
+        }
+        case Pipeline::OpCode::SET_CLEAR_STENCIL:
+        {
+          glClearStencil(instruction.data.varI32);
+          break;
+        }
+        case Pipeline::OpCode::CLEAR:
+        {
+          glClear(instruction.enumA | instruction.enumB | instruction.enumC);
+          break;
+        }
+
+        case Pipeline::OpCode::USE_TEX:
+        {
+          if(instruction.target >= curPipeline.currentTexture.size())
+          {
+            continue;
+          }
+          if(curPipeline.currentTexture.at(instruction.target) == instruction.id)
+          {
+            continue;
+          }
+          curPipeline.currentTexture.at(instruction.target) = instruction.id;
+          //texturePool.get()->use(instruction.target, curPipeline.currentTexture.at(instruction.target));
+          break;
+        }
+        case Pipeline::OpCode::USE_IMG: //TODO support layered images/levels
+        {
+          if(instruction.target >= curPipeline.currentTexture.size())
+          {
+            continue;
+          }
+          if(curPipeline.currentTexture.at(instruction.target) == instruction.id)
+          {
+            continue;
+          }
+          curPipeline.currentTexture.at(instruction.target) = instruction.id;
+          //texturePool.get(instruction.id)->useAsImage(instruction target, curPipeline.currentTexture.at(instruction.target), (uint16_t)instruction.enumA, (uint16_t)instruction.enumB);
+          break;
+        }
+        case Pipeline::OpCode::USE_SHADER:
+        {
+          if(curPipeline.currentShader == instruction.id)
+          {
+            continue;
+          }
+          curPipeline.currentShader = instruction.id;
+          //TODO shader and other class pools
+          //shaderPool->get(instruction.id)->use();
+          break;
+        }
+        case Pipeline::OpCode::USE_MESH:
+        {
+          break;
+        }
+        case Pipeline::OpCode::USE_FBO:
+        {
+          break;
+        }
+        case Pipeline::OpCode::USE_ATTACH:
+        {
+          break;
+        }
+        case Pipeline::OpCode::USE_PIPELINE:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_F:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_U8:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_I8:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_U16:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_I16:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_U32:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_I32:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_VEC2U:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC2I:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC2F:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_VEC3U:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC3I:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC3F:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_VEC4U:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC4I:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_VEC4F:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_MAT3U:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_MAT3I:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_MAT3F:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SET_UNI_MAT4U:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_MAT4I:
+        {
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_MAT4F:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::SEND_UNIFORMS:
+        {
+          break;
+        }
+
+        case Pipeline::OpCode::DRAW:
+        {
+          glDrawArrays((GLenum)instruction.enumA, 0, instruction.data.varU64);
+          break;
+        }
+        case Pipeline::OpCode::DRAW_INDEXED:
+        {
+          glDrawElements((GLenum)instruction.enumA, instruction.data.varU64, (int32_t)instruction.enumB, nullptr);
+          break;
+        }
+        case Pipeline::OpCode::DISPATCH_COMPUTE:
+        {
+          glDispatchCompute((uint32_t)(std::ceil((float)(this->contextSizeX) / (float)curPipeline.workSizeX)), (uint32_t)(std::ceil((float)(this->contextSizeY) / (float)curPipeline.workSizeY)), 1);
+          break;
+        }
+
+        case Pipeline::OpCode::SET_FILTER_MODE:
+        {
+          switch((GLRFilterMode)instruction.enumA)
+          {
+            case GLRFilterMode::NEAREST:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+              break;
+            }
+              
+            case GLRFilterMode::BILINEAR:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+              break;
+            }
+              
+            case GLRFilterMode::TRILINEAR:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+              break;
+            }
+          }
+          
+          switch((GLRFilterMode)instruction.enumB)
+          {
+            case GLRFilterMode::NEAREST:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+              break;
+            }
+              
+            case GLRFilterMode::BILINEAR:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+              break;
+            }
+              
+            case GLRFilterMode::TRILINEAR:
+            {
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+              break;
+            }
+          }
+          break;
+        }
+          
+        case Pipeline::OpCode::SET_BLEND:
+        {
+          instruction.data.varBool ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+          break;
+        }
+        case Pipeline::OpCode::SET_BLEND_MODE:
+        {
+          glBlendFunc((int32_t)instruction.enumA, (int32_t)instruction.enumB);
+          break;
+        }
+        case Pipeline::OpCode::SET_DEPTH_TEST:
+        {
+          instruction.data.varBool ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+          break;
+        }
+        case Pipeline::OpCode::SET_CULL_BACKFACE:
+        {
+          instruction.data.varBool ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+          break;
+        }
+        case Pipeline::OpCode::SET_SCISSOR_TEST:
+        {
+          instruction.data.varBool ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+          break;
+        }
+          
+        case Pipeline::OpCode::INVALID:
+        default: break;
+      }
+    }
   }
 }

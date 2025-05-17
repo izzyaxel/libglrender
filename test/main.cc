@@ -135,7 +135,7 @@ int main()
   const Camera camera{};
   glr::RenderList renderList;
 
-  #if 0
+  #if 1
   PNG png = decodePNG(std::filesystem::current_path().string() + "/test.png");
   const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
   renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", vert, frag);
@@ -149,7 +149,7 @@ int main()
   const glr::Renderable renderable = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
   renderable.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
   #endif
-
+  
   renderList.add(renderable);
   
   auto prevLoop = std::chrono::steady_clock::now();
