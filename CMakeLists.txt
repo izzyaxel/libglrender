@@ -49,6 +49,7 @@ set(SRC
     src/glrender/export.hh
     src/glrender/glrEnums.hh
     src/glrender/glrLogging.hh
+    src/glrender/glrAssetID.hh
     
     src/glrUtil.cc src/glrender/glrUtil.hh
     src/glrRenderer.cc src/glrender/glrRenderer.hh
@@ -63,7 +64,8 @@ set(SRC
     src/glrExternal.cc src/glrender/glrExternal.hh
     src/glrRenderable.cc src/glrender/glrRenderable.hh
     src/glrRenderList.cc src/glrender/glrRenderList.hh
-    src/glrShaderPipeline.cc src/glrender/glrShaderPipeline.hh)
+    src/glrShaderPipeline.cc src/glrender/glrShaderPipeline.hh
+    src/glrAssetRepository.cc src/glrender/glrAssetRepository.hh)
 
 project(glrender)
 include_directories(include)
@@ -71,10 +73,10 @@ add_library(${PROJECT_NAME} SHARED ${SRC})
 add_dependencies(${PROJECT_NAME} commons)
 target_link_libraries(${PROJECT_NAME} commons)
 
-project (gltest)
+project(gltest)
 include_directories(include)
 include_directories(src)
-add_executable(${PROJECT_NAME} test/main.cc test/pngFormat.cc test/pngFormat.hh test/stb_image.h test/stb_image_write.h)
+add_executable(${PROJECT_NAME} test/pngFormat.cc test/pngFormat.hh test/stb_image.h test/stb_image_write.h test/main.cc test/assets.hh)
 add_dependencies(${PROJECT_NAME} glrender)
 target_link_libraries(${PROJECT_NAME} glrender SDL2)
 

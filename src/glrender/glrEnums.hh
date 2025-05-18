@@ -92,5 +92,6 @@ enum struct GLRBlendMode : unsigned short
 
 enum struct GLRClearType : unsigned int
 {
+  NONE = 0,
   COLOR = 0x00004000, DEPTH = 0x00000100, STENCIL = 0x00000400,
 };

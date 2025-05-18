@@ -20,7 +20,7 @@ namespace glr
   /// An OpenGL frag/vert, or compute shader
   struct Shader
   {
-    typedef std::variant<float, int32_t, uint32_t, vec2<float>, vec3<float>, vec4<float>, mat3x3<float>, mat4x4<float>> UniformValue;
+    using UniformValue = std::variant<float, int32_t, uint32_t, vec2<uint32_t>, vec2<int32_t>, vec2<float>, vec3<uint32_t>, vec3<int32_t>, vec3<float>, vec4<uint32_t>, vec4<int32_t>, vec4<float>, mat3x3<float>, mat4x4<float>>;
     
     struct Uniform
     {
@@ -39,8 +39,8 @@ namespace glr
     GLRENDER_API Shader(Shader&& moveFrom) noexcept;
     GLRENDER_API Shader& operator=(Shader&& moveFrom) noexcept;
     
-    [[nodiscard]] GLRENDER_API bool isValid() const;
-    [[nodiscard]] [[maybe_unused]] GLRENDER_API bool exists() const;
+    GLRENDER_API bool isValid() const;
+    GLRENDER_API bool exists() const;
     GLRENDER_API void reset();
     GLRENDER_API void use() const;
     GLRENDER_API void setUniform(const std::string& name, UniformValue val);

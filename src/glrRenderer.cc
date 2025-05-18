@@ -1,6 +1,8 @@
 #include "glrender/glrRenderer.hh"
+#include "glrender/glrAssetRepository.hh"
 
 #include <glad/gl.hh>
+#include <commons/math/mat4.hh>
 
 namespace glr
 {
@@ -633,11 +635,6 @@ void main()
   }
 }
 
-
-
-
-
-
 namespace glr
 {
   Pipeline::Pipeline()
@@ -645,6 +642,35 @@ namespace glr
     int32_t maxTextures;
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextures);
     this->currentTexture.resize(maxTextures, INVALID_ID);
+  }
+  
+  void Pipeline::setModelMatrix(const MatrixCallback& callback)
+  {
+    this->instructions.emplace_back(OpCode::SET_MODEL_MATRIX);
+    this->instructions.back().matrixCallback = callback;
+  }
+  
+  void Pipeline::setViewMatrix(const MatrixCallback& callback)
+  {
+    this->instructions.emplace_back(OpCode::SET_VIEW_MATRIX);
+    this->instructions.back().matrixCallback = callback;
+  }
+  
+  void Pipeline::setPerspectiveProjectionMatrix(const MatrixCallback& callback)
+  {
+    this->instructions.emplace_back(OpCode::SET_PERSP_PROJECTION_MATRIX);
+    this->instructions.back().matrixCallback = callback;
+  }
+  
+  void Pipeline::setOrthoProjectionMatrix(const MatrixCallback& callback)
+  {
+    this->instructions.emplace_back(OpCode::SET_ORTHO_PROJECTION_MATRIX);
+    this->instructions.back().matrixCallback = callback;
+  }
+
+  void Pipeline::calculateMVP()
+  {
+    this->instructions.emplace_back(OpCode::CALCULATE_MVP);
   }
   
   void Pipeline::setClearColor(const vec4<float>& color)
@@ -665,9 +691,12 @@ namespace glr
     this->instructions.back().data.varI32 = value;
   }
   
-  void Pipeline::clearCurrentFramebuffer()
+  void Pipeline::clearCurrentFramebuffer(const GLRClearType a, const GLRClearType b, const GLRClearType c)
   {
     this->instructions.emplace_back(OpCode::CLEAR);
+    this->instructions.back().enumA = (uint32_t)a;
+    this->instructions.back().enumB = (uint32_t)b;
+    this->instructions.back().enumC = (uint32_t)c;
   }
 
   void Pipeline::bindTexture(const ID texture, const uint32_t target)
@@ -688,6 +717,11 @@ namespace glr
   void Pipeline::bindShader(const ID shader)
   {
     this->instructions.emplace_back(OpCode::USE_SHADER, shader);
+  }
+
+  void Pipeline::bindBackbuffer()
+  {
+    this->instructions.emplace_back(OpCode::USE_BACKBUFFER);
   }
 
   void Pipeline::bindFramebuffer(const ID framebuffer)
@@ -803,42 +837,23 @@ namespace glr
     this->instructions.emplace_back(OpCode::SET_UNI_VEC4F, shader, 0, 0, 0, 0, name);
     this->instructions.back().data.varVec4f = value;
   }
-
-
-  void Pipeline::setUniformMat3u(ID shader, const std::string& name, const mat3x3<uint32_t>& value)
-  {
-    this->instructions.emplace_back(OpCode::SET_UNI_MAT3U, shader, 0, 0, 0, 0, name);
-    this->instructions.back().data.varMat3u = std::move(value);
-  }
-  void Pipeline::setUniformMat3i(ID shader, const std::string& name, const mat3x3<int32_t>& value)
-  {
-    this->instructions.emplace_back(OpCode::SET_UNI_MAT3I, shader, 0, 0, 0, 0, name);
-    this->instructions.back().data.varMat3i = value;
-  }
   
   void Pipeline::setUniformMat3f(ID shader, const std::string& name, const mat3x3<float>& value)
   {
     this->instructions.emplace_back(OpCode::SET_UNI_MAT3F, shader, 0, 0, 0, 0, name);
     this->instructions.back().data.varMat3f = value;
   }
-
-
-  void Pipeline::setUniformMat4u(ID shader, const std::string& name, const mat4x4<uint32_t>& value)
-  {
-    this->instructions.emplace_back(OpCode::SET_UNI_MAT4U, shader, 0, 0, 0, 0, name);
-    this->instructions.back().data.varMat4u = value;
-  }
-  
-  void Pipeline::setUniformMat4i(ID shader, const std::string& name, const mat4x4<int32_t>& value)
-  {
-    this->instructions.emplace_back(OpCode::SET_UNI_MAT4I, shader, 0, 0, 0, 0, name);
-    this->instructions.back().data.varMat4i = value;
-  }
   
   void Pipeline::setUniformMat4f(ID shader, const std::string& name, const mat4x4<float>& value)
   {
     this->instructions.emplace_back(OpCode::SET_UNI_MAT4F, shader, 0, 0, 0, 0, name);
     this->instructions.back().data.varMat4f = value;
+  }
+
+  void Pipeline::setUniformMVP(ID shader)
+  {
+    this->instructions.emplace_back(OpCode::SET_UNI_MVP, shader);
+    this->instructions.back().name = "mvp";
   }
 
   
@@ -899,8 +914,18 @@ namespace glr
   }
   
 
-  PipelineRenderer::PipelineRenderer()
+  PipelineRenderer::PipelineRenderer(const GLLoadFunc loadFunc, const uint32_t contextWidth, const uint32_t contextHeight)
   {
+    gladLoadGL(loadFunc);
+    this->viewport = {contextWidth, contextHeight};
+    
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(glDebug, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+
+    glHint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_NICEST);
+    glViewport(0, 0, (GLsizei)contextWidth, (GLsizei)contextHeight);
+    
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &this->maxTextureUnitsPerStage);
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &this->maxTextureUnits);
   }
@@ -925,206 +950,302 @@ namespace glr
   void PipelineRenderer::render()
   {
     auto& curPipeline = this->pipelines.at(this->currentPipeline);
-    for(const auto& instruction : curPipeline.instructions)
+    for(const auto& [op, id, target, enumA, enumB, enumC, name, matrixCallback, data] : curPipeline.instructions)
     {
-      switch(instruction.op)
+      switch(op)
       {
+        case Pipeline::OpCode::SET_MODEL_MATRIX:
+        {
+          printf("Set model\n");
+          this->model = matrixCallback();
+          break;
+        }
+        case Pipeline::OpCode::SET_ORTHO_PROJECTION_MATRIX:
+        {
+          printf("Set ortho projection\n");
+          this->projection = matrixCallback();
+          break;
+        }
+        case Pipeline::OpCode::SET_PERSP_PROJECTION_MATRIX:
+        {
+          printf("Set perspective projection\n");
+          this->projection = matrixCallback();
+          break;
+        }
+        case Pipeline::OpCode::SET_VIEW_MATRIX:
+        {
+          printf("Set view\n");
+          this->view = matrixCallback();
+          break;
+        }
+        case Pipeline::OpCode::CALCULATE_MVP:
+        {
+          printf("Calc MVP\n");
+          this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
+          break;
+        }
         case Pipeline::OpCode::SET_CLEAR_COLOR:
         {
-          const auto& c = instruction.data.varVec4f;
+          printf("Set color clear value\n");
+          const auto& c = data.varVec4f;
           glClearColor(c.r(), c.g(), c.b(), c.a());
           break;
         }
         case Pipeline::OpCode::SET_CLEAR_DEPTH:
         {
-          glClearDepth(instruction.data.varF);
+          printf("Set depth clear value\n");
+          glClearDepth(data.varF);
           break;
         }
         case Pipeline::OpCode::SET_CLEAR_STENCIL:
         {
-          glClearStencil(instruction.data.varI32);
+          printf("Set stencil clear value\n");
+          glClearStencil(data.varI32);
           break;
         }
         case Pipeline::OpCode::CLEAR:
         {
-          glClear(instruction.enumA | instruction.enumB | instruction.enumC);
+          printf("Clear\n");
+          glClear(enumA | enumB | enumC);
           break;
         }
 
+        case Pipeline::OpCode::USE_ATTACH:
+        {
+          printf("Use FBO attachment %zu, 0x%04x, 0x%04x, %u\n", id, enumA, enumB, target);
+          asset_repo::fboBindAttachment(id, (GLRAttachment)enumA, (GLRAttachmentType)enumB, target);
+          break;
+        }
         case Pipeline::OpCode::USE_TEX:
         {
-          if(instruction.target >= curPipeline.currentTexture.size())
+          auto& tex = curPipeline.currentTexture;
+          if(target >= tex.size() || tex.at(target) == id)
           {
+            printf("Use texture: already bound\n");
             continue;
           }
-          if(curPipeline.currentTexture.at(instruction.target) == instruction.id)
-          {
-            continue;
-          }
-          curPipeline.currentTexture.at(instruction.target) = instruction.id;
-          //texturePool.get()->use(instruction.target, curPipeline.currentTexture.at(instruction.target));
+          printf("Use texture\n");
+          tex.at(target) = id;
+          asset_repo::textureSetBindingTarget(id, target);
+          asset_repo::textureUse(id);
           break;
         }
         case Pipeline::OpCode::USE_IMG: //TODO support layered images/levels
         {
-          if(instruction.target >= curPipeline.currentTexture.size())
+          if(target >= curPipeline.currentTexture.size() || curPipeline.currentTexture.at(target) == id)
           {
+            printf("Use image: already bound\n");
             continue;
           }
-          if(curPipeline.currentTexture.at(instruction.target) == instruction.id)
-          {
-            continue;
-          }
-          curPipeline.currentTexture.at(instruction.target) = instruction.id;
-          //texturePool.get(instruction.id)->useAsImage(instruction target, curPipeline.currentTexture.at(instruction.target), (uint16_t)instruction.enumA, (uint16_t)instruction.enumB);
+          printf("Use image\n");
+          curPipeline.currentTexture.at(target) = id;
+          asset_repo::textureUseAsImage(id, target, (GLRIOMode)enumA, (GLRColorFormat)enumB);
           break;
         }
         case Pipeline::OpCode::USE_SHADER:
         {
-          if(curPipeline.currentShader == instruction.id)
+          if(curPipeline.currentShader == id)
           {
+            printf("Use shader: already bound\n");
             continue;
           }
-          curPipeline.currentShader = instruction.id;
-          //TODO shader and other class pools
-          //shaderPool->get(instruction.id)->use();
+          printf("Use shader\n");
+          curPipeline.currentShader = id;
+          asset_repo::shaderUse(id);
           break;
         }
         case Pipeline::OpCode::USE_MESH:
         {
+          if(curPipeline.currentMesh == id)
+          {
+            printf("Use mesh: already bound\n");
+            continue;
+          }
+          printf("Use mesh\n");
+          curPipeline.currentMesh = id;
+          asset_repo::meshUse(id);
+          break;
+        }
+        case Pipeline::OpCode::USE_BACKBUFFER:
+        {
+          printf("Use backbuffer\n");
+          asset_repo::fboUse(0);
           break;
         }
         case Pipeline::OpCode::USE_FBO:
         {
-          break;
-        }
-        case Pipeline::OpCode::USE_ATTACH:
-        {
+          if(curPipeline.currentFramebuffer == id)
+          {
+            printf("Use framebuffer: already bound\n");
+            continue;
+          }
+          printf("Use framebuffer\n");
+          curPipeline.currentFramebuffer = id;
+          asset_repo::fboUse(id);
           break;
         }
         case Pipeline::OpCode::USE_PIPELINE:
         {
+          if(curPipeline.currentShaderPipeline == id)
+          {
+            printf("Use shader pipeline: already bound\n");
+            continue;
+          }
+          printf("Use shader pipeline\n");
+          curPipeline.currentShaderPipeline = id;
+          asset_repo::shaderPipelineUse(id);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_F:
         {
+          printf("Set float uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varF);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U8:
         {
+          printf("Set u8 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varU8);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I8:
         {
+          printf("Set i8 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varI8);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U16:
         {
+          printf("Set u16 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varU16);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I16:
         {
+          printf("Set i16 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varI16);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U32:
         {
+          printf("Set u32 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varU32);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I32:
         {
+          printf("Set i32 uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varI32);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC2U:
         {
+          printf("Set vec2u uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec2u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC2I:
         {
+          printf("Set vec2i uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec2i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC2F:
         {
+          printf("Set vec2f uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec2f);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC3U:
         {
+          printf("Set vec3u uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec3u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC3I:
         {
+          printf("Set vec3i uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec3i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC3F:
         {
+          printf("Set vec3f uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec3f);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC4U:
         {
+          printf("Set vec4u uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec4u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC4I:
         {
+          printf("Set vec4i uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec4i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC4F:
         {
+          printf("Set vec4f uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varVec4f);
           break;
         }
 
-        case Pipeline::OpCode::SET_UNI_MAT3U:
-        {
-          break;
-        }
-        case Pipeline::OpCode::SET_UNI_MAT3I:
-        {
-          break;
-        }
         case Pipeline::OpCode::SET_UNI_MAT3F:
         {
-          break;
-        }
-
-        case Pipeline::OpCode::SET_UNI_MAT4U:
-        {
-          break;
-        }
-        case Pipeline::OpCode::SET_UNI_MAT4I:
-        {
+          printf("Set mat3x3f uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varMat3f);
           break;
         }
         case Pipeline::OpCode::SET_UNI_MAT4F:
         {
+          printf("Set mat4x4f uniform\n");
+          asset_repo::shaderSetUniform(id, name, data.varMat4f);
+          break;
+        }
+        case Pipeline::OpCode::SET_UNI_MVP:
+        {
+          printf("Set MVP uniform\n");
+          asset_repo::shaderSetUniform(id, name, this->mvp);
           break;
         }
 
         case Pipeline::OpCode::SEND_UNIFORMS:
         {
+          printf("Send uniforms\n");
+          asset_repo::shaderSendUniforms(id);
           break;
         }
 
         case Pipeline::OpCode::DRAW:
         {
-          glDrawArrays((GLenum)instruction.enumA, 0, instruction.data.varU64);
+          printf("Draw %zu vertices with mode 0x%04x\n", data.varU64, enumA);
+          glDrawArrays((GLenum)enumA, 0, data.varU64);
           break;
         }
         case Pipeline::OpCode::DRAW_INDEXED:
         {
-          glDrawElements((GLenum)instruction.enumA, instruction.data.varU64, (int32_t)instruction.enumB, nullptr);
+          printf("Draw %zu indices with draw mode 0x%04x, index buffer format 0x%04x\n", data.varU64, enumA, enumB);
+          glDrawElements((GLenum)enumA, data.varU64, (int32_t)enumB, nullptr);
           break;
         }
         case Pipeline::OpCode::DISPATCH_COMPUTE:
         {
+          printf("Dispatch compute shader\n");
           glDispatchCompute((uint32_t)(std::ceil((float)(this->contextSizeX) / (float)curPipeline.workSizeX)), (uint32_t)(std::ceil((float)(this->contextSizeY) / (float)curPipeline.workSizeY)), 1);
           break;
         }
 
         case Pipeline::OpCode::SET_FILTER_MODE:
         {
-          switch((GLRFilterMode)instruction.enumA)
+          printf("Set filter modes\n");
+          switch((GLRFilterMode)enumA)
           {
             case GLRFilterMode::NEAREST:
             {
@@ -1145,7 +1266,7 @@ namespace glr
             }
           }
           
-          switch((GLRFilterMode)instruction.enumB)
+          switch((GLRFilterMode)enumB)
           {
             case GLRFilterMode::NEAREST:
             {
@@ -1170,33 +1291,39 @@ namespace glr
           
         case Pipeline::OpCode::SET_BLEND:
         {
-          instruction.data.varBool ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+          printf("Set blend\n");
+          data.varBool ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
           break;
         }
         case Pipeline::OpCode::SET_BLEND_MODE:
         {
-          glBlendFunc((int32_t)instruction.enumA, (int32_t)instruction.enumB);
+          printf("Set blend modes\n");
+          glBlendFunc((int32_t)enumA, (int32_t)enumB);
           break;
         }
         case Pipeline::OpCode::SET_DEPTH_TEST:
         {
-          instruction.data.varBool ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+          printf("Set depth testing\n");
+          data.varBool ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
           break;
         }
         case Pipeline::OpCode::SET_CULL_BACKFACE:
         {
-          instruction.data.varBool ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+          printf("Set backface culling\n");
+          data.varBool ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
           break;
         }
         case Pipeline::OpCode::SET_SCISSOR_TEST:
         {
-          instruction.data.varBool ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+          printf("Set scissor testing\n");
+          data.varBool ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
           break;
         }
           
         case Pipeline::OpCode::INVALID:
-        default: break;
+        default: printf("Invalid opcode\n"); break;
       }
     }
+    printf("\n\n");
   }
 }
