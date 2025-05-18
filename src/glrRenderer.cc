@@ -637,6 +637,14 @@ void main()
 
 namespace glr
 {
+  //#define LOG_VM
+  template <typename... Args> void lg(const std::string& msg, Args... args)
+  {
+    #if defined(LOG_VM)
+    printf(msg.c_str(), args...);
+    #endif
+  }
+  
   Pipeline::Pipeline()
   {
     int32_t maxTextures;
@@ -956,63 +964,63 @@ namespace glr
       {
         case Pipeline::OpCode::SET_MODEL_MATRIX:
         {
-          printf("Set model\n");
+          lg("Set model");
           this->model = matrixCallback();
           break;
         }
         case Pipeline::OpCode::SET_ORTHO_PROJECTION_MATRIX:
         {
-          printf("Set ortho projection\n");
+          lg("Set ortho projection");
           this->projection = matrixCallback();
           break;
         }
         case Pipeline::OpCode::SET_PERSP_PROJECTION_MATRIX:
         {
-          printf("Set perspective projection\n");
+          lg("Set perspective projection");
           this->projection = matrixCallback();
           break;
         }
         case Pipeline::OpCode::SET_VIEW_MATRIX:
         {
-          printf("Set view\n");
+          lg("Set view");
           this->view = matrixCallback();
           break;
         }
         case Pipeline::OpCode::CALCULATE_MVP:
         {
-          printf("Calc MVP\n");
+          lg("Calculate MVP");
           this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
           break;
         }
         case Pipeline::OpCode::SET_CLEAR_COLOR:
         {
-          printf("Set color clear value\n");
+          lg("Set color clear value\n");
           const auto& c = data.varVec4f;
           glClearColor(c.r(), c.g(), c.b(), c.a());
           break;
         }
         case Pipeline::OpCode::SET_CLEAR_DEPTH:
         {
-          printf("Set depth clear value\n");
+          lg("Set depth clear value\n");
           glClearDepth(data.varF);
           break;
         }
         case Pipeline::OpCode::SET_CLEAR_STENCIL:
         {
-          printf("Set stencil clear value\n");
+          lg("Set stencil clear value\n");
           glClearStencil(data.varI32);
           break;
         }
         case Pipeline::OpCode::CLEAR:
         {
-          printf("Clear\n");
+          lg("Clear\n");
           glClear(enumA | enumB | enumC);
           break;
         }
 
         case Pipeline::OpCode::USE_ATTACH:
         {
-          printf("Use FBO attachment %zu, 0x%04x, 0x%04x, %u\n", id, enumA, enumB, target);
+          lg("Use FBO attachment %zu, 0x%04x, 0x%04x, %u\n", id, enumA, enumB, target);
           asset_repo::fboBindAttachment(id, (GLRAttachment)enumA, (GLRAttachmentType)enumB, target);
           break;
         }
@@ -1021,10 +1029,10 @@ namespace glr
           auto& tex = curPipeline.currentTexture;
           if(target >= tex.size() || tex.at(target) == id)
           {
-            printf("Use texture: already bound\n");
+            lg("Use texture: already bound\n");
             continue;
           }
-          printf("Use texture\n");
+          lg("Use texture\n");
           tex.at(target) = id;
           asset_repo::textureSetBindingTarget(id, target);
           asset_repo::textureUse(id);
@@ -1034,10 +1042,10 @@ namespace glr
         {
           if(target >= curPipeline.currentTexture.size() || curPipeline.currentTexture.at(target) == id)
           {
-            printf("Use image: already bound\n");
+            lg("Use image: already bound\n");
             continue;
           }
-          printf("Use image\n");
+          lg("Use image\n");
           curPipeline.currentTexture.at(target) = id;
           asset_repo::textureUseAsImage(id, target, (GLRIOMode)enumA, (GLRColorFormat)enumB);
           break;
@@ -1046,10 +1054,10 @@ namespace glr
         {
           if(curPipeline.currentShader == id)
           {
-            printf("Use shader: already bound\n");
+            lg("Use shader: already bound\n");
             continue;
           }
-          printf("Use shader\n");
+          lg("Use shader\n");
           curPipeline.currentShader = id;
           asset_repo::shaderUse(id);
           break;
@@ -1058,17 +1066,17 @@ namespace glr
         {
           if(curPipeline.currentMesh == id)
           {
-            printf("Use mesh: already bound\n");
+            lg("Use mesh: already bound\n");
             continue;
           }
-          printf("Use mesh\n");
+          lg("Use mesh\n");
           curPipeline.currentMesh = id;
           asset_repo::meshUse(id);
           break;
         }
         case Pipeline::OpCode::USE_BACKBUFFER:
         {
-          printf("Use backbuffer\n");
+          lg("Use backbuffer\n");
           asset_repo::fboUse(0);
           break;
         }
@@ -1076,10 +1084,10 @@ namespace glr
         {
           if(curPipeline.currentFramebuffer == id)
           {
-            printf("Use framebuffer: already bound\n");
+            lg("Use framebuffer: already bound\n");
             continue;
           }
-          printf("Use framebuffer\n");
+          lg("Use framebuffer\n");
           curPipeline.currentFramebuffer = id;
           asset_repo::fboUse(id);
           break;
@@ -1088,10 +1096,10 @@ namespace glr
         {
           if(curPipeline.currentShaderPipeline == id)
           {
-            printf("Use shader pipeline: already bound\n");
+            lg("Use shader pipeline: already bound\n");
             continue;
           }
-          printf("Use shader pipeline\n");
+          lg("Use shader pipeline\n");
           curPipeline.currentShaderPipeline = id;
           asset_repo::shaderPipelineUse(id);
           break;
@@ -1099,152 +1107,152 @@ namespace glr
 
         case Pipeline::OpCode::SET_UNI_F:
         {
-          printf("Set float uniform\n");
+          lg("Set float uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varF);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U8:
         {
-          printf("Set u8 uniform\n");
+          lg("Set u8 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varU8);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I8:
         {
-          printf("Set i8 uniform\n");
+          lg("Set i8 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varI8);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U16:
         {
-          printf("Set u16 uniform\n");
+          lg("Set u16 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varU16);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I16:
         {
-          printf("Set i16 uniform\n");
+          lg("Set i16 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varI16);
           break;
         }
         case Pipeline::OpCode::SET_UNI_U32:
         {
-          printf("Set u32 uniform\n");
+          lg("Set u32 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varU32);
           break;
         }
         case Pipeline::OpCode::SET_UNI_I32:
         {
-          printf("Set i32 uniform\n");
+          lg("Set i32 uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varI32);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC2U:
         {
-          printf("Set vec2u uniform\n");
+          lg("Set vec2u uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec2u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC2I:
         {
-          printf("Set vec2i uniform\n");
+          lg("Set vec2i uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec2i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC2F:
         {
-          printf("Set vec2f uniform\n");
+          lg("Set vec2f uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec2f);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC3U:
         {
-          printf("Set vec3u uniform\n");
+          lg("Set vec3u uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec3u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC3I:
         {
-          printf("Set vec3i uniform\n");
+          lg("Set vec3i uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec3i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC3F:
         {
-          printf("Set vec3f uniform\n");
+          lg("Set vec3f uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec3f);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_VEC4U:
         {
-          printf("Set vec4u uniform\n");
+          lg("Set vec4u uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec4u);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC4I:
         {
-          printf("Set vec4i uniform\n");
+          lg("Set vec4i uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec4i);
           break;
         }
         case Pipeline::OpCode::SET_UNI_VEC4F:
         {
-          printf("Set vec4f uniform\n");
+          lg("Set vec4f uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varVec4f);
           break;
         }
 
         case Pipeline::OpCode::SET_UNI_MAT3F:
         {
-          printf("Set mat3x3f uniform\n");
+          lg("Set mat3x3f uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varMat3f);
           break;
         }
         case Pipeline::OpCode::SET_UNI_MAT4F:
         {
-          printf("Set mat4x4f uniform\n");
+          lg("Set mat4x4f uniform\n");
           asset_repo::shaderSetUniform(id, name, data.varMat4f);
           break;
         }
         case Pipeline::OpCode::SET_UNI_MVP:
         {
-          printf("Set MVP uniform\n");
+          lg("Set MVP uniform\n");
           asset_repo::shaderSetUniform(id, name, this->mvp);
           break;
         }
 
         case Pipeline::OpCode::SEND_UNIFORMS:
         {
-          printf("Send uniforms\n");
+          lg("Send uniforms\n");
           asset_repo::shaderSendUniforms(id);
           break;
         }
 
         case Pipeline::OpCode::DRAW:
         {
-          printf("Draw %zu vertices with mode 0x%04x\n", data.varU64, enumA);
+          lg("Draw %zu vertices with mode 0x%04x\n", data.varU64, enumA);
           glDrawArrays((GLenum)enumA, 0, data.varU64);
           break;
         }
         case Pipeline::OpCode::DRAW_INDEXED:
         {
-          printf("Draw %zu indices with draw mode 0x%04x, index buffer format 0x%04x\n", data.varU64, enumA, enumB);
+          lg("Draw %zu indices with draw mode 0x%04x, index buffer format 0x%04x\n", data.varU64, enumA, enumB);
           glDrawElements((GLenum)enumA, data.varU64, (int32_t)enumB, nullptr);
           break;
         }
         case Pipeline::OpCode::DISPATCH_COMPUTE:
         {
-          printf("Dispatch compute shader\n");
+          lg("Dispatch compute shader\n");
           glDispatchCompute((uint32_t)(std::ceil((float)(this->contextSizeX) / (float)curPipeline.workSizeX)), (uint32_t)(std::ceil((float)(this->contextSizeY) / (float)curPipeline.workSizeY)), 1);
           break;
         }
 
         case Pipeline::OpCode::SET_FILTER_MODE:
         {
-          printf("Set filter modes\n");
+          lg("Set filter modes\n");
           switch((GLRFilterMode)enumA)
           {
             case GLRFilterMode::NEAREST:
@@ -1291,39 +1299,39 @@ namespace glr
           
         case Pipeline::OpCode::SET_BLEND:
         {
-          printf("Set blend\n");
+          lg("Set blend\n");
           data.varBool ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
           break;
         }
         case Pipeline::OpCode::SET_BLEND_MODE:
         {
-          printf("Set blend modes\n");
+          lg("Set blend modes\n");
           glBlendFunc((int32_t)enumA, (int32_t)enumB);
           break;
         }
         case Pipeline::OpCode::SET_DEPTH_TEST:
         {
-          printf("Set depth testing\n");
+          lg("Set depth testing\n");
           data.varBool ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
           break;
         }
         case Pipeline::OpCode::SET_CULL_BACKFACE:
         {
-          printf("Set backface culling\n");
+          lg("Set backface culling\n");
           data.varBool ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
           break;
         }
         case Pipeline::OpCode::SET_SCISSOR_TEST:
         {
-          printf("Set scissor testing\n");
+          lg("Set scissor testing\n");
           data.varBool ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
           break;
         }
           
         case Pipeline::OpCode::INVALID:
-        default: printf("Invalid opcode\n"); break;
+        default: lg("Invalid opcode\n"); break;
       }
     }
-    printf("\n\n");
+    lg("\n");
   }
 }

@@ -76,7 +76,7 @@ target_link_libraries(${PROJECT_NAME} commons)
 project(gltest)
 include_directories(include)
 include_directories(src)
-add_executable(${PROJECT_NAME} test/pngFormat.cc test/pngFormat.hh test/stb_image.h test/stb_image_write.h test/main.cc test/assets.hh)
+add_executable(${PROJECT_NAME} test/pngFormat.cc test/pngFormat.hh test/stb_image.h test/stb_image_write.h test/main.cc)
 add_dependencies(${PROJECT_NAME} glrender)
 target_link_libraries(${PROJECT_NAME} glrender SDL2)
 
