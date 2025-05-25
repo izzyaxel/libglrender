@@ -1,4 +1,5 @@
-#include "pngFormat.hh"
+#include "png/pngFormat.hh"
+#include "deltatimer.hh"
 
 #include <glrender/glrAssetRepository.hh>
 #include <glrender/glrFixedRenderer.hh>
@@ -6,7 +7,6 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <string>
-#include <chrono>
 #include <filesystem>
 
 constexpr int32_t width = 800;
@@ -15,17 +15,17 @@ constexpr int32_t height = 600;
 SDL_Window* window = nullptr;
 SDL_GLContext context = nullptr;
 
-inline const std::vector<uint32_t> quadIndices{0, 1, 2, 2, 3, 0};
-inline const std::vector quadPositionsIndexed{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  -0.5f, 0.5f};
-inline const std::vector quadUVsIndexed{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  0.0f, 0.0f};
+const std::vector<uint32_t> quadIndices{0, 1, 2, 2, 3, 0};
+const std::vector quadPositionsIndexed{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  -0.5f, 0.5f};
+const std::vector quadUVsIndexed{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  0.0f, 0.0f};
 
 /*std::vector quadPositions{-0.5f, -0.5f,  0.5f, -0.5f,  0.5f, 0.5f,  0.5f, 0.5f,  -0.5f, 0.5f,  -0.5f, -0.5f};
 std::vector quadUVs{0.0f, 1.0f,  1.0f, 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 1.0f};*/
 
-inline constexpr std::array fullscreenQuadVerts{-1.0f, -1.0f,  1.0f, -1.0f,  -1.0f, 1.0f,  1.0f, 1.0f,};
-inline constexpr std::array fullscreenQuadUVs{0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
+constexpr std::array fullscreenQuadVerts{-1.0f, -1.0f,  1.0f, -1.0f,  -1.0f, 1.0f,  1.0f, 1.0f,};
+constexpr std::array fullscreenQuadUVs{0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
 
-inline const std::string testFrag =
+const std::string testFrag =
 R"(#version 460 core
 
 in vec2 uv;
@@ -36,7 +36,7 @@ void main()
 fragColor = vec4(1.0);
 })";
 
-inline const std::string objectFrag =
+const std::string objectFrag =
 R"(#version 460 core
 
 in vec2 uv;
@@ -49,7 +49,7 @@ void main()
 fragColor = texture(tex, uv);
 })";
 
-inline const std::string commonVert =
+const std::string commonVert =
 R"(#version 460 core
 
 layout(location = 0) in vec3 pos_in;
@@ -65,7 +65,7 @@ uv = uv_in;
 gl_Position = mvp * vec4(pos_in, 1.0);
 })";
 
-inline const std::string comp =
+const std::string comp =
 R"(#version 460 core
 
 layout(local_size_x = 40, local_size_y = 20) in;
@@ -77,7 +77,7 @@ ivec2 current = ivec2(gl_GlobalInvocationID.xy);
 imageStore(imageOut, current, vec4(1.0));
 })";
 
-inline const std::string transferFrag =
+const std::string transferFrag =
 R"(#version 460 core
 
 in vec2 uv;
@@ -91,35 +91,22 @@ fragColor = texture(tex, uv);
 
 PNG png;
 
-inline glr::ID testShader = glr::INVALID_ID;
-inline glr::ID objectShader = glr::INVALID_ID;
-inline glr::ID transferShader = glr::INVALID_ID;
-inline glr::ID objectTexture = glr::INVALID_ID;
-inline glr::ID fbo = glr::INVALID_ID;
-inline glr::ID objectMesh = glr::INVALID_ID;
-inline glr::ID fullscreenMesh = glr::INVALID_ID;
-inline glr::ID pipelineID = glr::INVALID_ID;
+glr::ID testShader = glr::INVALID_ID;
+glr::ID objectShader = glr::INVALID_ID;
+glr::ID transferShader = glr::INVALID_ID;
+glr::ID objectTexture = glr::INVALID_ID;
+glr::ID fbo = glr::INVALID_ID;
+glr::ID objectMesh = glr::INVALID_ID;
+glr::ID fullscreenMesh = glr::INVALID_ID;
+glr::ID pipelineID = glr::INVALID_ID;
+
+glr::RenderList renderList{};
+glr::Renderable renderableA;
+glr::Renderable renderableB;
 
 std::unique_ptr<glr::Renderer> renderer = nullptr;
 
 bool exiting = false;
-
-void eventPump()
-{
-  SDL_Event event;
-  while(SDL_PollEvent(&event) != 0)
-  {
-    switch(event.type)
-    {
-      case SDL_QUIT:
-      {
-        exiting = true;
-        break;
-      }
-      default: break;
-    }
-  }
-}
 
 void setup()
 {
@@ -145,15 +132,6 @@ void setup()
   SDL_GL_SetSwapInterval(1);
   
   renderer = std::make_unique<glr::Renderer>(reinterpret_cast<glr::GLLoadFunc>(SDL_GL_GetProcAddress), width, height);
-}
-
-void cleanup()
-{
-  renderer.reset();
-  
-  SDL_GL_DeleteContext(context);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
 }
 
 struct Camera
@@ -193,17 +171,9 @@ void initAssets()
   glr::asset_repo::meshAddPositions(fullscreenMesh, fullscreenQuadVerts.data(), fullscreenQuadVerts.size());
   glr::asset_repo::meshAddUVs(fullscreenMesh, fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
   glr::asset_repo::meshFinalize(fullscreenMesh);
-}
-
-int main()
-{
-  setup();
-  initAssets();
-
-  glr::RenderList renderList{};
 
   //TODO FIXME lots of renderdoc issues
-  const glr::Renderable renderableA = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
+  renderableA = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
   renderableA.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", commonVert, objectFrag);
   renderableA.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
   renderableA.meshComp->mesh = std::make_shared<glr::Mesh>();
@@ -213,43 +183,55 @@ int main()
   renderableA.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
   renderList.add(renderableA);
 
-  #if 0
   //TODO FIXME compute shader isn't running, the framebuffers are interfering, or texture bindings arent properly configured
-  const glr::Renderable renderableB = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
+  #if 0
+  renderableB = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
   renderableA.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
   renderList.add(renderableB);
   #endif
+}
+
+int main()
+{
+  setup();
+  initAssets();
   
-  auto prevLoop = std::chrono::steady_clock::now();
-  auto prevFrame = std::chrono::steady_clock::now();
-  float accumulator = 0.0f;
-  float deltaTime = 0.0f;
-  constexpr float fps = 60.0f;
-  constexpr float target = 1.0f / fps;
-  uint64_t frames = 0;
+  DeltaTimer dt(60);
   while(!exiting)
   {
-    auto now = std::chrono::steady_clock::now();
-    accumulator += std::chrono::duration_cast<std::chrono::duration<float>>(now - prevLoop).count();
-    prevLoop = now;
-    if(accumulator >= target)
+    dt.update();
+    if(dt.isTargetReached())
     {
-      deltaTime = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - prevFrame).count();
-      accumulator -= target - 0.00001f;
-      prevFrame = now;
-     
-      eventPump();
+      dt.onTargetReached();
+      SDL_Event event;
+      while(SDL_PollEvent(&event) != 0)
+      {
+        switch(event.type)
+        {
+          case SDL_QUIT:
+          {
+            exiting = true;
+            break;
+          }
+          default: break;
+        }
+      }
+      
       renderer->render(renderList, camera.view, camera.orthoProjection);
       SDL_GL_SwapWindow(window);
       
-      if(frames % (uint64_t)fps == 0)
+      if(dt.frames % (uint64_t)dt.getFPS() == 0)
       {
-        printf("%.4f ms (%.1f FPS)  \r", deltaTime * 1000.0f, 1.0f / deltaTime);
+        printf("%.4f ms (%.1f FPS)  \r", dt.getDeltaTime() * 1000.0f, 1.0f / dt.getDeltaTime());
       }
-      frames++;
+      dt.frames++;
     }
   }
   
-  cleanup();
+  renderer.reset();
+  SDL_GL_DeleteContext(context);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
+  
   return 0;
 }
