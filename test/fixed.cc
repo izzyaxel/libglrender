@@ -172,7 +172,7 @@ void initAssets()
   glr::asset_repo::meshAddUVs(fullscreenMesh, fullscreenQuadUVs.data(), fullscreenQuadUVs.size());
   glr::asset_repo::meshFinalize(fullscreenMesh);
 
-  //TODO FIXME lots of renderdoc issues
+  #if 1
   renderableA = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
   renderableA.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", commonVert, objectFrag);
   renderableA.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
@@ -182,9 +182,8 @@ void initAssets()
   renderableA.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderableA.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
   renderList.add(renderableA);
-
-  //TODO FIXME compute shader isn't running, the framebuffers are interfering, or texture bindings arent properly configured
-  #if 0
+  #else
+  //TODO FIXME compute shader isn't running, the framebuffers are interfering?
   renderableB = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
   renderableA.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
   renderList.add(renderableB);

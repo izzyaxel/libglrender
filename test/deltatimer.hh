@@ -5,7 +5,8 @@
 struct DeltaTimer
 {
   explicit DeltaTimer(const uint32_t targetFPS);
-
+  
+  void setTargetFPS(const uint32_t targetFPS);
   void update();
   bool isTargetReached() const;
   void onTargetReached();

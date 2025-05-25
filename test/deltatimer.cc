@@ -2,6 +2,11 @@
 
 DeltaTimer::DeltaTimer(const uint32_t targetFPS)
 {
+  this->setTargetFPS(targetFPS);
+}
+
+void DeltaTimer::setTargetFPS(const uint32_t targetFPS)
+{
   this->fps = (float)targetFPS;
   this->target = 1.0f / this->fps;
 }
