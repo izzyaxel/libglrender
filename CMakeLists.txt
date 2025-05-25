@@ -52,7 +52,8 @@ set(SRC
     src/glrender/glrAssetID.hh
     
     src/glrUtil.cc src/glrender/glrUtil.hh
-    src/glrRenderer.cc src/glrender/glrRenderer.hh
+    src/glrPipelineRenderer.cc src/glrender/glrPipelineRenderer.hh
+    src/glrFixedRenderer.cc src/glrender/glrFixedRenderer.hh
     src/glrFramebuffer.cc src/glrender/glrFramebuffer.hh
     src/glrPostProcessing.cc src/glrender/glrPostProcessing.hh
     src/glrTexture.cc src/glrender/glrTexture.hh

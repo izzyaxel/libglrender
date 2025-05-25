@@ -1,15 +1,15 @@
 #include "pngFormat.hh"
 
 #include <glrender/glrAssetRepository.hh>
-#include <glrender/glrRenderer.hh>
+#include "glrender/glrPipelineRenderer.hh"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <string>
 #include <chrono>
 #include <filesystem>
+#include <commons/math/quaternion.hh>
 
-#define PIPELINE_RENDERING
 constexpr int32_t width = 800;
 constexpr int32_t height = 600;
 
@@ -126,7 +126,7 @@ void eventPump()
 void setup()
 {
   SDL_Init(SDL_INIT_EVERYTHING);
-  window = SDL_CreateWindow("gltest", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
+  window = SDL_CreateWindow("Pipeline Renderer Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
   if(!window)
   {
     throw std::runtime_error("Failed to create a window");
@@ -151,11 +151,7 @@ void setup()
 
 void cleanup()
 {
-  #if defined(PIPELINE_RENDERING)
   pipelineRenderer.reset();
-  #else
-  renderer.reset();
-  #endif
   
   SDL_GL_DeleteContext(context);
   SDL_DestroyWindow(window);

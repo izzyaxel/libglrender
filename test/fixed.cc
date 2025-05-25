@@ -1,7 +1,7 @@
 #include "pngFormat.hh"
 
 #include <glrender/glrAssetRepository.hh>
-#include <glrender/glrRenderer.hh>
+#include <glrender/glrFixedRenderer.hh>
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -124,7 +124,7 @@ void eventPump()
 void setup()
 {
   SDL_Init(SDL_INIT_EVERYTHING);
-  window = SDL_CreateWindow("gltest", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
+  window = SDL_CreateWindow("Fixed Function Renderer Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
   if(!window)
   {
     throw std::runtime_error("Failed to create a window");
@@ -201,20 +201,24 @@ int main()
   initAssets();
 
   glr::RenderList renderList{};
-  const glr::Renderable renderable = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
-  renderable.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", commonVert, objectFrag);
-  renderable.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
-  renderable.meshComp->mesh = std::make_shared<glr::Mesh>();
-  renderable.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
-  renderable.meshComp->mesh->addPositions(quadPositionsIndexed.data(), quadPositionsIndexed.size())->addUVs(quadUVsIndexed.data(), quadUVsIndexed.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
-  renderable.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
-  renderable.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
-  renderList.add(renderable);
-  
+
+  //TODO FIXME lots of renderdoc issues
+  const glr::Renderable renderableA = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
+  renderableA.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", commonVert, objectFrag);
+  renderableA.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
+  renderableA.meshComp->mesh = std::make_shared<glr::Mesh>();
+  renderableA.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
+  renderableA.meshComp->mesh->addPositions(quadPositionsIndexed.data(), quadPositionsIndexed.size())->addUVs(quadUVsIndexed.data(), quadUVsIndexed.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
+  renderableA.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
+  renderableA.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
+  renderList.add(renderableA);
+
+  #if 0
   //TODO FIXME compute shader isn't running, the framebuffers are interfering, or texture bindings arent properly configured
-  /*const glr::Renderable renderable = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
-  renderable.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
-  renderList.add(renderable);*/
+  const glr::Renderable renderableB = glr::newRenderable({glr::COMPUTE_RENDERABLE_TEMPLATE});
+  renderableA.computeShaderComp->shader = std::make_shared<glr::Shader>("default", comp);
+  renderList.add(renderableB);
+  #endif
   
   auto prevLoop = std::chrono::steady_clock::now();
   auto prevFrame = std::chrono::steady_clock::now();
