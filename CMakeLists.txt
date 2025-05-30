@@ -52,7 +52,6 @@ set(SRC
     src/glrender/glrAssetID.hh
     
     src/glrUtil.cc src/glrender/glrUtil.hh
-    src/glrPipelineRenderer.cc src/glrender/glrPipelineRenderer.hh
     src/glrFixedRenderer.cc src/glrender/glrFixedRenderer.hh
     src/glrFramebuffer.cc src/glrender/glrFramebuffer.hh
     src/glrPostProcessing.cc src/glrender/glrPostProcessing.hh
@@ -67,6 +66,12 @@ set(SRC
     src/glrRenderList.cc src/glrender/glrRenderList.hh
     src/glrShaderPipeline.cc src/glrender/glrShaderPipeline.hh
     src/glrAssetRepository.cc src/glrender/glrAssetRepository.hh)
+
+set(PIPELINE_RENDERER OFF)
+if(${PIPELINE_RENDERER})
+  message(STATUS "Experimental feature \"Pipeline renderer\" enabled")
+  set(${SRC} src/glrPipelineRenderer.cc src/glrender/glrPipelineRenderer.hh)
+endif()
 
 project(glrender)
 include_directories(include)
