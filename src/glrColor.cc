@@ -2,6 +2,7 @@
 
 #include <commons/misc.hh>
 #include <numeric>
+#include <sstream>
 
 namespace glr
 {

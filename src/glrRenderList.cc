@@ -1,5 +1,7 @@
 #include "glrender/glrRenderList.hh"
 
+#include <algorithm>
+
 namespace glr
 {
   bool RenderList::renderableComparator(const Renderable& a, const Renderable& b)
