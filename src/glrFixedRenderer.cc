@@ -3,6 +3,8 @@
 #include <glad/gl.hh>
 #include <commons/math/mat4.hh>
 
+#include "glrender/glrAssetRepository.hh"
+
 namespace glr
 {
   std::string transferFrag =
@@ -360,20 +362,21 @@ void main()
     {
       return;
     }
-    
-    std::shared_ptr<Texture> currentTexture = nullptr;
+
+    ID currentTexture = INVALID_ID;
+    //std::shared_ptr<Texture> currentTexture = nullptr;
     this->view = viewMat;
     this->projection = projectionMat;
     
     if(rl.front().textureComp && rl.front().textureComp->texture)
     {
       currentTexture = rl.front().textureComp->texture;
-      currentTexture->use();
+      asset_repo::textureUse(currentTexture);
     }
 
     const bool doPostprocessing = !this->layerPostStack.empty() || (this->globalPostStack && !this->globalPostStack->isEmpty());
 
-    if(!doPostprocessing) //TODO FIXME can't render directly to the back buffer, why? get "no defined base level" warnings on textures, most likely the FBO attachments?
+    if(!doPostprocessing) //TODO FIXME can't render directly to the back buffer, why?
     {
       //TODO ideally, draw directly to the backbuffer
       this->pingPong();
@@ -394,7 +397,7 @@ void main()
     }
   }
 
-  void Renderer::renderWithoutLayerPost(const RenderList& rl, std::shared_ptr<Texture>& currentTexture)
+  void Renderer::renderWithoutLayerPost(const RenderList& rl, ID& currentTexture)
   {
     for(const auto& entry : rl.list)
     {
@@ -403,22 +406,23 @@ void main()
         if(entry.textureComp && entry.textureComp->texture)
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use();
+          asset_repo::textureUse(currentTexture);
         }
       }
       else
       {
-        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
+
+        if(entry.textureComp && asset_repo::textureExists(entry.textureComp->texture) && asset_repo::textureGetHandle(entry.textureComp->texture) != asset_repo::textureGetHandle(currentTexture))
         {
           currentTexture = entry.textureComp->texture;
-          currentTexture->use();
+          asset_repo::textureUse(currentTexture);
         }
       }
       this->drawRenderable(entry);
     }
   }
   
-  void Renderer::renderWithLayerPost(RenderList& rl, std::shared_ptr<Texture>& currentTexture)
+  void Renderer::renderWithLayerPost(RenderList& rl, ID& currentTexture)
   {
     this->scratch.use();
     this->clearCurrentFramebuffer();
@@ -445,7 +449,7 @@ void main()
       }
       else
       {
-        if(entry.textureComp && entry.textureComp->texture && entry.textureComp->texture->handle != currentTexture->handle)
+        if(entry.textureComp && asset_repo::textureExists(entry.textureComp->texture) && asset_repo::textureGetHandle(entry.textureComp->texture) != asset_repo::textureGetHandle(currentTexture))
         {
           bind = true;
           currentTexture = entry.textureComp->texture;
@@ -456,7 +460,7 @@ void main()
       {
         if(bind && currentTexture)
         {
-          currentTexture->use();
+          asset_repo::textureUse(currentTexture);
         }
         
         this->drawRenderable(entry);
@@ -470,13 +474,13 @@ void main()
           this->pingPong();
           if(currentTexture)
           {
-            currentTexture->use();
+            asset_repo::textureUse(currentTexture);
           }
         }
         
         if(bind && currentTexture)
         {
-          currentTexture->use();
+          asset_repo::textureUse(currentTexture);
         }
         
         this->drawRenderable(entry);
@@ -495,13 +499,13 @@ void main()
           this->pingPong();
           if(currentTexture)
           {
-            currentTexture->use();
+            asset_repo::textureUse(currentTexture);
           }
         }
         
         if(bind && currentTexture)
         {
-          currentTexture->use();
+          asset_repo::textureUse(currentTexture);
         }
         
         this->drawRenderable(entry);
@@ -524,17 +528,17 @@ void main()
     {
       this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      entry.fragVertShaderComp->shader->use();
-      entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
-      entry.fragVertShaderComp->shader->sendUniforms();
-      entry.meshComp->mesh->use();
-      if(entry.meshComp->mesh->isIndexed())
+      asset_repo::shaderUse(entry.fragVertShaderComp->shader);
+      asset_repo::shaderSetUniform(entry.fragVertShaderComp->shader, "mvp", this->mvp);
+      asset_repo::shaderSendUniforms(entry.fragVertShaderComp->shader);
+      asset_repo::meshUse(entry.meshComp->mesh);
+      if(asset_repo::meshIsIndexed(entry.meshComp->mesh))
       {
-        this->drawIndexed(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numIndices);
+        this->drawIndexed(asset_repo::meshGetDrawMode(entry.meshComp->mesh), asset_repo::meshGetIndices(entry.meshComp->mesh));
       }
       else
       {
-        this->draw(entry.meshComp->mesh->drawMode, entry.meshComp->mesh->numVerts);
+        this->draw(asset_repo::meshGetDrawMode(entry.meshComp->mesh), asset_repo::meshGetVertices(entry.meshComp->mesh));
       }
     }
     else if(isTemplate(entry, COMPUTE_RENDERABLE_TEMPLATE)) //Compute image generation
@@ -544,8 +548,8 @@ void main()
       {
         this->bindImage(binding, image->handle, entry.computeShaderComp->ioMode, entry.computeShaderComp->glColorFormat);
       }
-      entry.computeShaderComp->shader->use();
-      entry.computeShaderComp->shader->sendUniforms();
+      asset_repo::shaderUse(entry.computeShaderComp->shader);
+      asset_repo::shaderSendUniforms(entry.computeShaderComp->shader);
       this->startComputeShader(this->contextSize);
     }
     else if(isTemplate(entry, TEXT_RENDERABLE_TEMPLATE) && entry.meshComp->mesh && entry.fragVertShaderComp->shader) //Text object rendered with a frag/vert shader
@@ -573,10 +577,10 @@ void main()
       textMesh.use();
       this->model = modelMatrix(entry.transformComp->pos, entry.transformComp->rotation, entry.transformComp->scale);
       this->mvp = modelViewProjectionMatrix(this->model, this->view, this->projection);
-      
-      entry.fragVertShaderComp->shader->use();
-      entry.fragVertShaderComp->shader->setUniform("mvp", this->mvp);
-      entry.fragVertShaderComp->shader->sendUniforms();
+
+      asset_repo::shaderUse(entry.fragVertShaderComp->shader);
+      asset_repo::shaderSetUniform(entry.fragVertShaderComp->shader, "mvp", this->mvp);
+      asset_repo::shaderSendUniforms(entry.fragVertShaderComp->shader);
 
       if(textMesh.isIndexed())
       {

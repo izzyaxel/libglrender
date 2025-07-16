@@ -1,4 +1,5 @@
 #include "glrender/glrRenderList.hh"
+#include "glrender/glrAssetRepository.hh"
 
 #include <algorithm>
 
@@ -10,7 +11,7 @@ namespace glr
     bool layers = false;
     if(a.textureComp && b.textureComp)
     {
-      textures = a.textureComp->texture->handle > b.textureComp->texture->handle;
+      textures = asset_repo::textureGetHandle(a.textureComp->texture) > asset_repo::textureGetHandle(b.textureComp->texture);
     }
     if(a.layerComp && b.layerComp)
     {

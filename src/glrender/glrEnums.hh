@@ -26,6 +26,7 @@ enum class GLRDrawMode : unsigned short
   LINE_STRIPS = 0x0003,
   LINE_LOOPS = 0x0002,
   POINTS = 0x0000,
+  NONE,
 };
 
 enum class GLRColorFormat : unsigned short
@@ -50,12 +51,13 @@ enum class GLRDrawType : unsigned short
 {
   STREAM_COPY = 0x88E2, STREAM_DRAW = 0x88E0, STREAM_READ = 0x88E1,
   STATIC_COPY = 0x88E6, STATIC_DRAW = 0x88E4, STATIC_READ = 0x88E5,
-  DYNAMIC_COPY = 0x88EA, DYNAMIC_DRAW = 0x88E8, DYNAMIC_READ = 0x88E9
+  DYNAMIC_COPY = 0x88EA, DYNAMIC_DRAW = 0x88E8, DYNAMIC_READ = 0x88E9,
+  NONE,
 };
 
 enum struct GLRBufferType
 {
-  INTERLEAVED, SEPARATE,
+  INTERLEAVED, SEPARATE, NONE,
 };
 
 enum struct GLRDimensions

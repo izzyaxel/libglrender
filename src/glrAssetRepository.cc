@@ -299,6 +299,15 @@ namespace glr::asset_repo
     return textures.at(texture)->downloadTexture(channels);
   }
 
+  uint32_t textureGetHandle(const ID texture)
+  {
+    if(!textures.contains(texture))
+    {
+      return INVALID_ID;
+    }
+    return textures.at(texture)->handle;
+  }
+
   //Mesh
   void meshUse(const ID mesh)
   {
@@ -363,7 +372,7 @@ namespace glr::asset_repo
     meshes.at(mesh)->addColors(colors, colorsSize, callback);
   }
 
-  size_t meshGetVertices(ID mesh)
+  size_t meshGetVertices(const ID mesh)
   {
     if(!meshes.contains(mesh))
     {
@@ -372,7 +381,7 @@ namespace glr::asset_repo
     return meshes.at(mesh)->numVerts;
   }
   
-  size_t meshGetIndices(ID mesh)
+  size_t meshGetIndices(const ID mesh)
   {
     if(!meshes.contains(mesh))
     {
@@ -406,6 +415,33 @@ namespace glr::asset_repo
       return false;
     }
     return meshes.at(mesh)->isIndexed();
+  }
+
+  GLRBufferType meshGetBufferType(const ID mesh)
+  {
+    if(!meshes.contains(mesh))
+    {
+      return GLRBufferType::NONE;
+    }
+    return meshes.at(mesh)->bufferType;
+  }
+
+  GLRDrawMode meshGetDrawMode(const ID mesh)
+  {
+    if(!meshes.contains(mesh))
+    {
+      return GLRDrawMode::NONE;
+    }
+    return meshes.at(mesh)->drawMode;
+  }
+
+  GLRDrawType meshGetDrawType(const ID mesh)
+  {
+    if(!meshes.contains(mesh))
+    {
+      return GLRDrawType::NONE;
+    }
+    return meshes.at(mesh)->drawType;
   }
 
   //Framebuffer

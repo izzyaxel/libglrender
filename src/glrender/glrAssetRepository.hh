@@ -61,6 +61,7 @@ namespace glr::asset_repo
   GLRENDER_API void textureSubImage(ID texture, const uint8_t* data, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, uint8_t channels);
   GLRENDER_API void textureClear(ID texture);
   GLRENDER_API DownloadedImageData textureDownload(ID texture, uint8_t channels);
+  GLRENDER_API uint32_t textureGetHandle(ID texture);
   
   //Mesh
   GLRENDER_API void meshUse(ID mesh);
@@ -75,7 +76,10 @@ namespace glr::asset_repo
   GLRENDER_API size_t meshGetIndices(ID mesh);
   GLRENDER_API bool meshIsFinalized(ID mesh);
   GLRENDER_API bool meshIsIndexed(ID mesh);
-  
+  GLRENDER_API GLRBufferType meshGetBufferType(ID mesh);
+  GLRENDER_API GLRDrawMode meshGetDrawMode(ID mesh);
+  GLRENDER_API GLRDrawType meshGetDrawType(ID mesh);
+
   //Framebuffer
   GLRENDER_API void fboUse(ID fbo);
   GLRENDER_API void fboSetDimensions(ID fbo, uint32_t width, uint32_t height);

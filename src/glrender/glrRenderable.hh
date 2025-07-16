@@ -1,15 +1,13 @@
 #pragma once
 
 #include "export.hh"
-#include "glrTexture.hh"
-#include "glrShader.hh"
-#include "glrMesh.hh"
+#include "glrAssetID.hh"
 #include "glrColor.hh"
-#include "glrEnums.hh"
 #include "glrAtlas.hh"
 
 #include <commons/math/quaternion.hh>
 #include <memory>
+#include <unordered_map>
 
 namespace glr
 {
@@ -40,23 +38,27 @@ namespace glr
 
   struct TextureComp
   {
-    std::shared_ptr<Texture> texture = nullptr;
+    ID texture = INVALID_ID;
+    //std::shared_ptr<Texture> texture = nullptr;
   };
   
   struct MeshComp
   {
-    std::shared_ptr<Mesh> mesh = nullptr;
+    ID mesh = INVALID_ID;
+    //std::shared_ptr<Mesh> mesh = nullptr;
   };
   
   struct FragVertShaderComp
   {
-    std::shared_ptr<Shader> shader = nullptr;
+    ID shader = INVALID_ID;
+    //std::shared_ptr<Shader> shader = nullptr;
   };
 
   struct ComputeShaderComp
   {
+    ID shader = INVALID_ID;
+    //std::shared_ptr<Shader> shader = nullptr;
     std::unordered_map<int32_t, Texture*> imageBindings{};
-    std::shared_ptr<Shader> shader = nullptr;
     GLRIOMode ioMode{};
     GLRColorFormat glColorFormat{};
   };
