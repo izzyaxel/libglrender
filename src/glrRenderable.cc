@@ -2,10 +2,6 @@
 
 namespace glr
 {
-  const RenderableComps OBJECT_RENDERABLE_TEMPLATE{TRANSFORM, TEXTURE, MESH, FRAGVERTSHADER, LAYER};
-  const RenderableComps TEXT_RENDERABLE_TEMPLATE{TRANSFORM, TEXTURE, MESH, FRAGVERTSHADER, LAYER, TEXT};
-  const RenderableComps COMPUTE_RENDERABLE_TEMPLATE{COMPUTESHADER};
-  
   CharInfo::CharInfo() {}
 
   CharInfo::CharInfo(const char& character, const Color& color, const QuadUVs& atlasUVs, const std::string& colorUniformLocation)

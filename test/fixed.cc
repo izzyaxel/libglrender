@@ -174,11 +174,14 @@ void initAssets()
 
   #if 1
   renderableA = glr::newRenderable({glr::OBJECT_RENDERABLE_TEMPLATE});
-  renderableA.fragVertShaderComp->shader = std::make_shared<glr::Shader>("default", commonVert, objectFrag);
-  renderableA.textureComp->texture = std::make_shared<glr::Texture>("test texture", png.data.data(), png.width, png.height, png.channels);
-  renderableA.meshComp->mesh = std::make_shared<glr::Mesh>();
-  renderableA.meshComp->mesh->setPositionDimensions(GLRDimensions::TWO_DIMENSIONAL);
-  renderableA.meshComp->mesh->addPositions(quadPositionsIndexed.data(), quadPositionsIndexed.size())->addUVs(quadUVsIndexed.data(), quadUVsIndexed.size())->addIndices(quadIndices.data(), quadIndices.size())->finalize();
+  renderableA.fragVertShaderComp->shader = glr::asset_repo::newShader("default", commonVert, objectFrag);
+  renderableA.textureComp->texture = glr::asset_repo::newTexture("test texture", png.data.data(), png.width, png.height, png.channels);
+  renderableA.meshComp->mesh = glr::asset_repo::newMesh();
+  glr::asset_repo::meshSetPositionDimensions(renderableA.meshComp->mesh, GLRDimensions::TWO_DIMENSIONAL);
+  glr::asset_repo::meshAddPositions(renderableA.meshComp->mesh, quadPositionsIndexed.data(), quadPositionsIndexed.size());
+  glr::asset_repo::meshAddUVs(renderableA.meshComp->mesh, quadUVsIndexed.data(), quadUVsIndexed.size());
+  glr::asset_repo::meshAddIndices(renderableA.meshComp->mesh, quadIndices.data(), quadIndices.size());
+  glr::asset_repo::meshFinalize(renderableA.meshComp->mesh);
   renderableA.transformComp->pos =  vec3{0.0f, 0.0f, 0.0f};
   renderableA.transformComp->scale = vec3{400.0f, 400.0f, 1.0f};
   renderList.add(renderableA);

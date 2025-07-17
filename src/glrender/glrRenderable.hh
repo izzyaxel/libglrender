@@ -86,9 +86,9 @@ namespace glr
   
   using RenderableComps = std::vector<RenderableCompType>;
   
-  GLRENDER_API extern const RenderableComps OBJECT_RENDERABLE_TEMPLATE;
-  GLRENDER_API extern const RenderableComps TEXT_RENDERABLE_TEMPLATE;
-  GLRENDER_API extern const RenderableComps COMPUTE_RENDERABLE_TEMPLATE;
+  GLRENDER_API inline const RenderableComps OBJECT_RENDERABLE_TEMPLATE{TRANSFORM, TEXTURE, MESH, FRAGVERTSHADER, LAYER};
+  GLRENDER_API inline const RenderableComps TEXT_RENDERABLE_TEMPLATE{TRANSFORM, TEXTURE, MESH, FRAGVERTSHADER, LAYER, TEXT};
+  GLRENDER_API inline const RenderableComps COMPUTE_RENDERABLE_TEMPLATE{COMPUTESHADER};
   
   GLRENDER_API Renderable newRenderable(const RenderableComps& comps);
   GLRENDER_API bool isTemplate(const Renderable& renderable, const RenderableComps& tmplt);
