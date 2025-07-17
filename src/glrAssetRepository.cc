@@ -303,7 +303,7 @@ namespace glr::asset_repo
   {
     if(!textures.contains(texture))
     {
-      return INVALID_ID;
+      return INVALID_HANDLE;
     }
     return textures.at(texture)->handle;
   }
